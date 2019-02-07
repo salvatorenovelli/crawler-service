@@ -2,7 +2,7 @@ package com.myseotoolbox.crawl;
 
 
 import com.myseotoolbox.crawl.config.AsyncMonitoredUriScanConfig;
-import com.myseotoolbox.crawl.httpclient.WebPageScraper;
+import com.myseotoolbox.crawl.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawl.model.Workspace;
 import com.myseotoolbox.crawl.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawl.repository.WorkspaceRepository;
@@ -25,7 +25,7 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class MonitoredUriScannerAsyncTest {
 
-    @Mock private WebPageScraper scraper;
+    @Mock private MonitoredUriScraper scraper;
     @Mock private MonitoredUriRepository monitoredUriRepo;
     @Mock private WorkspaceRepository workspaceRepo;
 

@@ -2,7 +2,7 @@ package com.myseotoolbox.crawl;
 
 
 import com.myseotoolbox.crawl.httpclient.WebPageReader;
-import com.myseotoolbox.crawl.httpclient.WebPageScraper;
+import com.myseotoolbox.crawl.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawl.model.MonitoredUri;
 import com.myseotoolbox.crawl.model.PageSnapshot;
 import com.myseotoolbox.crawl.repository.MonitoredUriRepository;
@@ -31,7 +31,7 @@ import static org.mockito.Mockito.verify;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class WebPageScraperPageCrawlTest {
+public class MonitoredUriCrawlTest {
 
 
     @Spy private WebPageReader reader = new WebPageReader();
@@ -40,11 +40,11 @@ public class WebPageScraperPageCrawlTest {
     @Mock private PageCrawlPersistence pageCrawlPersistence;
     private CalendarService calendar = new TestCalendarService();
 
-    private WebPageScraper sut;
+    private MonitoredUriScraper sut;
 
     @Before
     public void setUp() {
-        sut = new WebPageScraper(reader, pageSnapshotRepository, pageCrawlPersistence, calendar);
+        sut = new MonitoredUriScraper(reader, pageSnapshotRepository, pageCrawlPersistence, calendar);
         PageCrawlPreviousValueTestBuilder.initMocks(monitoredUriRepo, pageSnapshotRepository);
     }
 

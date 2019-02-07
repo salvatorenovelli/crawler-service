@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawl;
 
 import com.myseotoolbox.crawl.httpclient.WebPageReader;
-import com.myseotoolbox.crawl.httpclient.WebPageScraper;
+import com.myseotoolbox.crawl.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawl.model.EntityNotFoundException;
 import com.myseotoolbox.crawl.model.MonitoredUri;
 import com.myseotoolbox.crawl.model.PageSnapshot;
@@ -57,7 +57,7 @@ public class MonitoredUriScannerTest {
     private CalendarService calendar = new CalendarService();
 
 
-    WebPageScraper crawler;
+    MonitoredUriScraper crawler;
     @Mock private WebPageReader reader;
     @Mock private PageCrawlPersistence pageCrawlPersistence;
 
@@ -67,7 +67,7 @@ public class MonitoredUriScannerTest {
 
     @Before
     public void setUp() {
-        crawler = new WebPageScraper(reader, pageSnapshotRepo, pageCrawlPersistence, calendar);
+        crawler = new MonitoredUriScraper(reader, pageSnapshotRepo, pageCrawlPersistence, calendar);
 
         when(reader.snapshotPage(any())).then(invocation -> aPageSnapshotWithStandardValuesForUri(invocation.getArguments()[0].toString()));
 

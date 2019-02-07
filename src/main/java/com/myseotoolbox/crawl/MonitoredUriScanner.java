@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawl;
 
 
-import com.myseotoolbox.crawl.httpclient.WebPageScraper;
+import com.myseotoolbox.crawl.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawl.model.EntityNotFoundException;
 import com.myseotoolbox.crawl.model.MonitoredUri;
 import com.myseotoolbox.crawl.model.Workspace;
@@ -24,15 +24,15 @@ public class MonitoredUriScanner {
 
 
     public static final int DEFAULT_PAGE_SIZE = 20;
-    private final WebPageScraper webPageScraper;
+    private final MonitoredUriScraper monitoredUriScraper;
 
     private final MonitoredUriRepository monitoredUriRepository;
     private final WorkspaceRepository workspaceRepository;
     @Qualifier("asyncMonitoredUriScanExecutor")
     private final Executor executor;
 
-    public MonitoredUriScanner(WebPageScraper webPageScraper, MonitoredUriRepository monitoredUriRepository, WorkspaceRepository workspaceRepository, Executor executor) {
-        this.webPageScraper = webPageScraper;
+    public MonitoredUriScanner(MonitoredUriScraper monitoredUriScraper, MonitoredUriRepository monitoredUriRepository, WorkspaceRepository workspaceRepository, Executor executor) {
+        this.monitoredUriScraper = monitoredUriScraper;
         this.monitoredUriRepository = monitoredUriRepository;
         this.workspaceRepository = workspaceRepository;
         this.executor = executor;
@@ -77,7 +77,7 @@ public class MonitoredUriScanner {
     }
 
     private void scanUris(Stream<MonitoredUri> stream) {
-        stream.map(webPageScraper::crawlUri)
+        stream.map(monitoredUriScraper::crawlUri)
                 .peek(it -> it.setStatus(it.getCurrentValue().getCrawlStatus()))
                 .peek(uri -> log.debug("FinishedScanning {}. Persisting monitored URI", uri.getUri()))
                 .forEach(monitoredUri ->

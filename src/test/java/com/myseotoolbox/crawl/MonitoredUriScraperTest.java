@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawl;
 
 import com.myseotoolbox.crawl.httpclient.WebPageReader;
-import com.myseotoolbox.crawl.httpclient.WebPageScraper;
+import com.myseotoolbox.crawl.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawl.model.MonitoredUri;
 import com.myseotoolbox.crawl.model.PageSnapshot;
 import com.myseotoolbox.crawl.model.RedirectChainElement;
@@ -35,20 +35,20 @@ import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
 @DataMongoTest
-public class WebPageScraperTest {
+public class MonitoredUriScraperTest {
 
 
     private WebPageReader reader = Mockito.spy(new WebPageReader());
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
     @Mock private PageCrawlPersistence pageCrawlPersistence;
 
-    WebPageScraper sut;
+    MonitoredUriScraper sut;
     private CalendarService mockCalendarService = new TestCalendarService();
 
     @Before
     public void setUp() {
 
-        sut = new WebPageScraper(reader, pageSnapshotRepository, pageCrawlPersistence, mockCalendarService);
+        sut = new MonitoredUriScraper(reader, pageSnapshotRepository, pageCrawlPersistence, mockCalendarService);
     }
 
     @After

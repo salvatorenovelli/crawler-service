@@ -17,7 +17,7 @@ import java.util.Date;
 
 @Slf4j
 @Component
-public class WebPageScraper {
+public class MonitoredUriScraper {
 
 
     private final WebPageReader webPageReader;
@@ -26,7 +26,7 @@ public class WebPageScraper {
     private final CalendarService calendarService;
 
     @Autowired
-    public WebPageScraper(WebPageReader webPageReader, PageSnapshotRepository pageSnapshotRepository, PageCrawlPersistence pageCrawlPersistence, CalendarService calendarService) {
+    public MonitoredUriScraper(WebPageReader webPageReader, PageSnapshotRepository pageSnapshotRepository, PageCrawlPersistence pageCrawlPersistence, CalendarService calendarService) {
         this.webPageReader = webPageReader;
         this.pageSnapshotRepository = pageSnapshotRepository;
         this.pageCrawlPersistence = pageCrawlPersistence;
