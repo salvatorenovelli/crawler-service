@@ -33,7 +33,6 @@ public class MonitoredUriScraper {
         this.calendarService = calendarService;
     }
 
-
     public MonitoredUri crawlUri(MonitoredUri monitoredUri) {
 
         Date scanDate = calendarService.now();
@@ -45,7 +44,7 @@ public class MonitoredUriScraper {
             newValue = webPageReader.snapshotPage(URI.create(uri));
             newValue.setCreateDate(scanDate);
 
-        } catch (Exception e) {
+        } catch (SnapshotException e) {
             String message = "Error while crawling " + monitoredUri.getUri() + ": " + e.toString();
             newValue.setCrawlStatus(message);
             log.warn(message, e);

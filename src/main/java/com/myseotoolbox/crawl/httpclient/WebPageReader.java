@@ -25,8 +25,12 @@ public class WebPageReader {
 
     private final HtmlParser parser = new HtmlParser();
 
-    public PageSnapshot snapshotPage(URI uri) {
-        return analyseRedirectChain(uri.toString());
+    public PageSnapshot snapshotPage(URI uri) throws SnapshotException{
+        try {
+            return analyseRedirectChain(uri.toString());
+        } catch (Exception e) {
+            throw new SnapshotException(e);
+        }
     }
 
     public static boolean isRedirect(int statusCode) {
