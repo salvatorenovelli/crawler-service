@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.testutils;
+package com.myseotoolbox.crawler.testutils.testwebsite;
 
 import lombok.Getter;
 import org.eclipse.jetty.server.Request;

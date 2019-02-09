@@ -8,7 +8,7 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.testutils.TestCalendarService;
-import com.myseotoolbox.crawler.testutils.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -21,13 +21,12 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.WebPageReaderTest.TEST_ROOT_PAGE_PATH;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.TestCalendarService.DEFAULT_TEST_DAY;
-import static com.myseotoolbox.crawler.testutils.TestWebsiteBuilder.givenAWebsite;
-import static com.myseotoolbox.crawler.testutils.TestWebsiteBuilder.testUri;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -45,16 +44,16 @@ public class MonitoredUriScraperTest {
 
     MonitoredUriScraper sut;
     private CalendarService mockCalendarService = new TestCalendarService();
+    private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     @Before
     public void setUp() {
-
         sut = new MonitoredUriScraper(reader, pageSnapshotRepository, pageCrawlPersistence, mockCalendarService);
     }
 
     @After
     public void tearDown() throws Exception {
-        TestWebsiteBuilder.tearDownCurrentServer();
+        testWebsiteBuilder.stop();
         pageSnapshotRepository.deleteAll();
     }
 
@@ -85,6 +84,10 @@ public class MonitoredUriScraperTest {
         assertThat(pageSnapshotRepository.findAll().get(0).getCreateDate(), is(DEFAULT_TEST_DAY));
 
 
+    }
+
+    private TestWebsiteBuilder givenAWebsite() {
+        return testWebsiteBuilder;
     }
 
     @Test
@@ -140,6 +143,10 @@ public class MonitoredUriScraperTest {
         assertThat(pageSnapshot.getTitle(), Matchers.is("You've reached the right place!"));
         assertThat(pageSnapshot.getRedirectChainElements().size(), is(2));
 
+    }
+
+    private URI testUri(String uri) throws URISyntaxException {
+        return testWebsiteBuilder.buildTestUri(uri);
     }
 
     private String getDestinationUri(PageSnapshot pageSnapshot) {

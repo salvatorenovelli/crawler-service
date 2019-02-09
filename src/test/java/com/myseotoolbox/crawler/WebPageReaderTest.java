@@ -3,9 +3,9 @@ package com.myseotoolbox.crawler;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
-import com.myseotoolbox.crawler.testutils.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
-import com.myseotoolbox.crawler.testutils.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
+import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -13,9 +13,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
-import static com.myseotoolbox.crawler.testutils.TestWebsiteBuilder.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
@@ -29,6 +30,7 @@ public class WebPageReaderTest {
 
 
     private WebPageReader sut;
+    private TestWebsiteBuilder testWebsiteBuilder= TestWebsiteBuilder.build();
 
     @Before
     public void setUp() {
@@ -37,12 +39,12 @@ public class WebPageReaderTest {
 
     @After
     public void tearDown() throws Exception {
-        TestWebsiteBuilder.tearDownCurrentServer();
+        testWebsiteBuilder.stop();
     }
 
     @Test
     public void shouldRetrieveTitle() throws Exception {
-        givenAWebsite(TEST_ROOT_PAGE_PATH)
+        givenAWebsite().havingRootPage()
                 .withTitle(TEST_TITLE)
                 .run();
         PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
@@ -51,7 +53,7 @@ public class WebPageReaderTest {
 
     @Test
     public void shouldReadTags() throws Exception {
-        givenAWebsite(TEST_ROOT_PAGE_PATH)
+        givenAWebsite().havingRootPage()
                 .withTag("H1", "Test H1")
                 .run();
         PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
@@ -64,7 +66,7 @@ public class WebPageReaderTest {
 
     @Test
     public void shouldReadMultipleTags() throws Exception {
-        givenAWebsite(TEST_ROOT_PAGE_PATH)
+        givenAWebsite().havingRootPage()
                 .withTag("H1", "Test H1")
                 .withTag("H1", "Test second H1")
                 .run();
@@ -79,7 +81,7 @@ public class WebPageReaderTest {
 
     @Test
     public void shouldReadMultipleDiverseTags() throws Exception {
-        givenAWebsite(TEST_ROOT_PAGE_PATH)
+        givenAWebsite().havingRootPage()
                 .withTag("H1", "Test H1")
                 .withTag("H1", "Test second H1")
                 .withTag("H2", "Test H2")
@@ -173,7 +175,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldHaveAPoliteUserAgent() throws Exception {
 
-        TestWebsite website = givenAWebsite(TEST_ROOT_PAGE_PATH)
+        TestWebsite website = givenAWebsite().havingRootPage()
                 .withTitle(TEST_TITLE)
                 .run();
 
@@ -188,7 +190,7 @@ public class WebPageReaderTest {
 
     @Test
     public void shouldPerformOneRequestWhenNoRedirectIsRequired() throws Exception {
-        TestWebsite website = givenAWebsite(TEST_ROOT_PAGE_PATH)
+        TestWebsite website = givenAWebsite().havingRootPage()
                 .withTitle(TEST_TITLE)
                 .run();
 
@@ -216,7 +218,7 @@ public class WebPageReaderTest {
     public void itShouldOnlyConsumeSupportedMimeType() throws Exception {
         //content-type should be text/*
 
-        TestWebsite website = givenAWebsite()
+        givenAWebsite()
                 .havingRootPage().withMimeType("application/pdf")
                 .run();
 
@@ -230,9 +232,17 @@ public class WebPageReaderTest {
         return redirectChainElements.get(redirectChainElements.size() - 1).getDestinationURI();
     }
 
+    private URI testUri(String s) throws URISyntaxException {
+        return testWebsiteBuilder.buildTestUri(s);
+    }
+
+    private TestWebsiteBuilder givenAWebsite(){
+        return testWebsiteBuilder;
+    }
+
     private Matcher<RedirectChainElement> el(int status, String dstUri) {
 
-        String uri = getTestUriAsString(dstUri);
+        String uri = testWebsiteBuilder.getTestUriAsString(dstUri);
 
         return new BaseMatcher<RedirectChainElement>() {
             @Override

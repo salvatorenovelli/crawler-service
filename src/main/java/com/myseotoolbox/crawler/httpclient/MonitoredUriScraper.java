@@ -44,7 +44,7 @@ public class MonitoredUriScraper {
             newValue = webPageReader.snapshotPage(URI.create(uri));
             newValue.setCreateDate(scanDate);
 
-        } catch (SnapshotException e) {
+        } catch (Exception e) {
             String message = "Error while crawling " + monitoredUri.getUri() + ": " + e.toString();
             newValue.setCrawlStatus(message);
             log.warn(message, e);

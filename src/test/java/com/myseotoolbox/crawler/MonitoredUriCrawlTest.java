@@ -1,15 +1,15 @@
 package com.myseotoolbox.crawler;
 
 
-import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.httpclient.MonitoredUriScraper;
+import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.testutils.PageCrawlPreviousValueTestBuilder;
 import com.myseotoolbox.crawler.testutils.TestCalendarService;
-import com.myseotoolbox.crawler.testutils.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,12 +18,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Date;
 
 import static com.myseotoolbox.crawler.testutils.TestCalendarService.DEFAULT_TEST_DAY;
-import static com.myseotoolbox.crawler.testutils.TestWebsiteBuilder.givenAWebsite;
-import static com.myseotoolbox.crawler.testutils.TestWebsiteBuilder.testUri;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.doThrow;
@@ -41,6 +40,7 @@ public class MonitoredUriCrawlTest {
     private CalendarService calendar = new TestCalendarService();
 
     private MonitoredUriScraper sut;
+    private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     @Before
     public void setUp() {
@@ -50,7 +50,7 @@ public class MonitoredUriCrawlTest {
 
     @After
     public void tearDown() throws Exception {
-        TestWebsiteBuilder.tearDownCurrentServer();
+        testWebsiteBuilder.stop();
     }
 
 
@@ -137,6 +137,10 @@ public class MonitoredUriCrawlTest {
         verify(pageCrawlPersistence).persistPageCrawl(any(), aPageSnapshotWithDate(DEFAULT_TEST_DAY));
     }
 
+    private TestWebsiteBuilder givenAWebsite() {
+        return testWebsiteBuilder;
+    }
+
     private PageSnapshot aPageSnapshotWithDate(Date expected) {
         return argThat(argument -> argument.getCreateDate().equals(expected));
     }
@@ -152,6 +156,10 @@ public class MonitoredUriCrawlTest {
 
     private PageCrawlPreviousValueTestBuilder andPreviousValueHaving() throws URISyntaxException {
         return new PageCrawlPreviousValueTestBuilder(testUri("/").toString());
+    }
+
+    private URI testUri(String s) throws URISyntaxException {
+        return testWebsiteBuilder.buildTestUri(s);
     }
 
     private MonitoredUri testWebsiteRoot() throws URISyntaxException {
