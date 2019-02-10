@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler;
 
+import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
@@ -19,6 +20,8 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 
 @SuppressWarnings("unchecked")
@@ -30,7 +33,7 @@ public class WebPageReaderTest {
 
 
     private WebPageReader sut;
-    private TestWebsiteBuilder testWebsiteBuilder= TestWebsiteBuilder.build();
+    private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     @Before
     public void setUp() {
@@ -227,6 +230,20 @@ public class WebPageReaderTest {
         assertThat(snapshot.getCrawlStatus(), containsString("Unhandled content type"));
     }
 
+    @Test
+    public void inCaseOfExceptionShouldReturnAppropriateDefaults() {
+        try {
+            sut.snapshotPage(URI.create("/"));
+            fail("Expected exception");
+        } catch (SnapshotException e) {
+            PageSnapshot defaultVal = e.getPartialSnapshot();
+            assertThat(defaultVal.getUri(), is("/"));
+            assertNotNull(defaultVal.getCreateDate());
+            assertNotNull(defaultVal.getRedirectChainElements());
+            assertThat(defaultVal.getCrawlStatus(), containsString("Unable to crawl:"));
+        }
+    }
+
     private String getDestinationUri(PageSnapshot pageSnapshot) {
         List<RedirectChainElement> redirectChainElements = pageSnapshot.getRedirectChainElements();
         return redirectChainElements.get(redirectChainElements.size() - 1).getDestinationURI();
@@ -236,7 +253,7 @@ public class WebPageReaderTest {
         return testWebsiteBuilder.buildTestUri(s);
     }
 
-    private TestWebsiteBuilder givenAWebsite(){
+    private TestWebsiteBuilder givenAWebsite() {
         return testWebsiteBuilder;
     }
 

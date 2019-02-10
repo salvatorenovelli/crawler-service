@@ -15,6 +15,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
+import java.util.Date;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static javax.servlet.http.HttpServletResponse.*;
@@ -25,12 +26,27 @@ public class WebPageReader {
 
     private final HtmlParser parser = new HtmlParser();
 
-    public PageSnapshot snapshotPage(URI uri) throws SnapshotException{
+    public PageSnapshot snapshotPage(URI uri) throws SnapshotException {
+
+        String startURI = uri.toString();
+        RedirectChain chain = new RedirectChain();
+
         try {
-            return analyseRedirectChain(uri.toString());
+
+            URI baseUri = buildUri(startURI);
+            scanRedirectChain(chain, baseUri);
+
+            return parser.parse(startURI, chain.getElements(), chain.getInputStream());
+
         } catch (Exception e) {
-            throw new SnapshotException(e);
+            PageSnapshot pageSnapshot = new PageSnapshot();
+            pageSnapshot.setUri(startURI);
+            pageSnapshot.setCreateDate(new Date());
+            pageSnapshot.setRedirectChainElements(chain.getElements());
+            pageSnapshot.setCrawlStatus("Unable to crawl: " + e.toString());
+            throw new SnapshotException(e, pageSnapshot);
         }
+
     }
 
     public static boolean isRedirect(int statusCode) {
@@ -45,28 +61,7 @@ public class WebPageReader {
         }
     }
 
-    private PageSnapshot analyseRedirectChain(String startURI) {
-
-        RedirectChain chain = new RedirectChain();
-
-        try {
-
-            URI baseUri = buildUri(startURI);
-            scanChain(chain, baseUri);
-
-            return parser.parse(startURI, chain.getElements(), chain.getInputStream());
-
-        } catch (Exception e) {
-            PageSnapshot pageSnapshot = new PageSnapshot();
-            pageSnapshot.setUri(startURI);
-            pageSnapshot.setRedirectChainElements(chain.getElements());
-            pageSnapshot.setCrawlStatus("Unable to crawl: " + e.toString());
-            return pageSnapshot;
-        }
-
-    }
-
-    private void scanChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
+    private void scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
 
         HttpResponse response = new HttpGetRequest(currentURI).execute();
 
@@ -76,7 +71,7 @@ public class WebPageReader {
         redirectChain.addElement(new RedirectChainElement(decode(currentURI), httpStatus, decode(location)));
 
         if (isRedirect(httpStatus)) {
-            scanChain(redirectChain, location);
+            scanRedirectChain(redirectChain, location);
         } else {
             redirectChain.setInputStream(response.getInputStream());
         }
