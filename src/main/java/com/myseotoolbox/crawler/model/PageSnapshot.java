@@ -34,6 +34,8 @@ public class PageSnapshot {
     private List<String> metaDescriptions;
     private List<String> canonicals;
 
+    private List<String> links;
+
     private String crawlStatus;
 
     public PageSnapshot(String uri, String title, List<String> h1s, List<String> h2s, List<String> metaDescriptions, List<String> canonicals) {

@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.httpclient;
 
-class SafeStringEncoder {
+public class SafeStringEscaper {
 
 
     private final static char[] hexDigits = {
@@ -8,10 +8,18 @@ class SafeStringEncoder {
             '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
     };
 
+
+    public static boolean containsUnicodeCharacters(String locationHeaderField) {
+        for (int i = 0; i < locationHeaderField.length(); i++) {
+            if (locationHeaderField.charAt(i) >= 128) return true;
+        }
+        return false;
+    }
+
     /**
      * Escape non-ascii characters prefixing % without decoding them.
      */
-    static String encodeString(String s) {
+    public static String escapeString(String s) {
 
         int n = s.length();
         if (n == 0)

@@ -3,13 +3,13 @@ package com.myseotoolbox.crawler.testutils.testwebsite;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 
-@Getter@Setter
+@Getter
+@Setter
 class Page {
     private final String pagePath;
     private int status = 200;
@@ -18,6 +18,8 @@ class Page {
     private Map<String, List<String>> tags = new HashMap<>();
     private String redirectUri;
     private String mimeType = "text/html";
+    private List<String> links = new ArrayList<>();
+    private boolean charsetFieldPresent;
 
 
     public Page(String pagePath) {
@@ -30,8 +32,13 @@ class Page {
         this.redirectUri = dstUri;
     }
 
+    public void addLinks(String... links) {
+        this.links.addAll(Arrays.asList(links));
+    }
+
     public void addTag(String tagName, String content) {
-        this.tags.computeIfAbsent(tagName, k -> new ArrayList<>());
-        this.tags.get(tagName).add(content);
+        this.tags
+                .computeIfAbsent(tagName, k -> new ArrayList<>())
+                .add(content);
     }
 }

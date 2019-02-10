@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.testutils.testwebsite;
 
+import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
@@ -20,6 +21,8 @@ public class TestWebsiteBuilder {
         System.setProperty("org.eclipse.jetty.util.log.class", "org.eclipse.jetty.util.log.StdErrLog");
         System.setProperty("org.eclipse.jetty.LEVEL", "INFO");
     }
+
+    private TestWebsiteRequestHandler handler;
 
     private TestWebsiteBuilder(Server server) {
         this.server = server;
@@ -64,8 +67,8 @@ public class TestWebsiteBuilder {
         return this;
     }
 
-    public TestWebsiteBuilder withLinkTo(String url) {
-        //this.curPage.
+    public TestWebsiteBuilder withLinksTo(String... links) {
+        this.curPage.addLinks(links);
         return this;
     }
 
@@ -74,19 +77,24 @@ public class TestWebsiteBuilder {
         return this;
     }
 
-    public URI buildTestUri(String url) {
+    public URI buildTestUri(String uri) {
         if (!server.isStarted()) {
             throw new IllegalStateException("Sorry, you'll need to start the server before asking for URI. (At the moment the server port is not known)");
         }
         int localPort = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
-        return URI.create("http://localhost:" + localPort + url);
+        return URI.create("http://localhost:" + localPort + uri);
     }
 
-    public TestWebsite run() throws Exception {
+    public TestWebsite save() {
         if (curPage != null) {
             addPage(curPage);
         }
-        TestWebsiteRequestHandler handler = new TestWebsiteRequestHandler(this);
+        return handler;
+    }
+
+    public TestWebsite run() throws Exception {
+
+        handler = new TestWebsiteRequestHandler(this);
         server.setHandler(handler);
         server.start();
         log.info("Test server listening on http://localhost:{}", ((ServerConnector) server.getConnectors()[0]).getLocalPort());
@@ -94,16 +102,25 @@ public class TestWebsiteBuilder {
         return handler;
     }
 
-    public void stop() throws Exception {
+    public void tearDown() throws Exception {
         server.stop();
     }
 
     Page getPage(String s) {
-        return pages.get(s);
+        return pages.get(encode(s));
+    }
+
+    private String encode(String s) {
+        return SafeStringEscaper.escapeString(s);
     }
 
     private void addPage(Page page) {
-        pages.putIfAbsent(page.getPagePath(), page);
+        pages.putIfAbsent(encode(page.getPagePath()), page);
+    }
+
+    public TestWebsiteBuilder disableCharsetHeader() {
+        curPage.setCharsetFieldPresent(false);
+        return this;
     }
 }
 

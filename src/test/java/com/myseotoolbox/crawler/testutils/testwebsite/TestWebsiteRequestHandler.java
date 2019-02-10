@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.testutils.testwebsite;
 
+import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
@@ -10,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,12 +29,24 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
     @Override
     public void handle(String s, Request request,
                        HttpServletRequest httpServletRequest,
-                       HttpServletResponse httpServletResponse) {
+                       HttpServletResponse httpServletResponse) throws UnsupportedEncodingException {
 
 
         requestsReceived.add(ReceivedRequest.from(request));
         log.info("Received request for path '{}'. {}", s, request);
-        Page page = testWebsiteBuilder.getPage(s);
+
+
+        String path;
+
+        // This is to compensate with Jetty "trying" to decode URI with the right charset. (The problem is that we need to emulate bad behaving server that decode with different charsets)
+        if (SafeStringEscaper.containsUnicodeCharacters(s)) {
+            path = s;
+        } else {
+            path = request.getHttpURI().getPath();
+        }
+
+
+        Page page = testWebsiteBuilder.getPage(path);
         if (page != null) {
             servePage(page, httpServletResponse);
             request.setHandled(true);
@@ -56,9 +70,9 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
     }
 
     private void serveAsRedirect(Page page, HttpServletResponse response) {
+        response.setContentType("text/html;" + (page.isCharsetFieldPresent() ? "charset=UTF-8" : ""));
         response.setStatus(page.getStatus());
         response.setHeader("location", page.getRedirectUri());
-//            response.
     }
 
     private void serveStandard(Page page, HttpServletResponse response) {

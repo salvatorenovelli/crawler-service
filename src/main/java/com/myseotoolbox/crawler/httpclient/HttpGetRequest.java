@@ -11,6 +11,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
+import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
+
 
 public class HttpGetRequest {
 
@@ -68,7 +70,7 @@ public class HttpGetRequest {
 
         if (containsUnicodeCharacters(locationHeader)) {
             logger.warn("Redirect destination {} contains non ASCII characters (as required by the standard)", connection.getURL());
-            location = new URI(SafeStringEncoder.encodeString(locationHeader));
+            location = new URI(SafeStringEscaper.escapeString(locationHeader));
         } else {
             location = new URI(locationHeader);
         }
@@ -80,11 +82,5 @@ public class HttpGetRequest {
         }
     }
 
-    private boolean containsUnicodeCharacters(String locationHeaderField) {
-        for (int i = 0; i < locationHeaderField.length(); i++) {
-            if (locationHeaderField.charAt(i) >= 128) return true;
-        }
-        return false;
-    }
 
 }

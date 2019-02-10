@@ -53,7 +53,7 @@ public class MonitoredUriScraperTest {
 
     @After
     public void tearDown() throws Exception {
-        testWebsiteBuilder.stop();
+        testWebsiteBuilder.tearDown();
         pageSnapshotRepository.deleteAll();
     }
 

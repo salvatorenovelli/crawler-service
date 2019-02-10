@@ -39,7 +39,7 @@ public class WebPageReaderTest {
 
     @After
     public void tearDown() throws Exception {
-        testWebsiteBuilder.stop();
+        testWebsiteBuilder.tearDown();
     }
 
     @Test
@@ -242,7 +242,7 @@ public class WebPageReaderTest {
 
     private Matcher<RedirectChainElement> el(int status, String dstUri) {
 
-        String uri = testWebsiteBuilder.getTestUriAsString(dstUri);
+        String uri = testWebsiteBuilder.buildTestUri(dstUri).toString();
 
         return new BaseMatcher<RedirectChainElement>() {
             @Override
