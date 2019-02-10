@@ -15,7 +15,7 @@ import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnic
 
 @Slf4j
 @ThreadSafe
-class CrawlerTaskQueue implements CrawlCompletedListener {
+class CrawlerTaskQueue {
 
     private final Set<URI> visited = new HashSet<>();
     private final Set<URI> inProgress = new HashSet<>();
@@ -28,7 +28,7 @@ class CrawlerTaskQueue implements CrawlCompletedListener {
         this.seeds.addAll(seeds);
     }
 
-    public synchronized void run() {
+    public synchronized void start() {
         try {
             submitTasks(seeds);
 
@@ -40,20 +40,14 @@ class CrawlerTaskQueue implements CrawlCompletedListener {
         }
     }
 
-
-    public synchronized void onSnapshotComplete(URI uri, List<URI> links) {
-        assertAbsolute(uri);
-        if (!inProgress.remove(uri))
-            throw new IllegalStateException("Completing snapshot of not in progress URI:" + uri + " (could be already completed or never submitted)");
-        if (!visited.add(uri))
-            throw new IllegalStateException("Already visited: " + uri);
-        enqueueDiscoveredLinks(uri, links);
+    public synchronized void onNewLinksDiscovered(URI baseUri, List<URI> links) {
+        assertAbsolute(baseUri);
+        if (!inProgress.remove(baseUri))
+            throw new IllegalStateException("Completing snapshot of not in progress URI:" + baseUri + " (could be already completed or never submitted)");
+        if (!visited.add(baseUri))
+            throw new IllegalStateException("Already visited: " + baseUri);
+        enqueueDiscoveredLinks(baseUri, links);
         this.notify();
-    }
-
-    private synchronized void submitTasks(List<URI> seeds) {
-        inProgress.addAll(seeds);
-        pool.submit(seeds);
     }
 
     private synchronized void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
@@ -64,6 +58,11 @@ class CrawlerTaskQueue implements CrawlCompletedListener {
         if (links.size() > 0) {
             submitTasks(newLinks);
         }
+    }
+
+    private synchronized void submitTasks(List<URI> seeds) {
+        inProgress.addAll(seeds);
+        seeds.forEach(pool::submit);
     }
 
     private synchronized boolean alreadyVisited(URI uri) {

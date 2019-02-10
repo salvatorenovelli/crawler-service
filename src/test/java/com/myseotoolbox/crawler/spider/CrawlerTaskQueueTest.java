@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.fail;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
@@ -29,10 +29,10 @@ public class CrawlerTaskQueueTest {
     @Before
     public void setUp() throws Exception {
         doAnswer(invocation -> {
-            List<URI> newLinks = invocation.getArgument(0);
-            newLinks.forEach(uri -> sut.onSnapshotComplete(uri, uris()));
+            URI newLink = invocation.getArgument(0);
+            sut.onNewLinksDiscovered(newLink, uris());
             return null;
-        }).when(pool).submit(anyList());
+        }).when(pool).submit(any());
     }
 
     @Test(timeout = 500)
@@ -41,9 +41,9 @@ public class CrawlerTaskQueueTest {
         whenCrawling("http://host1").discover("http://host1");
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
-        sut.run();
+        sut.start();
 
-        verify(pool).submit(uris("http://host1"));
+        verify(pool).submit(uri("http://host1"));
     }
 
     @Test(timeout = 500)
@@ -54,10 +54,10 @@ public class CrawlerTaskQueueTest {
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
-        sut.run();
+        sut.start();
 
-        verify(pool).submit(uris("http://host1"));
-        verify(pool).submit(uris("http://host1/dst"));
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host1/dst"));
 
     }
 
@@ -68,10 +68,10 @@ public class CrawlerTaskQueueTest {
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
-        sut.run();
+        sut.start();
 
-        verify(pool).submit(uris("http://host1"));
-        verify(pool).submit(uris("http://host1/"));
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host1/"));
     }
 
 
@@ -81,10 +81,10 @@ public class CrawlerTaskQueueTest {
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
-        sut.run();
+        sut.start();
 
-        verify(pool).submit(uris("http://host1"));
-        verify(pool).submit(uris("http://host1/dst"));
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host1/dst"));
     }
 
 
@@ -94,7 +94,7 @@ public class CrawlerTaskQueueTest {
         sut = new CrawlerTaskQueue(uris("http://host1/dst"), pool);
 
         try {
-            sut.onSnapshotComplete(URI.create("/dst"), uris());
+            sut.onNewLinksDiscovered(URI.create("/dst"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -109,7 +109,7 @@ public class CrawlerTaskQueueTest {
         sut = new CrawlerTaskQueue(uris("http://host1/dst"), pool);
 
         try {
-            sut.onSnapshotComplete(URI.create("http://host1/dst"), uris());
+            sut.onNewLinksDiscovered(URI.create("http://host1/dst"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -123,10 +123,10 @@ public class CrawlerTaskQueueTest {
 
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
-        sut.run();
+        sut.start();
 
         try {
-            sut.onSnapshotComplete(uri("http://host1"), uris());
+            sut.onNewLinksDiscovered(uri("http://host1"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -139,9 +139,10 @@ public class CrawlerTaskQueueTest {
     public void shouldProcessAllSeedsWithMultipleSeeds() throws InterruptedException {
 
         sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"), pool);
-        sut.run();
+        sut.start();
 
-        verify(pool).submit(uris("http://host1","http://host2"));
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host2"));
 
     }
 
@@ -154,10 +155,10 @@ public class CrawlerTaskQueueTest {
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
-        sut.run();
+        sut.start();
 
-        verify(pool).submit(uris("http://host1"));
-        verify(pool).submit(uris("http://host1" + "/fam%EDlia"));
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host1" + "/fam%EDlia"));
 
 
     }
@@ -168,7 +169,7 @@ public class CrawlerTaskQueueTest {
     }
 
 
-    private CrawlerTaskQueueTestMockBuilder whenCrawling(String ...baseUri) {
+    private CrawlerTaskQueueTestMockBuilder whenCrawling(String baseUri) {
         return new CrawlerTaskQueueTestMockBuilder(baseUri);
     }
 
@@ -178,18 +179,18 @@ public class CrawlerTaskQueueTest {
     }
 
     private class CrawlerTaskQueueTestMockBuilder {
-        private final String[] baseUri;
+        private final String baseUri;
 
-        public CrawlerTaskQueueTestMockBuilder(String ...baseUri) {
+        public CrawlerTaskQueueTestMockBuilder(String baseUri) {
             this.baseUri = baseUri;
         }
 
         public void discover(String... discoveredUris) {
             doAnswer(invocation -> {
-                List<URI> newLinks = invocation.getArgument(0);
-                newLinks.forEach(uri -> sut.onSnapshotComplete(uri, uris(discoveredUris)));
+                URI newLink = invocation.getArgument(0);
+                sut.onNewLinksDiscovered(newLink, uris(discoveredUris));
                 return null;
-            }).when(pool).submit(uris(baseUri));
+            }).when(pool).submit(uri(baseUri));
         }
     }
 }

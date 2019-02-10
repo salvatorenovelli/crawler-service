@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
@@ -31,17 +31,17 @@ public class CrawlerTaskQueueMultithreadingTest {
         CountDownLatch taskSubmittedLatch = buildLatchToSignalTaskSubmitted();
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
-        Thread thread = new Thread(() -> sut.run());
+        Thread thread = new Thread(() -> sut.start());
         thread.start();
 
 
         taskSubmittedLatch.await();
-        sut.onSnapshotComplete(uri("http://host1"), uris());
+        sut.onNewLinksDiscovered(uri("http://host1"), uris());
 
         thread.join();
 
 
-        verify(pool).submit(uris("http://host1"));
+        verify(pool).submit(uri("http://host1"));
     }
 
     @Test(timeout = 500)
@@ -52,17 +52,18 @@ public class CrawlerTaskQueueMultithreadingTest {
 
         sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"), pool);
 
-        Thread thread = new Thread(() -> sut.run());
+        Thread thread = new Thread(() -> sut.start());
         thread.start();
 
         taskSubmittedLatch.await();
 
-        sut.onSnapshotComplete(uri("http://host1"), uris());
-        sut.onSnapshotComplete(uri("http://host2"), uris());
+        sut.onNewLinksDiscovered(uri("http://host1"), uris());
+        sut.onNewLinksDiscovered(uri("http://host2"), uris());
 
         thread.join();
 
-        verify(pool).submit(uris("http://host1", "http://host2"));
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host2"));
 
     }
 
@@ -78,7 +79,7 @@ public class CrawlerTaskQueueMultithreadingTest {
 
 
         Thread thread = new Thread(() -> {
-            sut.run();
+            sut.start();
             runFinished.set(true);
         });
 
@@ -92,8 +93,8 @@ public class CrawlerTaskQueueMultithreadingTest {
 
         assertFalse(runFinished.get());
 
-        sut.onSnapshotComplete(uri("http://host1"), uris());
-        sut.onSnapshotComplete(uri("http://host2"), uris());
+        sut.onNewLinksDiscovered(uri("http://host1"), uris());
+        sut.onNewLinksDiscovered(uri("http://host2"), uris());
 
         thread.join();
 
@@ -114,15 +115,15 @@ public class CrawlerTaskQueueMultithreadingTest {
 
 
         Thread thread = new Thread(() -> {
-            sut.run();
+            sut.start();
             runFinished.set(true);
         });
 
         thread.start();
         taskSubmittedLatch.await();
 
-        sut.onSnapshotComplete(uri("http://host1"), uris());
-        sut.onSnapshotComplete(uri("http://host2"), uris("/dst"));
+        sut.onNewLinksDiscovered(uri("http://host1"), uris());
+        sut.onNewLinksDiscovered(uri("http://host2"), uris("/dst"));
 
         while (thread.getState() != Thread.State.WAITING) {
             //Make sure the thread has a bit of time to reach the lock
@@ -130,7 +131,7 @@ public class CrawlerTaskQueueMultithreadingTest {
         }
 
         assertFalse(runFinished.get());
-        sut.onSnapshotComplete(uri("http://host2/dst"), uris());
+        sut.onNewLinksDiscovered(uri("http://host2/dst"), uris());
 
         thread.join();
 
@@ -154,7 +155,7 @@ public class CrawlerTaskQueueMultithreadingTest {
         doAnswer(invocation -> {
             tasksSubmitted.countDown();
             return null;
-        }).when(pool).submit(anyList());
+        }).when(pool).submit(any());
 
         return tasksSubmitted;
     }
