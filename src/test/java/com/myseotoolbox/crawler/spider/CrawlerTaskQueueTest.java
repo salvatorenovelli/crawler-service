@@ -1,109 +1,89 @@
 package com.myseotoolbox.crawler.spider;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
-import org.hamcrest.core.Is;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.*;
+import static org.junit.Assert.fail;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.verify;
 
+
+@RunWith(MockitoJUnitRunner.class)
 public class CrawlerTaskQueueTest {
 
     public static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família";
 
 
     CrawlerTaskQueue sut;
+    @Mock private CrawlersPool pool;
 
-    @Test
-    public void shouldRequireProcessingOfAllSeeds() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
-        assertTrue(sut.mayHaveNext());
-    }
-
-    @Test
-    public void mayHaveNextReturnFalseOnceAllTheTasksAreCompleted() throws InterruptedException {
-        sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"));
-
-        URI take1 = sut.take();
-        URI take2 = sut.take();
-
-        sut.onSnapshotComplete(take1, Collections.emptyList());
-        sut.onSnapshotComplete(take2, Collections.emptyList());
-
-        assertFalse(sut.mayHaveNext());
-    }
-
-    @Test
-    public void shouldEnqueNewUris() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
-        URI take1 = sut.take();
-        //discover new url on the page
-        sut.onSnapshotComplete(take1, uris("http://host1/dst1"));
-
-        assertTrue(sut.mayHaveNext());
-        assertThat(sut.take(), url("http://host1/dst1"));
-    }
-
-    @Test
+    @Test(timeout = 500)
     public void shouldNotVisitTheSameUrlTwice() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
 
-        URI take1 = sut.take();
+        whenCrawling("http://host1").discover("http://host1");
 
-        //discover "self" url on the page
-        sut.onSnapshotComplete(take1, uris("http://host1"));
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+        sut.run();
 
-        assertFalse(sut.mayHaveNext());
+        verify(pool).submit(uris("http://host1"));
     }
 
-    @Test
+    @Test(timeout = 500)
     public void shouldNotVisitTwiceIfRelativeWasVisitedAndAbsoluteIsDiscovered() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
 
-        URI take1 = sut.take();
-        sut.onSnapshotComplete(take1, uris("/dst1"));
+        whenCrawling("http://host1").discover("/dst");
+        whenCrawling("http://host1/dst").discover("http://host1/dst");
 
-        URI takeDst1 = sut.take();
-        //discover absolute version of self
-        sut.onSnapshotComplete(takeDst1, uris("http://host1/dst1"));
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
-        assertFalse(sut.mayHaveNext());
+        sut.run();
+
+        verify(pool).submit(uris("http://host1"));
+        verify(pool).submit(uris("http://host1/dst"));
+
     }
 
-    @Test
+    @Test(timeout = 500)
     public void shouldVisitTwiceIfDifferentVersionOfRootIsDiscovered() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
 
-        URI take1 = sut.take();
-        sut.onSnapshotComplete(take1, uris("/"));
+        whenCrawling("http://host1").discover("/");
+        whenCrawling("http://host1/").discover();
 
-        assertTrue(sut.mayHaveNext());
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+
+        sut.run();
+
+        verify(pool).submit(uris("http://host1"));
+        verify(pool).submit(uris("http://host1/"));
     }
 
-    @Test
+
+    @Test(timeout = 500)
     public void takeAlwaysReturnAbsoluteUri() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
+        whenCrawling("http://host1").discover("/dst");
+        whenCrawling("http://host1/dst").discover();
 
-        URI take1 = sut.take();
-        sut.onSnapshotComplete(take1, uris("/dst1"));
 
-        assertThat(sut.take(), url("http://host1/dst1"));
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+
+        sut.run();
+
+        verify(pool).submit(uris("http://host1"));
+        verify(pool).submit(uris("http://host1/dst"));
     }
 
-    @Test
+
+    @Test(timeout = 500)
     public void onSnapshotCompleteShouldNeverBeFedRelativeUrisAsTakeNeverReturnsIt() {
-        sut = new CrawlerTaskQueue(uris("http://host1/dst1"));
-        URI take1 = sut.take();
+
+        sut = new CrawlerTaskQueue(uris("http://host1/dst"), pool);
 
         try {
             sut.onSnapshotComplete(URI.create("/dst"), uris());
@@ -115,14 +95,13 @@ public class CrawlerTaskQueueTest {
         fail("Expected exception");
     }
 
-    @Test
-    public void shouldAlertIfCompleteTheSameSnapshotTwice() {
-        sut = new CrawlerTaskQueue(uris("http://host1/dst1"));
-        URI take1 = sut.take();
-        sut.onSnapshotComplete(take1, uris());
+    @Test(timeout = 500)
+    public void completingASnapshotNeverSubmittedShouldThrowException() {
+
+        sut = new CrawlerTaskQueue(uris("http://host1/dst"), pool);
 
         try {
-            sut.onSnapshotComplete(take1, uris());
+            sut.onSnapshotComplete(URI.create("http://host1/dst"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -131,59 +110,82 @@ public class CrawlerTaskQueueTest {
         fail("Expected exception");
     }
 
-    @Test
-    public void shouldRequireProcessingOfAllSeedsWithMultipleSeeds() throws InterruptedException {
-        sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"));
+    @Test(timeout = 500)
+    public void shouldAlertIfCompleteTheSameSnapshotTwice() {
 
-        URI take = sut.take();
+        whenCrawling("http://host1").discover();
 
-        assertTrue(sut.mayHaveNext());
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+        sut.run();
+
+        try {
+            sut.onSnapshotComplete(uri("http://host1"), uris());
+        } catch (IllegalStateException e) {
+            //success!!
+            return;
+        }
+
+        fail("Expected exception");
+    }
+
+    @Test(timeout = 500)
+    public void shouldProcessAllSeedsWithMultipleSeeds() throws InterruptedException {
+        whenCrawling("http://host1","http://host2").discover();
+
+
+        sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"), pool);
+        sut.run();
+
+        verify(pool).submit(uris("http://host1","http://host2"));
+
     }
 
 
-    @Test
-    public void shouldReturnAllSeeds() throws InterruptedException {
-        sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"));
-
-        URI take1 = sut.take();
-        URI take2 = sut.take();
-
-        assertThat(asList(take1, take2), contains(asList(url("http://host1"), url("http://host2"))));
-    }
-
-    @Test
-    public void shouldConsiderInProgressTaskAsPotentiallyNewUrls() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
-        sut.take();
-        assertTrue(sut.mayHaveNext());
-    }
-
-    @Test
+    @Test(timeout = 500)
     public void canResolveLinksWithUnicodeChars() {
-        sut = new CrawlerTaskQueue(uris("http://host1"));
 
-        URI take1 = sut.take();
-        sut.onSnapshotComplete(take1, uris(LOCATION_WITH_UNICODE_CHARACTERS));
+        whenCrawling("http://host1").discover(LOCATION_WITH_UNICODE_CHARACTERS);
+        whenCrawling("http://host1" + "/fam%EDlia").discover();
 
-        assertThat(sut.take(), is(url("http://host1" + "/fam%EDlia")));
+
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+
+        sut.run();
+
+        verify(pool).submit(uris("http://host1"));
+        verify(pool).submit(uris("http://host1" + "/fam%EDlia"));
+
+
     }
 
-    private BaseMatcher<URI> url(String expected) {
-        return new BaseMatcher<URI>() {
-            @Override
-            public boolean matches(Object item) {
-                URI actual = (URI) item;
-                return actual.toString().equals(expected);
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendValue(expected);
-            }
-        };
-    }
 
     private List<URI> uris(String... s) {
         return Stream.of(s).map(URI::create).collect(Collectors.toList());
+    }
+
+
+    private CrawlerTaskQueueTestMockBuilder whenCrawling(String ...baseUri) {
+        return new CrawlerTaskQueueTestMockBuilder(baseUri);
+    }
+
+
+    private URI uri(String uri) {
+        return URI.create(uri);
+    }
+
+    private class CrawlerTaskQueueTestMockBuilder {
+        private final String[] baseUri;
+
+        public CrawlerTaskQueueTestMockBuilder(String ...baseUri) {
+            this.baseUri = baseUri;
+        }
+
+        public void discover(String... discoveredUris) {
+            doAnswer(invocation -> {
+                List<URI> newLinks = invocation.getArgument(0);
+                newLinks.forEach(uri -> sut.onSnapshotComplete(uri, uris(discoveredUris)));
+                return null;
+            }).when(pool).submit(uris(baseUri));
+        }
     }
 }

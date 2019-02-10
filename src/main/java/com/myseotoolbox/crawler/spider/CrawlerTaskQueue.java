@@ -5,77 +5,72 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 
-
-@ThreadSafe
 @Slf4j
-class CrawlerTaskQueue {
+@ThreadSafe
+class CrawlerTaskQueue implements CrawlCompletedListener {
 
-    private final ReentrantLock lock = new ReentrantLock();
-
-    private final Queue<URI> toVisit = new LinkedBlockingQueue<>();
     private final Set<URI> visited = new HashSet<>();
     private final Set<URI> inProgress = new HashSet<>();
+    private final List<URI> seeds = new ArrayList<>();
+    private final CrawlersPool pool;
 
 
-    public CrawlerTaskQueue(List<URI> seeds) {
-        toVisit.addAll(seeds);
+    public CrawlerTaskQueue(List<URI> seeds, CrawlersPool pool) {
+        this.pool = pool;
+        this.seeds.addAll(seeds);
     }
 
-    /**
-     * There are urls in {@code toVisit} or there are elements in {@code inProgress}, which may produce more URI, potentially.
-     */
-    public boolean mayHaveNext() {
-        return toVisit.size() > 0 || inProgress.size() > 0;
-    }
+    public synchronized void run() {
+        try {
+            submitTasks(seeds);
 
-    /**
-     * Return the next URI or null in case there's none left.
-     * <p>
-     * <p>
-     * Blocks if the queue is empty but there is the possibility that more uri are added because there are in progress crawl by other threads
-     * {@return The next element or {@code null} if none is available}
-     */
-    public URI take() {
-        if (toVisit.isEmpty()) {
-            return null;
+            while (inProgress.size() > 0) {
+                this.wait();
+            }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        URI poll = toVisit.poll();
-        inProgress.add(poll);
-        return poll;
     }
 
 
-    public void onSnapshotComplete(URI uri, List<URI> links) {
+    public synchronized void onSnapshotComplete(URI uri, List<URI> links) {
         assertAbsolute(uri);
-        inProgress.remove(uri);
+        if (!inProgress.remove(uri))
+            throw new IllegalStateException("Completing snapshot of not in progress URI:" + uri + " (could be already completed or never submitted)");
         if (!visited.add(uri))
-            throw new IllegalStateException("Already visited!");
+            throw new IllegalStateException("Already visited: " + uri);
         enqueueDiscoveredLinks(uri, links);
+        this.notify();
     }
 
-    private void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
+    private synchronized void submitTasks(List<URI> seeds) {
+        inProgress.addAll(seeds);
+        pool.submit(seeds);
+    }
+
+    private synchronized void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
         List<URI> newLinks = links.stream()
                 .filter(this::alreadyVisited)
                 .map(uri -> toAbsolute(sourceUri, uri))
                 .collect(Collectors.toList());
-        toVisit.addAll(newLinks);
+        if (links.size() > 0) {
+            submitTasks(newLinks);
+        }
     }
 
-    private boolean alreadyVisited(URI uri) {
+    private synchronized boolean alreadyVisited(URI uri) {
         return !visited.contains(uri);
     }
 
-    private URI toAbsolute(URI sourceUri, URI uri) {
+    private static URI toAbsolute(URI sourceUri, URI uri) {
         if (uri.isAbsolute()) return uri;
 
         String path = uri.getPath();
@@ -88,7 +83,8 @@ class CrawlerTaskQueue {
 
     }
 
-    private void assertAbsolute(URI uri) {
+    private static void assertAbsolute(URI uri) {
         if (!uri.isAbsolute()) throw new IllegalStateException("URI Should be absolute or we risk to visit it twice.");
     }
 }
+
