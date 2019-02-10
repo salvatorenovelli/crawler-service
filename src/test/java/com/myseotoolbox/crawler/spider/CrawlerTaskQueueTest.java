@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -11,6 +12,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.fail;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
@@ -23,6 +25,15 @@ public class CrawlerTaskQueueTest {
 
     CrawlerTaskQueue sut;
     @Mock private CrawlersPool pool;
+
+    @Before
+    public void setUp() throws Exception {
+        doAnswer(invocation -> {
+            List<URI> newLinks = invocation.getArgument(0);
+            newLinks.forEach(uri -> sut.onSnapshotComplete(uri, uris()));
+            return null;
+        }).when(pool).submit(anyList());
+    }
 
     @Test(timeout = 500)
     public void shouldNotVisitTheSameUrlTwice() {
@@ -54,7 +65,6 @@ public class CrawlerTaskQueueTest {
     public void shouldVisitTwiceIfDifferentVersionOfRootIsDiscovered() {
 
         whenCrawling("http://host1").discover("/");
-        whenCrawling("http://host1/").discover();
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
@@ -68,8 +78,6 @@ public class CrawlerTaskQueueTest {
     @Test(timeout = 500)
     public void takeAlwaysReturnAbsoluteUri() {
         whenCrawling("http://host1").discover("/dst");
-        whenCrawling("http://host1/dst").discover();
-
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
@@ -113,7 +121,6 @@ public class CrawlerTaskQueueTest {
     @Test(timeout = 500)
     public void shouldAlertIfCompleteTheSameSnapshotTwice() {
 
-        whenCrawling("http://host1").discover();
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
         sut.run();
@@ -130,8 +137,6 @@ public class CrawlerTaskQueueTest {
 
     @Test(timeout = 500)
     public void shouldProcessAllSeedsWithMultipleSeeds() throws InterruptedException {
-        whenCrawling("http://host1","http://host2").discover();
-
 
         sut = new CrawlerTaskQueue(uris("http://host1", "http://host2"), pool);
         sut.run();
@@ -145,7 +150,6 @@ public class CrawlerTaskQueueTest {
     public void canResolveLinksWithUnicodeChars() {
 
         whenCrawling("http://host1").discover(LOCATION_WITH_UNICODE_CHARACTERS);
-        whenCrawling("http://host1" + "/fam%EDlia").discover();
 
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
