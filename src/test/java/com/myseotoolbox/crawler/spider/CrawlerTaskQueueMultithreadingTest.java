@@ -36,7 +36,7 @@ public class CrawlerTaskQueueMultithreadingTest {
 
 
         taskSubmittedLatch.await();
-        sut.onNewLinksDiscovered(uri("http://host1"), uris());
+        sut.onScanCompleted(uri("http://host1"), uris());
 
         thread.join();
 
@@ -57,8 +57,8 @@ public class CrawlerTaskQueueMultithreadingTest {
 
         taskSubmittedLatch.await();
 
-        sut.onNewLinksDiscovered(uri("http://host1"), uris());
-        sut.onNewLinksDiscovered(uri("http://host2"), uris());
+        sut.onScanCompleted(uri("http://host1"), uris());
+        sut.onScanCompleted(uri("http://host2"), uris());
 
         thread.join();
 
@@ -93,8 +93,8 @@ public class CrawlerTaskQueueMultithreadingTest {
 
         assertFalse(runFinished.get());
 
-        sut.onNewLinksDiscovered(uri("http://host1"), uris());
-        sut.onNewLinksDiscovered(uri("http://host2"), uris());
+        sut.onScanCompleted(uri("http://host1"), uris());
+        sut.onScanCompleted(uri("http://host2"), uris());
 
         thread.join();
 
@@ -122,8 +122,8 @@ public class CrawlerTaskQueueMultithreadingTest {
         thread.start();
         taskSubmittedLatch.await();
 
-        sut.onNewLinksDiscovered(uri("http://host1"), uris());
-        sut.onNewLinksDiscovered(uri("http://host2"), uris("/dst"));
+        sut.onScanCompleted(uri("http://host1"), uris());
+        sut.onScanCompleted(uri("http://host2"), uris("/dst"));
 
         while (thread.getState() != Thread.State.WAITING) {
             //Make sure the thread has a bit of time to reach the lock
@@ -131,7 +131,7 @@ public class CrawlerTaskQueueMultithreadingTest {
         }
 
         assertFalse(runFinished.get());
-        sut.onNewLinksDiscovered(uri("http://host2/dst"), uris());
+        sut.onScanCompleted(uri("http://host2/dst"), uris());
 
         thread.join();
 

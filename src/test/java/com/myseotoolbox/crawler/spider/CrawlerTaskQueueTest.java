@@ -8,6 +8,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -30,7 +31,7 @@ public class CrawlerTaskQueueTest {
     public void setUp() throws Exception {
         doAnswer(invocation -> {
             URI newLink = invocation.getArgument(0);
-            sut.onNewLinksDiscovered(newLink, uris());
+            sut.onScanCompleted(newLink, uris());
             return null;
         }).when(pool).submit(any());
     }
@@ -50,7 +51,7 @@ public class CrawlerTaskQueueTest {
     public void shouldNotVisitTwiceIfRelativeWasVisitedAndAbsoluteIsDiscovered() {
 
         whenCrawling("http://host1").discover("/dst");
-        whenCrawling("http://host1/dst").discover("http://host1/dst");
+        whenCrawling("http://host1/dst").discover("/dst");
 
         sut = new CrawlerTaskQueue(uris("http://host1"), pool);
 
@@ -94,7 +95,7 @@ public class CrawlerTaskQueueTest {
         sut = new CrawlerTaskQueue(uris("http://host1/dst"), pool);
 
         try {
-            sut.onNewLinksDiscovered(URI.create("/dst"), uris());
+            sut.onScanCompleted(URI.create("/dst"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -109,7 +110,7 @@ public class CrawlerTaskQueueTest {
         sut = new CrawlerTaskQueue(uris("http://host1/dst"), pool);
 
         try {
-            sut.onNewLinksDiscovered(URI.create("http://host1/dst"), uris());
+            sut.onScanCompleted(URI.create("http://host1/dst"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -126,7 +127,7 @@ public class CrawlerTaskQueueTest {
         sut.start();
 
         try {
-            sut.onNewLinksDiscovered(uri("http://host1"), uris());
+            sut.onScanCompleted(uri("http://host1"), uris());
         } catch (IllegalStateException e) {
             //success!!
             return;
@@ -163,11 +164,67 @@ public class CrawlerTaskQueueTest {
 
     }
 
+    @Test(timeout = 500)
+    public void discoveringDuplicateLinksInPageDoesNotEnqueueItMultipleTimes() {
+        whenCrawling("http://host1").discover("http://host1/dst1", "http://host1/dst2", "http://host1/dst1");
+
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+
+        sut.start();
+
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host1/dst1"));
+        verify(pool).submit(uri("http://host1/dst2"));
+    }
+
+    @Test(timeout = 500)
+    public void submittingDuplicatedUrlWhileItIsInProgressShouldNotQueueItTwice() throws InterruptedException {
+
+        whenCrawling("http://host1").discover("http://host1/dst1", "http://host1/dst2");
+
+
+        CountDownLatch dst2ScanCompleted = new CountDownLatch(1);
+
+        doAnswer(invocation -> {
+            new Thread(() -> {
+                URI newLink = invocation.getArgument(0);
+                System.out.println("I'll wait here...." + newLink);
+                try {
+                    dst2ScanCompleted.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                System.out.println("Done waiting...");
+                sut.onScanCompleted(newLink, uris());
+            }).start();
+            return null;
+        }).when(pool).submit(uri("http://host1/dst1"));
+
+
+        doAnswer(invocation -> {
+            new Thread(() -> {
+                URI newLink = invocation.getArgument(0);
+                System.out.println("Submitting duplicate:" + newLink);
+                sut.onScanCompleted(newLink, uris("http://host1/dst1"));
+                dst2ScanCompleted.countDown();
+            }).start();
+            return null;
+        }).when(pool).submit(uri("http://host1/dst2"));
+
+
+        sut = new CrawlerTaskQueue(uris("http://host1"), pool);
+        sut.start();
+
+
+        verify(pool).submit(uri("http://host1"));
+        verify(pool).submit(uri("http://host1/dst1"));
+        verify(pool).submit(uri("http://host1/dst2"));
+    }
+
 
     private List<URI> uris(String... s) {
         return Stream.of(s).map(URI::create).collect(Collectors.toList());
     }
-
 
     private CrawlerTaskQueueTestMockBuilder whenCrawling(String baseUri) {
         return new CrawlerTaskQueueTestMockBuilder(baseUri);
@@ -188,7 +245,7 @@ public class CrawlerTaskQueueTest {
         public void discover(String... discoveredUris) {
             doAnswer(invocation -> {
                 URI newLink = invocation.getArgument(0);
-                sut.onNewLinksDiscovered(newLink, uris(discoveredUris));
+                sut.onScanCompleted(newLink, uris(discoveredUris));
                 return null;
             }).when(pool).submit(uri(baseUri));
         }

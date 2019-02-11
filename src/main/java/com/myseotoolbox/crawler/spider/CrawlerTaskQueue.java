@@ -40,7 +40,7 @@ class CrawlerTaskQueue {
         }
     }
 
-    public synchronized void onNewLinksDiscovered(URI baseUri, List<URI> links) {
+    public synchronized void onScanCompleted(URI baseUri, List<URI> links) {
         assertAbsolute(baseUri);
         if (!inProgress.remove(baseUri))
             throw new IllegalStateException("Completing snapshot of not in progress URI:" + baseUri + " (could be already completed or never submitted)");
@@ -52,8 +52,9 @@ class CrawlerTaskQueue {
 
     private synchronized void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
         List<URI> newLinks = links.stream()
-                .filter(this::alreadyVisited)
                 .map(uri -> toAbsolute(sourceUri, uri))
+                .filter(uri -> !alreadyVisited(uri))
+                .distinct()
                 .collect(Collectors.toList());
         if (links.size() > 0) {
             submitTasks(newLinks);
@@ -66,7 +67,7 @@ class CrawlerTaskQueue {
     }
 
     private synchronized boolean alreadyVisited(URI uri) {
-        return !visited.contains(uri);
+        return visited.contains(uri) || inProgress.contains(uri);
     }
 
     private static URI toAbsolute(URI sourceUri, URI uri) {
