@@ -3,19 +3,17 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.hamcrest.MockitoHamcrest;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -27,7 +25,7 @@ public class CrawlersPoolTest {
     private static final URI SUCCESS_TEST_LINK = URI.create("http://host1");
     private static final URI FAILURE_TEST_LINK = URI.create("http://verybadhost");
     @Mock private WebPageReader reader;
-    @Mock private SnapshotCompletedListener listener;
+    @Mock private Consumer<PageSnapshot> listener;
     @Mock private ExecutorService executor;
     private CrawlersPool sut;
 
@@ -42,18 +40,18 @@ public class CrawlersPoolTest {
         when(reader.snapshotPage(SUCCESS_TEST_LINK)).thenReturn(TEST_SNAPSHOT);
         when(reader.snapshotPage(FAILURE_TEST_LINK)).thenThrow(new SnapshotException(new RuntimeException("This one's not good"), FAILURE_TEST_SNAPSHOT));
 
-        sut = new CrawlersPool(reader, listener, executor);
+        sut = new CrawlersPool(reader, executor);
     }
 
     @Test
     public void shouldSubmitSnapshotWhenSuccessful() {
-        sut.submit(SUCCESS_TEST_LINK);
-        verify(listener).onSnapshotComplete(TEST_SNAPSHOT);
+        sut.accept(new SnapshotTask(SUCCESS_TEST_LINK, listener));
+        verify(listener).accept(TEST_SNAPSHOT);
     }
 
     @Test
     public void shouldSubmitPartialValueWhenExceptionOccur() {
-        sut.submit(FAILURE_TEST_LINK);
-        verify(listener).onSnapshotComplete(argThat(argument -> argument == FAILURE_TEST_SNAPSHOT));
+        sut.accept(new SnapshotTask(FAILURE_TEST_LINK, listener));
+        verify(listener).accept(argThat(argument -> argument == FAILURE_TEST_SNAPSHOT));
     }
 }

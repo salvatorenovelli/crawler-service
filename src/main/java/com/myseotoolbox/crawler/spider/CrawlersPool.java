@@ -3,31 +3,37 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.spider.model.SnapshotTask;
+import lombok.extern.slf4j.Slf4j;
 
-import java.net.URI;
 import java.util.concurrent.ExecutorService;
+import java.util.function.Consumer;
 
-public class CrawlersPool {
+@Slf4j
+public class CrawlersPool implements Consumer<SnapshotTask> {
 
     private final ExecutorService executor;
     private final WebPageReader pageReader;
-    private final SnapshotCompletedListener snapshotCompletedListener;
 
     public CrawlersPool(WebPageReader pageReader,
-                        SnapshotCompletedListener snapshotCompletedListener,
                         ExecutorService executor) {
         this.pageReader = pageReader;
         this.executor = executor;
-        this.snapshotCompletedListener = snapshotCompletedListener;
     }
 
-    public void submit(URI link) {
+    @Override
+    public void accept(SnapshotTask task) {
         executor.submit(() -> {
             try {
-                PageSnapshot snapshot = pageReader.snapshotPage(link);
-                snapshotCompletedListener.onSnapshotComplete(snapshot);
-            } catch (SnapshotException e) {
-                snapshotCompletedListener.onSnapshotComplete(e.getPartialSnapshot());
+                try {
+                    PageSnapshot snapshot = pageReader.snapshotPage(task.getUri());
+                    task.getTaskRequester().accept(snapshot);
+                } catch (SnapshotException e) {
+                    log.warn("Unable to crawl: " + task.getUri(), e.toString());
+                    task.getTaskRequester().accept(e.getPartialSnapshot());
+                }
+            } catch (Exception e) {
+                log.error("Exception while crawling: " + task.getUri(), e);
             }
         });
     }
