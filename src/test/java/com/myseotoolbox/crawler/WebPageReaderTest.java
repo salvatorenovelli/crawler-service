@@ -103,6 +103,19 @@ public class WebPageReaderTest {
     }
 
     @Test
+    public void shouldDiscoverLinks() throws Exception {
+        givenAWebsite().havingRootPage()
+                .withLinksTo("/dst1", "/dst2")
+                .run();
+
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+
+        assertThat(snapshot.getLinks(), hasSize(2));
+        assertThat(snapshot.getLinks().get(0), is("/dst1"));
+        assertThat(snapshot.getLinks().get(1), is("/dst2"));
+    }
+
+    @Test
     public void destinationUrlShouldBeSavedAsAbsolute() throws Exception {
 
         givenAWebsite()

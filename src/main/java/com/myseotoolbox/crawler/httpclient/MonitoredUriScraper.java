@@ -64,8 +64,8 @@ public class MonitoredUriScraper {
         runOrLogError(() -> pageSnapshotRepository.save(newValue), "Error while persisting pageSnapshot");
     }
 
-    private void runOrLogError(CheckedRunnable task, String errorPrefix) {
-        Try.run(task).orElseRun(throwable -> log.warn(errorPrefix, throwable));
+    private void runOrLogError(CheckedRunnable task, String msg) {
+        Try.run(task).orElseRun(throwable -> log.warn(msg, throwable));
     }
 
     private PageSnapshot buildDefaultSnapshot(MonitoredUri monitoredUri, Date scanDate) {

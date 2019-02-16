@@ -22,6 +22,8 @@ class PageSnapshotBuilder {
                 extractFromTag(page, "meta[name=\"description\"]", element -> element.attr("content")),
                 extractFromTag(page, "link[rel=\"canonical\"]", element -> element.attr("href")));
 
+                pageSnapshot.setLinks(extractFromTag(page, "a[href]", element -> element.attr("href")));
+
         pageSnapshot.setRedirectChainElements(elements);
         return pageSnapshot;
     }

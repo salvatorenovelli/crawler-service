@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -34,7 +35,7 @@ public class PageSnapshot {
     private List<String> metaDescriptions;
     private List<String> canonicals;
 
-    private List<String> links;
+    @Transient private List<String> links;
 
     private String crawlStatus;
 

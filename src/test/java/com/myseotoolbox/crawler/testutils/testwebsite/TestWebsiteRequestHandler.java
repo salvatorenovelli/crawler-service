@@ -99,21 +99,25 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         sb.append("    </HEAD>");
         sb.append("    <BODY>");
         addTags(sb, page);
+        addLinks(sb, page);
         sb.append("    </BODY>");
         sb.append("</HTML>");
         return sb;
 
     }
 
-    private void addTags(StringBuffer sb, Page page) {
+    private void addLinks(StringBuffer sb, Page page) {
+        for (String href : page.getLinks()) {
+            sb.append("        <a href='").append(href).append("'").append(">link</a>");
+        }
+    }
 
+    private void addTags(StringBuffer sb, Page page) {
         for (String tag : page.getTags().keySet()) {
             for (String content : page.getTags().get(tag)) {
                 sb.append("        <").append(tag).append(">").append(content).append("</").append(tag).append(">");
             }
         }
-
-
     }
 
     @Override
