@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -23,9 +22,11 @@ class CrawlManager implements Consumer<PageSnapshot> {
     private final Set<URI> visited = new HashSet<>();
     private final Set<URI> inProgress = new HashSet<>();
     private final List<URI> seeds = new ArrayList<>();
+
     private final Consumer<SnapshotTask> crawlersPool;
     private final Predicate<URI> uriFilter;
     private final List<Consumer<PageSnapshot>> onSnapshotListeners = new ArrayList<>();
+    private final PageLinksHelper helper = new PageLinksHelper();
 
     public CrawlManager(List<URI> seeds, Consumer<SnapshotTask> crawlersPool, Predicate<URI> filter) {
         this.crawlersPool = crawlersPool;
@@ -43,37 +44,9 @@ class CrawlManager implements Consumer<PageSnapshot> {
 
     @Override
     public void accept(PageSnapshot snapshot) {
-        log.info("Scanned: {} links:{}", snapshot.getUri(), snapshot.getLinks());
+        log.info("Scanned: {} links:{}", snapshot.getUri(), snapshot.getLinks() != null ? snapshot.getLinks().size() : 0);
         notifyListeners(snapshot);
-        onScanCompleted(URI.create(snapshot.getUri()), extractDiscoveredLinks(snapshot));
-    }
-
-    private List<URI> extractDiscoveredLinks(PageSnapshot snapshot) {
-        List<URI> discoveredLinks = new ArrayList<>();
-
-        if (snapshot.getLinks() != null) {
-            discoveredLinks = snapshot.getLinks()
-                    .stream()
-                    .map(this::toUri)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
-
-        return discoveredLinks;
-    }
-
-    private URI toUri(String str) {
-
-        if (str.equals("javascript:{}")) {
-            return null;
-        }
-
-        try {
-            return new URI(str);
-        } catch (URISyntaxException e) {
-            log.warn("Invalid link in URI: {}", str);
-            return null;
-        }
+        onScanCompleted(URI.create(snapshot.getUri()), helper.filterValidLinks(snapshot.getLinks()));
     }
 
     private synchronized void onScanCompleted(URI baseUri, List<URI> links) {
@@ -111,12 +84,17 @@ class CrawlManager implements Consumer<PageSnapshot> {
     private static URI toAbsolute(URI sourceUri, URI uri) {
         if (uri.isAbsolute()) return uri;
 
-        String path = uri.getPath();
+        String path = uri.toString();
         if (containsUnicodeCharacters(path)) {
             log.warn("Redirect destination {} contains non ASCII characters (as required by the standard)", path);
             return sourceUri.resolve(SafeStringEscaper.escapeString(path));
         } else {
-            return sourceUri.resolve(path);
+            try {
+                return sourceUri.resolve(path);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                return null;
+            }
         }
 
     }

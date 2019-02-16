@@ -249,6 +249,87 @@ public class CrawlManagerTest {
         verify(pool).accept(taskForUri("http://host1/dst1"));
     }
 
+    @Test
+    public void canHandleNoLinksAtAll() {
+        doAnswer(invocation -> {
+            SnapshotTask task = invocation.getArgument(0);
+            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+            t.setLinks(null);
+            task.getTaskRequester().accept(t);
+            return null;
+        }).when(pool).accept(taskForUri("http://host1"));
+
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+
+    }
+
+    @Test
+    public void shouldIgnoreFragment() {
+        whenCrawling("http://host1").discover("http://host1#someFragment");
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verifyNoMoreInteractions(pool);
+
+    }
+
+
+    @Test
+    public void canManageLinkWithFragmentOnly() {
+        whenCrawling("http://host1").discover("#");
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void canManageEmptyLinks() {
+        whenCrawling("http://host1").discover("%20#");
+
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void shouldBeAbleToHandleURIWithSpaces() {
+        whenCrawling("http://host1").discover("/this destination contains spaces");
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void shouldBeAbleToHandleURIWithEncodedSpaces() {
+        whenCrawling("http://host1").discover("/this%20destination%20contains%20spaces");
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).accept(taskForUri("http://host1/this%20destination%20contains%20spaces"));
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void shouldHandleUriWithLeadingSpaces() {
+        whenCrawling("http://host1").discover("/leadingspaces    ");
+        sut = new CrawlManager(uris("http://host1"), pool, uri -> true);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).accept(taskForUri("http://host1/leadingspaces"));
+        verifyNoMoreInteractions(pool);
+    }
 
     private List<URI> uris(String... s) {
         return Stream.of(s).map(URI::create).collect(Collectors.toList());
