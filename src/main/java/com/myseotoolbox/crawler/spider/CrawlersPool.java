@@ -15,8 +15,7 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
     private final ExecutorService executor;
     private final WebPageReader pageReader;
 
-    public CrawlersPool(WebPageReader pageReader,
-                        ExecutorService executor) {
+    public CrawlersPool(WebPageReader pageReader, ExecutorService executor) {
         this.pageReader = pageReader;
         this.executor = executor;
     }

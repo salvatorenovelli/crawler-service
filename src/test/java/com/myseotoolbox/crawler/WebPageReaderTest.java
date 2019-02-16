@@ -163,15 +163,21 @@ public class WebPageReaderTest {
                 .run();
 
 
-        PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/start"));
+        try {
+            sut.snapshotPage(testUri("/start"));
+        } catch (SnapshotException e) {
 
-        assertThat(pageSnapshot.getRedirectChainElements(), contains(
-                el(301, "/dst1"),
-                el(301, "/dst2"),
-                el(301, "/start")));
+            assertThat(e.getPartialSnapshot().getRedirectChainElements(), contains(
+                    el(301, "/dst1"),
+                    el(301, "/dst2"),
+                    el(301, "/start")));
 
+            assertThat(e.getPartialSnapshot().getCrawlStatus(), containsString("ERROR: Redirect Loop"));
+            return;
+        }
 
-        assertThat(pageSnapshot.getCrawlStatus(), containsString("ERROR: Redirect Loop"));
+        fail("Expected exception");
+
 
     }
 
@@ -212,7 +218,12 @@ public class WebPageReaderTest {
                 .havingPage("/dst2").redirectingTo(301, "/start")
                 .run();
 
-        sut.snapshotPage(testUri("/start"));
+        try {
+            sut.snapshotPage(testUri("/start"));
+            fail("Expected Exception");
+        } catch (SnapshotException e) {
+            //We expect the exception
+        }
 
         assertThat(website.getRequestsReceived().size(), is(3));
     }
@@ -226,8 +237,15 @@ public class WebPageReaderTest {
                 .run();
 
 
-        PageSnapshot snapshot = sut.snapshotPage(testUri("/"));
-        assertThat(snapshot.getCrawlStatus(), containsString("Unhandled content type"));
+        try {
+            sut.snapshotPage(testUri("/"));
+        } catch (SnapshotException e) {
+            assertThat(e.getPartialSnapshot().getCrawlStatus(), containsString("Unhandled content type"));
+            return;
+        }
+
+        fail("Expected exception");
+
     }
 
     @Test

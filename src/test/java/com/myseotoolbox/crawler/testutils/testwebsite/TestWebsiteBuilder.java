@@ -73,7 +73,9 @@ public class TestWebsiteBuilder {
     }
 
     public TestWebsiteBuilder and() {
-        addPage(this.curPage);
+        if (curPage != null) {
+            addPage(curPage);
+        }
         return this;
     }
 
@@ -94,6 +96,7 @@ public class TestWebsiteBuilder {
 
     public TestWebsite run() throws Exception {
 
+        and();
         handler = new TestWebsiteRequestHandler(this);
         server.setHandler(handler);
         server.start();

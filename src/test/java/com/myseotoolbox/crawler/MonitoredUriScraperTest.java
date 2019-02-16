@@ -1,8 +1,8 @@
 package com.myseotoolbox.crawler;
 
+import com.myseotoolbox.crawler.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
-import com.myseotoolbox.crawler.httpclient.MonitoredUriScraper;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
@@ -30,7 +30,7 @@ import static com.myseotoolbox.crawler.testutils.TestCalendarService.DEFAULT_TES
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doThrow;
 
 
 @RunWith(SpringRunner.class)
@@ -98,7 +98,7 @@ public class MonitoredUriScraperTest {
         monitoredUri1.setUri(malformedURI);
 
         URI s = URI.create(malformedURI);
-        when(reader.snapshotPage(s)).thenThrow(new RuntimeException("Malformed URL: n/a"));
+        doThrow(new RuntimeException("Malformed URL: n/a")).when(reader).snapshotPage(s);
 
         MonitoredUri updated = sut.crawlUri(monitoredUri1);
 
@@ -117,7 +117,7 @@ public class MonitoredUriScraperTest {
         monitoredUri1.setUri(malformedURI);
 
         URI s = URI.create(malformedURI);
-        when(reader.snapshotPage(s)).thenThrow(new RuntimeException("Malformed URL: n/a"));
+        doThrow(new RuntimeException("Malformed URL: n/a")).when(reader).snapshotPage(s);
 
         sut.crawlUri(monitoredUri1);
 
