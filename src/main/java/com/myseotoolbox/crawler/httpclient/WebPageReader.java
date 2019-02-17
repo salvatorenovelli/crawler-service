@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.httpclient;
 
+import com.myseotoolbox.crawler.CalendarService;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChain;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
@@ -25,6 +26,7 @@ import static javax.servlet.http.HttpServletResponse.*;
 public class WebPageReader {
 
     private final HtmlParser parser = new HtmlParser();
+    private final CalendarService calendarService = new CalendarService();
 
     public PageSnapshot snapshotPage(URI uri) throws SnapshotException {
 
@@ -36,12 +38,15 @@ public class WebPageReader {
             URI baseUri = buildUri(startURI);
             scanRedirectChain(chain, baseUri);
 
-            return parser.parse(startURI, chain.getElements(), chain.getInputStream());
+            PageSnapshot snapshot = parser.parse(startURI, chain.getElements(), chain.getInputStream());
+            snapshot.setCreateDate(calendarService.now());
+
+            return snapshot;
 
         } catch (Exception e) {
             PageSnapshot pageSnapshot = new PageSnapshot();
             pageSnapshot.setUri(startURI);
-            pageSnapshot.setCreateDate(new Date());
+            pageSnapshot.setCreateDate(calendarService.now());
             pageSnapshot.setRedirectChainElements(chain.getElements());
             pageSnapshot.setCrawlStatus("Unable to crawl: " + e.toString());
             throw new SnapshotException(e, pageSnapshot);

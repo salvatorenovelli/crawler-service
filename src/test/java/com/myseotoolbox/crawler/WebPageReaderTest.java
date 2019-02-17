@@ -46,6 +46,15 @@ public class WebPageReaderTest {
     }
 
     @Test
+    public void dateShouldBeSet() throws Exception {
+        givenAWebsite().havingRootPage()
+                .run();
+
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        assertNotNull(snapshot.getCreateDate());
+    }
+
+    @Test
     public void shouldRetrieveTitle() throws Exception {
         givenAWebsite().havingRootPage()
                 .withTitle(TEST_TITLE)
@@ -280,7 +289,7 @@ public class WebPageReaderTest {
         return redirectChainElements.get(redirectChainElements.size() - 1).getDestinationURI();
     }
 
-    private URI testUri(String s) throws URISyntaxException {
+    private URI testUri(String s) {
         return testWebsiteBuilder.buildTestUri(s);
     }
 
@@ -292,7 +301,7 @@ public class WebPageReaderTest {
 
         String uri = testWebsiteBuilder.buildTestUri(dstUri).toString();
 
-        return new BaseMatcher<RedirectChainElement>() {
+        return new BaseMatcher<>() {
             @Override
             public boolean matches(Object item) {
                 RedirectChainElement element = (RedirectChainElement) item;
