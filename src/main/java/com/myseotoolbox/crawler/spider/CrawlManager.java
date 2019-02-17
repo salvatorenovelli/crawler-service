@@ -24,11 +24,11 @@ class CrawlManager implements Consumer<PageSnapshot> {
     private final List<URI> seeds = new ArrayList<>();
 
     private final Consumer<SnapshotTask> crawlersPool;
-    private final Predicate<URI> uriFilter;
+    private final UriFilter uriFilter;
     private final List<Consumer<PageSnapshot>> onSnapshotListeners = new ArrayList<>();
     private final PageLinksHelper helper = new PageLinksHelper();
 
-    public CrawlManager(List<URI> seeds, Consumer<SnapshotTask> crawlersPool, Predicate<URI> filter) {
+    public CrawlManager(List<URI> seeds, Consumer<SnapshotTask> crawlersPool, UriFilter filter) {
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;
         this.seeds.addAll(seeds);
@@ -61,7 +61,7 @@ class CrawlManager implements Consumer<PageSnapshot> {
     private synchronized void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
         List<URI> newLinks = links.stream()
                 .map(uri -> toAbsolute(sourceUri, uri))
-                .filter(uriFilter)
+                .filter(uri -> uriFilter.shouldCrawl(sourceUri, uri))
                 .filter(uri -> !alreadyVisited(uri))
                 .distinct()
                 .collect(Collectors.toList());

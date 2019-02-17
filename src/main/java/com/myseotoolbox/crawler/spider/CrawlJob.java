@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractHostPort;
@@ -19,7 +18,7 @@ public class CrawlJob {
 
     private final CrawlManager crawlManager;
 
-    public CrawlJob(URI websiteOrigin, List<URI> seeds, WebPageReader pageReader, Predicate<URI> uriFilter, ExecutorService executor) {
+    public CrawlJob(URI websiteOrigin, List<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ExecutorService executor) {
         List<URI> allSeeds = addOriginToSeeds(websiteOrigin, seeds);
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
         this.crawlManager = new CrawlManager(allSeeds, pool, uriFilter);

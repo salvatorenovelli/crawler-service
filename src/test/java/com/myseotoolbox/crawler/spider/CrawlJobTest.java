@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 public class CrawlJobTest {
 
 
-    public static final Predicate<URI> NO_URI_FILTER = uri -> true;
+    public static final UriFilter NO_URI_FILTER = (s, d) -> true;
     public static final int SINGLE_THREAD = 1;
     @Mock private WebPageReader pageReader;
     @Mock private Consumer<PageSnapshot> subscriber;

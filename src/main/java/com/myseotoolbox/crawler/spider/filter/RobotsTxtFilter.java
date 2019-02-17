@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider.filter;
 
+import com.myseotoolbox.crawler.spider.UriFilter;
 import com.panforge.robotstxt.RobotsTxt;
 import lombok.extern.slf4j.Slf4j;
 
@@ -7,11 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 
 
 @Slf4j
-public class RobotsTxtFilter implements Predicate<URI> {
+public class RobotsTxtFilter implements UriFilter {
 
     private final ConcurrentHashMap<URI, Boolean> cache = new ConcurrentHashMap<>();
     private final RobotsTxt robotsTxt;
@@ -21,7 +21,7 @@ public class RobotsTxtFilter implements Predicate<URI> {
     }
 
     @Override
-    public boolean test(URI uri) {
-        return cache.computeIfAbsent(uri, uri1 -> robotsTxt.query(null, uri.getPath()));
+    public boolean shouldCrawl(URI sourceUri, URI discoveredLink) {
+        return cache.computeIfAbsent(discoveredLink, uri1 -> robotsTxt.query(null, discoveredLink.getPath()));
     }
 }
