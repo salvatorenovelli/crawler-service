@@ -6,7 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.URI;
 import java.util.regex.Pattern;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractHostPort;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isChildOf;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
 
 @Slf4j
 public class BasicUriFilter implements UriFilter {
@@ -15,11 +16,10 @@ public class BasicUriFilter implements UriFilter {
 
 
     private final URI websiteOrigin;
-    private final String originPath;
 
     public BasicUriFilter(URI websiteOrigin) {
         this.websiteOrigin = websiteOrigin;
-        this.originPath = addTrailingSlashIfMissing(websiteOrigin.getPath());
+
     }
 
     @Override
@@ -51,15 +51,11 @@ public class BasicUriFilter implements UriFilter {
     }
 
     private boolean validHost(URI uri) {
-        return extractHostPort(uri).equals(extractHostPort(websiteOrigin));
+        return isHostMatching(uri, websiteOrigin);
     }
 
-    private boolean isChildOfOrigin(URI base) {
-        return addTrailingSlashIfMissing(base.getPath()).startsWith(originPath);
-    }
-
-    private String addTrailingSlashIfMissing(String path) {
-        return path + (path.endsWith("/") ? "" : "/");
+    private boolean isChildOfOrigin(URI discoveredLink) {
+        return isChildOf(websiteOrigin, discoveredLink);
     }
 
     private boolean validScheme(URI discoveredLink) {

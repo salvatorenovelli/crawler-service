@@ -97,7 +97,6 @@ public class BasicUriFilterTest {
         assertFalse(sut.shouldCrawl(URI.create("http://host"), URI.create("ftp://host")));
         //wrong scheme
         assertFalse(sut.shouldCrawl(URI.create("http://host"), URI.create("ftp//host")));
-
     }
 
     @Test

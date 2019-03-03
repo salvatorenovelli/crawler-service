@@ -11,7 +11,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractHostPort;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
 
 @Slf4j
 public class CrawlJob {
@@ -40,7 +40,7 @@ public class CrawlJob {
     }
 
     private void verifySameOrigin(URI websiteOrigin, List<URI> seeds) {
-        if (seeds.stream().anyMatch(uri -> !extractHostPort(websiteOrigin).equals(extractHostPort(uri))))
+        if (seeds.stream().anyMatch(uri -> !isHostMatching(websiteOrigin, uri)))
             throw new IllegalStateException("Seeds host must match website origin. Origin: " + websiteOrigin + " Seeds:" + seeds);
     }
 

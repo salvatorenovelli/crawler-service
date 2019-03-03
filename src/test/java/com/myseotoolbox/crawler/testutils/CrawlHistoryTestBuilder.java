@@ -148,7 +148,7 @@ public class CrawlHistoryTestBuilder {
 
             Stream.of(prevValue.getClass().getDeclaredMethods())
                     .filter(method -> method.getName().startsWith("get"))
-                    .filter(method -> !asList("getId", "getCrawlStatus", "getUri", "getCreateDate").contains(method.getName()))
+                    .filter(method -> !asList("getId", "getCrawlStatus", "getUri", "getCreateDate", "getLinks").contains(method.getName()))
 //                        .peek(method -> System.out.println(method.getName()))
                     .map(Method::getName)
                     .forEach(methodName -> {
