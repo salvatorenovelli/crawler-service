@@ -3,17 +3,19 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
-import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
+import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
 @ThreadSafe
@@ -104,7 +106,7 @@ class CrawlManager implements Consumer<PageSnapshot> {
     }
 
     private void notifyListeners(PageSnapshot snapshot) {
-        onSnapshotListeners.forEach(listener -> Try.run(() -> listener.accept(snapshot)).orElseRun(t -> log.warn("Unable to notify listener:  {}", t)));
+        onSnapshotListeners.forEach(listener -> runOrLogWarning(() -> listener.accept(snapshot), "Unable to notify listener"));
     }
 }
 

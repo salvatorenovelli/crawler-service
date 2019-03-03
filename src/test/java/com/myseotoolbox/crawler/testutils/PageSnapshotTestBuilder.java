@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -17,6 +18,7 @@ public class PageSnapshotTestBuilder {
 
     public PageSnapshotTestBuilder(String uri) {
         cur.setUri(uri);
+        cur.setCreateDate(new Date());
     }
 
     public static PageSnapshot aPageSnapshotWith404ValuesForUri(String uri) {

@@ -23,6 +23,7 @@ import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonit
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 
@@ -31,6 +32,7 @@ import static org.junit.Assert.assertThat;
 public class MonitoredUriUpdaterTest {
 
     public static final String TEST_URI = DEFAULT_TEST_WEBSITE_URL + "/path";
+    public static final int TEST_WORKSPACE_NUMBER = 23;
     @Autowired private MongoOperations operations;
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
@@ -53,7 +55,7 @@ public class MonitoredUriUpdaterTest {
     @Test
     public void shouldUpdateExistingUri() {
 
-        givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withWebsiteUrl("http://host/").save();
+        givenAWorkspaceWithSeqNumber(MonitoredUriBuilder.TEST_WORKSPACE_NUMBER).withWebsiteUrl("http://host/").save();
 
         givenAMonitoredUri()
                 .forUri(TEST_URI)
@@ -184,6 +186,40 @@ public class MonitoredUriUpdaterTest {
         sut.updateCurrentValue(snapshot);
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
+
+    }
+
+    @Test
+    public void shouldNotIncludeSubdomains() {
+        //this could be made configurable in future releases
+        givenAWorkspaceWithSeqNumber(1).withWebsiteUrl("http://host").save();
+
+        PageSnapshot snapshot = aTestPageSnapshotForUri("http://www.host").build();
+
+        sut.updateCurrentValue(snapshot);
+
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
+        assertThat(monitoredUris1, hasSize(0));
+
+    }
+
+    @Test
+    public void shouldSetAllTheStandardValuesInMonitoredUri() {
+        givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withOwner("salvatore").withWebsiteUrl("http://host").save();
+
+        PageSnapshot snapshot = aTestPageSnapshotForUri("http://host/page1").build();
+
+        sut.updateCurrentValue(snapshot);
+
+        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
+        assertThat(monitoredUris, hasSize(1));
+
+        MonitoredUri monitoredUri = monitoredUris.get(0);
+        assertThat(monitoredUri.getUri(), is(snapshot.getUri()));
+        assertThat(monitoredUri.getOwnerName(), is("salvatore"));
+        assertThat(monitoredUri.getWorkspaceNumber(), is(TEST_WORKSPACE_NUMBER));
+        assertNotNull(monitoredUri.getLastScan());
 
     }
 

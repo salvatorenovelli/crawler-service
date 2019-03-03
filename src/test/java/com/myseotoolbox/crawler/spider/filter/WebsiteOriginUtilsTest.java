@@ -2,14 +2,28 @@ package com.myseotoolbox.crawler.spider.filter;
 
 import org.junit.Test;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isChildOf;
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 import static java.net.URI.create;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class WebsiteOriginUtilsTest {
 
+
+    @Test
+    public void verifySubdomain() {
+        assertTrue(isSubdomain(create("http://host"), create("http://www.host")));
+    }
+
+    @Test
+    public void verifyNotSubdomainSimple() {
+        assertFalse(isSubdomain(create("http://host"), create("http://something")));
+    }
+
+    @Test
+    public void verifyNotSubdomainTricky() {
+        assertFalse(isSubdomain(create("http://host"), create("http://anotherhost")));
+    }
 
     @Test
     public void isCaseInsensitive() {

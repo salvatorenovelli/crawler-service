@@ -6,8 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.URI;
 import java.util.regex.Pattern;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isChildOf;
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 
 @Slf4j
 public class BasicUriFilter implements UriFilter {
@@ -25,11 +24,11 @@ public class BasicUriFilter implements UriFilter {
     @Override
     public boolean shouldCrawl(URI sourceUri, URI discoveredLink) {
 
-        boolean valid = validScheme(discoveredLink) && validExtension(discoveredLink) && validHost(discoveredLink) && validPath(sourceUri, discoveredLink);
+        boolean valid = validScheme(discoveredLink) && validExtension(discoveredLink) && validHost(sourceUri, discoveredLink) && validPath(sourceUri, discoveredLink);
 
         if (!valid && log.isDebugEnabled()) {
             log.debug("Blocked: {} URI: {} src: {}",
-                    getFilterCause(validScheme(discoveredLink), validExtension(discoveredLink), validHost(discoveredLink), validPath(sourceUri, discoveredLink)),
+                    getFilterCause(validScheme(discoveredLink), validExtension(discoveredLink), validHost(sourceUri, discoveredLink), validPath(sourceUri, discoveredLink)),
                     discoveredLink,
                     sourceUri);
         }
@@ -50,8 +49,12 @@ public class BasicUriFilter implements UriFilter {
         return !INVALID_EXTENSIONS.matcher(str.toString().toLowerCase()).matches();
     }
 
-    private boolean validHost(URI uri) {
-        return isHostMatching(uri, websiteOrigin);
+    private boolean validHost(URI sourceUri, URI discoveredLink) {
+        return (isChildOfOrigin(sourceUri) && isSubdomainOfOrigin(discoveredLink)) || isHostMatching(discoveredLink, websiteOrigin);
+    }
+
+    private boolean isSubdomainOfOrigin(URI discoveredLink) {
+        return isSubdomain(websiteOrigin,discoveredLink);
     }
 
     private boolean isChildOfOrigin(URI discoveredLink) {

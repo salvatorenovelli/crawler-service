@@ -8,9 +8,12 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
+import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+
+@Component
 public class MonitoredUriUpdater {
     private final MongoOperations mongoOperations;
     private final WorkspaceRepository workspaceRepository;
@@ -27,7 +30,13 @@ public class MonitoredUriUpdater {
                 .filter(workspace -> websiteUrlMatch(workspace.getWebsiteUrl(), snapshot.getUri()))
                 .forEach(workspace -> {
                     Query query = new Query(new Criteria().andOperator(new Criteria("uri").is(snapshot.getUri()), new Criteria("workspaceNumber").is(workspace.getSeqNumber())));
-                    Update update = new Update().set("currentValue", snapshot);
+                    Update update = new Update()
+                            .set("uri", snapshot.getUri())
+                            .set("ownerName", workspace.getOwnerName())
+                            .set("workspaceNumber", workspace.getSeqNumber())
+                            .set("currentValue", snapshot)
+                            .set("lastScan", snapshot.getCreateDate());
+
                     mongoOperations.upsert(query, update, MonitoredUri.class);
                 });
 

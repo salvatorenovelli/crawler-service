@@ -24,7 +24,8 @@ public class ArchiveServiceClient {
 
     public Optional<PageSnapshot> getLastPageSnapshot(String uri) {
         try {
-            return Optional.of(Objects.requireNonNull(restTemplate.getForObject(archiveServiceUrl, PageSnapshot.class, uri)));
+            PageSnapshot getCurrentValue = restTemplate.getForObject(archiveServiceUrl, PageSnapshot.class, uri);
+            return Optional.of(Objects.requireNonNull(getCurrentValue));
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
                 return Optional.empty();

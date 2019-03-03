@@ -4,6 +4,10 @@ import java.net.URI;
 
 public class WebsiteOriginUtils {
 
+    public static boolean isSubdomain(URI origin, URI possibleSubdomain) {
+        return extractHostPort(possibleSubdomain).endsWith("." + extractHostPort(origin));
+    }
+
     public static boolean isHostMatching(URI a, URI b) {
         return extractHostPort(a).equals(extractHostPort(b));
     }
