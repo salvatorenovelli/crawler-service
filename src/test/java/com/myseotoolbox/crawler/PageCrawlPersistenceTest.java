@@ -23,9 +23,9 @@ import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRedirectChainElementsFor;
 import static java.util.Collections.singletonList;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -33,14 +33,16 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
 
 
     @Mock private PageCrawlRepository repo;
+    @Mock private ArchiveServiceClient archiveClient;
+
     PageCrawlPersistence sut;
 
     private PageSnapshot prevVal;
     private PageSnapshot curVal;
 
     @Before
-    public void setUp() throws Exception {
-        sut = new PageCrawlPersistence(repo);
+    public void setUp() {
+        sut = new PageCrawlPersistence(archiveClient, repo);
     }
 
     @Test
@@ -51,7 +53,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .build();
 
 
-        sut.persistPageCrawl(prevVal, curVal);
+        sut.persistPageCrawl(curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
@@ -68,7 +70,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue(a404PageSnapshot())
                 .build();
 
-        sut.persistPageCrawl(prevVal, curVal);
+        sut.persistPageCrawl(curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(buildRedirectChainElementsFor(STANDARD_URI, 404)));
@@ -87,7 +89,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue().havingStandardValueValues()
                 .build();
 
-        sut.persistPageCrawl(prevVal, curVal);
+        sut.persistPageCrawl(curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
@@ -108,7 +110,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue().havingStandardValueValues().withTitle("Multiple      spaces is \nsanitized")
                 .build();
 
-        sut.persistPageCrawl(prevVal, curVal);
+        sut.persistPageCrawl(curVal);
 
 
         verify(repo).save(argThat(crawl -> {
@@ -129,7 +131,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue().havingStandardValueValues().withH1s("HTML character like '&lt;' are sanitized")
                 .build();
 
-        sut.persistPageCrawl(prevVal, curVal);
+        sut.persistPageCrawl(curVal);
 
 
         verify(repo).save(argThat(crawl -> {
@@ -145,15 +147,30 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue().havingStandardValueValues().withH1s("HTML character like '&lt;' are sanitized")
                 .build();
 
-
-        sut.persistPageCrawl(prevVal, curVal);
+        sut.persistPageCrawl(curVal);
 
         verify(repo).save(argThat(crawl -> {
-            assertThat(crawl.getH1s(),valueType(singletonList("HTML character like '<' are sanitized")));
+            assertThat(crawl.getH1s(), valueType(singletonList("HTML character like '<' are sanitized")));
             return true;
         }));
 
     }
+
+    @Test
+    public void shouldBeAbleToFindLastValueAutonomously() {
+        givenCrawlHistory()
+                .withCurrentValue().havingStandardValueValues()
+                .build();
+
+        sut.persistPageCrawl(curVal);
+
+        verify(repo).save(argThat(crawl -> {
+            assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
+            assertThat(crawl.getTitle(), valueType(curVal.getTitle()));
+            return true;
+        }));
+    }
+
 
     private CrawlHistoryTestBuilder givenCrawlHistory() {
         return new CrawlHistoryTestBuilder(this);
@@ -164,5 +181,6 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         this.prevVal = prevVal;
         this.curVal = curVal;
         when(repo.findTopByUriOrderByCreateDateDesc(curVal.getUri())).thenReturn(Optional.ofNullable(prevCrawl));
+        when(archiveClient.getLastPageSnapshot(anyString())).thenReturn(Optional.ofNullable(this.prevVal));
     }
 }

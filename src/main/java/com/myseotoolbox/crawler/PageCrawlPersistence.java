@@ -15,14 +15,21 @@ import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
 @Component
 public class PageCrawlPersistence {
 
+    private final ArchiveServiceClient archiveClient;
     private final PageCrawlRepository pageCrawlRepository;
-    private PageCrawlBuilder builder = new PageCrawlBuilder();
+    private final PageCrawlBuilder builder = new PageCrawlBuilder();
 
-    public PageCrawlPersistence(PageCrawlRepository pageCrawlRepository) {
+    public PageCrawlPersistence(ArchiveServiceClient archiveClient, PageCrawlRepository pageCrawlRepository) {
+        this.archiveClient = archiveClient;
         this.pageCrawlRepository = pageCrawlRepository;
     }
 
-    public void persistPageCrawl(@Nullable PageSnapshot prevValue, PageSnapshot curValue) {
+    public void persistPageCrawl(PageSnapshot curVal) {
+        Optional<PageSnapshot> prevValue = archiveClient.getLastPageSnapshot(curVal.getUri());
+        persistPageCrawl(prevValue.orElse(null), curVal);
+    }
+
+    private void persistPageCrawl(@Nullable PageSnapshot prevValue, PageSnapshot curValue) {
 
         sanitize(curValue);
 
