@@ -16,20 +16,20 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 @Slf4j
 public class CrawlJob {
 
-    private final CrawlManager crawlManager;
+    private final CrawlerQueue crawlerQueue;
 
     public CrawlJob(URI websiteOrigin, List<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ExecutorService executor) {
         List<URI> allSeeds = addOriginToSeeds(websiteOrigin, seeds);
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
-        this.crawlManager = new CrawlManager(allSeeds, pool, uriFilter);
+        this.crawlerQueue = new CrawlerQueue(allSeeds, pool, uriFilter);
     }
 
     public void subscribeToCrawlCompleted(Consumer<PageSnapshot> subscriber) {
-        this.crawlManager.subscribeToCrawlCompleted(subscriber);
+        this.crawlerQueue.subscribeToCrawlCompleted(subscriber);
     }
 
     public void start() {
-        crawlManager.start();
+        crawlerQueue.start();
     }
 
     private List<URI> addOriginToSeeds(URI websiteOrigin, List<URI> seeds) {

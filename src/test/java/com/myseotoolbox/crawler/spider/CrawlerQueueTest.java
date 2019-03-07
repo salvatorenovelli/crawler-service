@@ -24,13 +24,13 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class CrawlManagerTest {
+public class CrawlerQueueTest {
 
     private static final UriFilter NO_URI_FILTER = (s, d) -> true;
     private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família";
 
 
-    private CrawlManager sut;
+    private CrawlerQueue sut;
     @Mock private CrawlersPool pool;
 
     @Before
@@ -45,7 +45,7 @@ public class CrawlManagerTest {
 
     @Test
     public void shouldRequireProcessingOfAllSeeds() {
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
         verify(pool).accept(taskForUri("http://host1"));
     }
@@ -56,7 +56,7 @@ public class CrawlManagerTest {
 
         whenCrawling("http://host1").discover("http://host1");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -68,7 +68,7 @@ public class CrawlManagerTest {
         whenCrawling("http://host1").discover("/dst");
         whenCrawling("http://host1/dst").discover("http://host1/dst");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
 
         sut.start();
 
@@ -82,7 +82,7 @@ public class CrawlManagerTest {
 
         whenCrawling("http://host1").discover("/");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
 
         sut.start();
 
@@ -95,7 +95,7 @@ public class CrawlManagerTest {
     public void takeAlwaysReturnAbsoluteUri() {
         whenCrawling("http://host1").discover("/dst");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
 
         sut.start();
 
@@ -107,7 +107,7 @@ public class CrawlManagerTest {
     @Test
     public void onSnapshotCompleteShouldNeverBeFedRelativeUrisAsTakeNeverReturnsIt() {
 
-        sut = new CrawlManager(uris("http://host1/dst"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1/dst"), pool, NO_URI_FILTER);
 
         try {
             sut.accept(aPageSnapshotWithStandardValuesForUri("/dst"));
@@ -123,7 +123,7 @@ public class CrawlManagerTest {
     @Test
     public void completingASnapshotNeverSubmittedShouldThrowException() {
 
-        sut = new CrawlManager(uris("http://host1/dst"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1/dst"), pool, NO_URI_FILTER);
 
         try {
             sut.accept(aPageSnapshotWithStandardValuesForUri(("http://host1/dst")));
@@ -139,7 +139,7 @@ public class CrawlManagerTest {
     @Test
     public void shouldAlertIfCompleteTheSameSnapshotTwice() {
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         try {
@@ -156,7 +156,7 @@ public class CrawlManagerTest {
     @Test
     public void shouldProcessAllSeedsWhenMultipleSeedsAreFed() {
 
-        sut = new CrawlManager(uris("http://host1", "http://host2"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1", "http://host2"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -171,7 +171,7 @@ public class CrawlManagerTest {
         whenCrawling("http://host1").discover(LOCATION_WITH_UNICODE_CHARACTERS);
 
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
 
         sut.start();
 
@@ -185,7 +185,7 @@ public class CrawlManagerTest {
     public void discoveringDuplicateLinksInPageDoesNotEnqueueItMultipleTimes() {
         whenCrawling("http://host1").discover("http://host1/dst1", "http://host1/dst2", "http://host1/dst1");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -199,7 +199,7 @@ public class CrawlManagerTest {
     public void shouldNotAcceptFilteredUris() {
         whenCrawling("http://host1").discover("http://host1/dst1", "http://host1/dst2", "http://host1/shouldReject");
 
-        sut = new CrawlManager(uris("http://host1"), pool, (s, d) -> !d.toString().equals("http://host1/shouldReject"));
+        sut = new CrawlerQueue(uris("http://host1"), pool, (s, d) -> !d.toString().equals("http://host1/shouldReject"));
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -218,7 +218,7 @@ public class CrawlManagerTest {
         doAnswer(invocation -> null).when(pool).accept(taskForUri("http://host1/dst1"));
 
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
 
@@ -231,7 +231,7 @@ public class CrawlManagerTest {
     public void canHandleInvalidEmptyJavascriptLinks() {
         whenCrawling("http://host1").discover("javascript:{}", "/dst1");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -242,7 +242,7 @@ public class CrawlManagerTest {
     public void canHandleInvalidLink() {
         whenCrawling("http://host1").discover("not a valid link", "/dst1");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -259,7 +259,7 @@ public class CrawlManagerTest {
             return null;
         }).when(pool).accept(taskForUri("http://host1"));
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -269,7 +269,7 @@ public class CrawlManagerTest {
     @Test
     public void shouldIgnoreFragment() {
         whenCrawling("http://host1").discover("http://host1#someFragment");
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -281,7 +281,7 @@ public class CrawlManagerTest {
     @Test
     public void canManageLinkWithFragmentOnly() {
         whenCrawling("http://host1").discover("#");
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -292,7 +292,7 @@ public class CrawlManagerTest {
     public void canManageEmptyLinks() {
         whenCrawling("http://host1").discover("%20#");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -302,7 +302,7 @@ public class CrawlManagerTest {
     @Test
     public void shouldBeAbleToHandleURIWithSpaces() {
         whenCrawling("http://host1").discover("/this destination contains spaces");
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -312,7 +312,7 @@ public class CrawlManagerTest {
     @Test
     public void shouldBeAbleToHandleURIWithEncodedSpaces() {
         whenCrawling("http://host1").discover("/this%20destination%20contains%20spaces");
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -324,7 +324,7 @@ public class CrawlManagerTest {
     public void shouldHandleUriWithLeadingSpaces() {
         whenCrawling("http://host1").discover("/leadingspaces    ");
 
-        sut = new CrawlManager(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -339,7 +339,7 @@ public class CrawlManagerTest {
         whenCrawling("http://host").discover("http://host/basedisabled-outside", "http://host/disabled-outside", "http://host/base/2");
         whenCrawling("http://host/base/1").discover("http://host/allowed-outside", "http://host/base/1/1", "http://host/base/2/1");
 
-        sut = new CrawlManager(uris("http://host/base"), pool, new BasicUriFilter(URI.create("http://host/base")));
+        sut = new CrawlerQueue(uris("http://host/base"), pool, new BasicUriFilter(URI.create("http://host/base")));
 
         sut.start();
 
@@ -363,8 +363,8 @@ public class CrawlManagerTest {
         return Stream.of(s).map(URI::create).collect(Collectors.toList());
     }
 
-    private CrawlManagerTestMockBuilder whenCrawling(String baseUri) {
-        return new CrawlManagerTestMockBuilder(baseUri);
+    private CrawlerQueueTestMockBuilder whenCrawling(String baseUri) {
+        return new CrawlerQueueTestMockBuilder(baseUri);
     }
 
 
@@ -372,11 +372,11 @@ public class CrawlManagerTest {
         return URI.create(uri);
     }
 
-    private class CrawlManagerTestMockBuilder {
+    private class CrawlerQueueTestMockBuilder {
 
         private final String baseUri;
 
-        CrawlManagerTestMockBuilder(String baseUri) {
+        CrawlerQueueTestMockBuilder(String baseUri) {
             this.baseUri = baseUri;
         }
 

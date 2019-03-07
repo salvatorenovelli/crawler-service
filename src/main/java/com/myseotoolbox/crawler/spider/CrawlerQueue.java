@@ -19,7 +19,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 
 @Slf4j
 @ThreadSafe
-class CrawlManager implements Consumer<PageSnapshot> {
+class CrawlerQueue implements Consumer<PageSnapshot> {
 
     private final Set<URI> visited = new HashSet<>();
     private final Set<URI> inProgress = new HashSet<>();
@@ -30,7 +30,7 @@ class CrawlManager implements Consumer<PageSnapshot> {
     private final List<Consumer<PageSnapshot>> onSnapshotListeners = new ArrayList<>();
     private final PageLinksHelper helper = new PageLinksHelper();
 
-    public CrawlManager(List<URI> seeds, Consumer<SnapshotTask> crawlersPool, UriFilter filter) {
+    public CrawlerQueue(List<URI> seeds, Consumer<SnapshotTask> crawlersPool, UriFilter filter) {
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;
         this.seeds.addAll(seeds);
