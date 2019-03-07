@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.filter;
 
 import java.net.URI;
+import java.util.Objects;
 
 public class WebsiteOriginUtils {
 
@@ -14,11 +15,16 @@ public class WebsiteOriginUtils {
 
     public static boolean isChildOf(URI origin, URI possibleChild) {
 
-        if (!origin.getScheme().equals(possibleChild.getScheme())) return false;
+        if (!isSchemeMatching(origin, possibleChild)) return false;
         if (!isHostMatching(origin, possibleChild)) return false;
 
         String originPath = addTrailingSlashIfMissing(origin.getPath());
-        return addTrailingSlashIfMissing(possibleChild.getPath()).startsWith(originPath);
+        String possibleChildPath = addTrailingSlashIfMissing(possibleChild.getPath());
+        return possibleChildPath.startsWith(originPath);
+    }
+
+    private static boolean isSchemeMatching(URI origin, URI possibleChild) {
+        return Objects.equals(origin.getScheme(), possibleChild.getScheme());
     }
 
     private static String addTrailingSlashIfMissing(String path) {

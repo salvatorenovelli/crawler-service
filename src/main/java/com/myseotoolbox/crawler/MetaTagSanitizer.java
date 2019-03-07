@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 public class MetaTagSanitizer {
 
 
-
     public static void sanitize(PageSnapshot source) {
         if (source != null) {
             source.setTitle(sanitize(source.getTitle()));
@@ -31,15 +30,22 @@ public class MetaTagSanitizer {
         if (s == null) return null;
 
         s = s.trim();
-        s = normalizeNewLines(s);
         s = StringEscapeUtils.unescapeHtml(s);
         s = StringEscapeUtils.unescapeJava(s);
+        s = normalizeNewLines(s);
+        s = removeMultipleSpaces(s);
 
         return s;
     }
 
     private static String normalizeNewLines(String s) {
         s = s.replaceAll("[\\n\\r]", " ");
+        return s;
+    }
+
+    private static String removeMultipleSpaces(String s) {
+        //Normalize &nbsp; to normal space 0x20. (unescapeHtml would translated &nbsp; into  0xA0 otherwise)
+        s = s.replace("\u00a0", " ");
         s = s.replaceAll("[ ]{2,}", " ");
         return s;
     }

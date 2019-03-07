@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
+
 
 @Component
 public class MonitoredUriUpdater {
@@ -24,6 +26,8 @@ public class MonitoredUriUpdater {
     }
 
     public void updateCurrentValue(PageSnapshot snapshot) {
+
+        sanitize(snapshot);
 
         workspaceRepository.findAll()
                 .stream()

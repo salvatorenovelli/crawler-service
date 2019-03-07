@@ -18,7 +18,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.monitoreduri.TestWorkspaceBuilder.DEFAULT_TEST_WEBSITE_URL;
-import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.TEST_WORKSPACE_NUMBER;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static org.hamcrest.Matchers.hasSize;
@@ -220,6 +219,23 @@ public class MonitoredUriUpdaterTest {
         assertThat(monitoredUri.getOwnerName(), is("salvatore"));
         assertThat(monitoredUri.getWorkspaceNumber(), is(TEST_WORKSPACE_NUMBER));
         assertNotNull(monitoredUri.getLastScan());
+
+    }
+
+    @Test
+    public void shouldSanitizeTags() {
+
+        givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withWebsiteUrl("http://host/").save();
+
+        PageSnapshot snapshot = aTestPageSnapshotForUri("http://host/page1")
+                .withTitle("This title contains dirty &nbsp; characters")
+                .build();
+
+        sut.updateCurrentValue(snapshot);
+
+        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
+        MonitoredUri monitoredUri = monitoredUris.get(0);
+        assertThat(monitoredUri.getCurrentValue().getTitle(), is("This title contains dirty characters"));
 
     }
 
