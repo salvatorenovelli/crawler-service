@@ -36,7 +36,7 @@ class CrawlerQueue implements Consumer<PageSnapshot> {
         this.seeds.addAll(seeds);
     }
 
-    public synchronized void subscribeToCrawlCompleted(Consumer<PageSnapshot> subscriber) {
+    public synchronized void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {
         onSnapshotListeners.add(subscriber);
     }
 

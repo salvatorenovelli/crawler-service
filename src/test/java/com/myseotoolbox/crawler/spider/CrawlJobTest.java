@@ -12,12 +12,10 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import static com.myseotoolbox.crawler.spider.ExecutorBuilder.buildExecutor;
 import static java.net.URI.create;
@@ -53,7 +51,7 @@ public class CrawlJobTest {
     @Test
     public void shouldNotifySubscribers() {
         CrawlJob sut = new CrawlJob(create("http://domain1"), Collections.emptyList(), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
-        sut.subscribeToCrawlCompleted(subscriber);
+        sut.subscribeToPageCrawled(subscriber);
         sut.start();
         Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
     }
@@ -61,8 +59,8 @@ public class CrawlJobTest {
     @Test
     public void listenerThrowingExceptionsShouldNotPreventOthersToGetMessage() {
         CrawlJob sut = new CrawlJob(create("http://domain1"), Collections.emptyList(), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
-        sut.subscribeToCrawlCompleted(exceptionSubscriber);
-        sut.subscribeToCrawlCompleted(subscriber);
+        sut.subscribeToPageCrawled(exceptionSubscriber);
+        sut.subscribeToPageCrawled(subscriber);
         sut.start();
         Mockito.verify(exceptionSubscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
         Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));

@@ -24,8 +24,8 @@ public class CrawlJob {
         this.crawlerQueue = new CrawlerQueue(allSeeds, pool, uriFilter);
     }
 
-    public void subscribeToCrawlCompleted(Consumer<PageSnapshot> subscriber) {
-        this.crawlerQueue.subscribeToCrawlCompleted(subscriber);
+    public void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {
+        this.crawlerQueue.subscribeToPageCrawled(subscriber);
     }
 
     public void start() {
