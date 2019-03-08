@@ -6,6 +6,7 @@ import com.myseotoolbox.crawler.model.ResolvableField;
 import org.springframework.lang.Nullable;
 import org.springframework.util.Assert;
 
+import java.util.Objects;
 import java.util.function.Function;
 
 public class PageCrawlBuilder {
@@ -34,7 +35,7 @@ public class PageCrawlBuilder {
                                            Function<PageSnapshot, T> snapshotMapper) {
 
 
-        if (prevValue != null && snapshotMapper.apply(curValue).equals(snapshotMapper.apply(prevValue))) {
+        if (prevValue != null && Objects.equals(snapshotMapper.apply(curValue),snapshotMapper.apply(prevValue))) {
 
             ResolvableField<T> prevCrawlField = pageCrawlFieldMapper.apply(prevCrawl);
 

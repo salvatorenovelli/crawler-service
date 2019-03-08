@@ -19,7 +19,6 @@ public final class RedirectChain {
     private final List<RedirectChainElement> elements;
     private InputStream inputStream;
 
-
     public RedirectChain() {
         elements = new ArrayList<>();
     }
@@ -36,10 +35,6 @@ public final class RedirectChain {
         return new ArrayList<>(elements);
     }
 
-    public String getDestinationURI() {
-        return getLastElement().getDestinationURI();
-    }
-
     private boolean isRedirectLoop(RedirectChainElement redirectChainElement) {
         return isRedirect(redirectChainElement.getHttpStatus()) && alreadyExistInTheChain(redirectChainElement);
     }
@@ -49,11 +44,6 @@ public final class RedirectChain {
                 .map(RedirectChainElement::getSourceURI)
                 .anyMatch(uri -> uri.equals(redirectChainElement.getDestinationURI()));
     }
-
-    private RedirectChainElement getLastElement() {
-        return elements.get(elements.size() - 1);
-    }
-
 }
 
 

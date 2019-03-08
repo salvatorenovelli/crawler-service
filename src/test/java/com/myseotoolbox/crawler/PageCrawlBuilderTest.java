@@ -18,8 +18,7 @@ import static com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder.a404Pag
 import static com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder.standardPageSnapshot;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.referenceTo;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
-import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri;
-import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRedirectChainElementsFor;
+import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.*;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -370,6 +369,22 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
         assertTrue(build.getTitle().isValueField());
         assertNull(build.getTitle().getValue());
         assertNull(build.getTitle().getReference());
+    }
+
+
+    @Test
+    public void shouldBeAbletoManageNullCurValue() {
+
+        givenCrawlHistory()
+                .withCrawl().havingStandardValueValues().and()
+                .withCurrentValue().havingStandardValueValues().withTitle(null)
+                .build();
+
+        //Common when there is an error in crawl
+        PageCrawl build = sut.build(prevVal, curVal, prevCrawl);
+
+        assertNull(build.getTitle().getValue());
+
     }
 
     private CrawlHistoryTestBuilder givenCrawlHistory() {

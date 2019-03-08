@@ -73,25 +73,5 @@ public class ScanScheduler {
 
     }
 
-    private FilterAggregator buildUriFilter(URI websiteOrigin) throws IOException {
-        RobotsTxtFilter robotsTxt = getRobotsTxtFilter(websiteOrigin);
-        BasicUriFilter basicFilter = getBasicUriFilter(websiteOrigin);
-
-        return new FilterAggregator(robotsTxt, basicFilter);
-    }
-
-    private BasicUriFilter getBasicUriFilter(URI websiteOrigin) {
-        return new BasicUriFilter(websiteOrigin);
-    }
-
-    private RobotsTxtFilter getRobotsTxtFilter(URI websiteOrigin) throws IOException {
-        RobotsTxtFilter robotsTxt;
-
-        try (InputStream robotsTxtStream = websiteOrigin.resolve("/robots.txt").toURL().openStream()) {
-            robotsTxt = new RobotsTxtFilter(robotsTxtStream);
-        }
-        return robotsTxt;
-    }
-
 
 }

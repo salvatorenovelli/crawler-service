@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
+import static com.myseotoolbox.crawler.httpclient.WebPageReader.isRedirect;
 
 
 public class HttpGetRequest {
@@ -44,7 +45,7 @@ public class HttpGetRequest {
         int status = connection.getResponseCode();
         checkMimeType(connection);
 
-        if (status == HttpURLConnection.HTTP_MOVED_TEMP || status == HttpURLConnection.HTTP_MOVED_PERM || status == HttpURLConnection.HTTP_SEE_OTHER) {
+        if (isRedirect(status)) {
             dstURI = extractDestinationUri(connection, dstURI);
         }
 

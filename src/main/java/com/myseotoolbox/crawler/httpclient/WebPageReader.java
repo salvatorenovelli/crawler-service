@@ -60,6 +60,7 @@ public class WebPageReader {
             case SC_MOVED_TEMPORARILY: // 302
             case SC_SEE_OTHER: // 303
             case SC_TEMPORARY_REDIRECT: // 307
+            case 308:
                 return true;
             default:
                 return false;
@@ -89,10 +90,6 @@ public class WebPageReader {
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private Document toJsoupDocument(InputStream inputStream, String baseUri) throws IOException {
-        return Jsoup.parse(inputStream, UTF_8.name(), baseUri);
     }
 
     private URI buildUri(String startURI) throws URISyntaxException {
