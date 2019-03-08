@@ -70,5 +70,11 @@ public class FilterAggregatorTest {
         verifyNoMoreInteractions(predicate1, predicateFalse, predicate2);
     }
 
-
+    @Test
+    public void shouldNotAddNullFilters() {
+        FilterAggregator sut = new FilterAggregator(null,predicate1);
+        URI uri = URI.create("http://host1");
+        sut.shouldCrawl(BASE, uri);
+        verify(predicate1).shouldCrawl(BASE, uri);
+    }
 }
