@@ -7,9 +7,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExecutorBuilder {
 
-    private static final AtomicInteger threadId = new AtomicInteger(0);
+    private final AtomicInteger threadId = new AtomicInteger(0);
 
-    public static ExecutorService buildExecutor(int concurrentConnections) {
+    public ExecutorService buildExecutor(int concurrentConnections) {
         ThreadFactory factory = r -> {
             Thread thread = new Thread(r);
             thread.setName("crawler-" + threadId.getAndIncrement());

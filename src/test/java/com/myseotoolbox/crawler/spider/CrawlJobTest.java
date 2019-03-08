@@ -3,8 +3,8 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,11 +13,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.*;
 import java.util.function.Consumer;
 
-import static com.myseotoolbox.crawler.spider.ExecutorBuilder.buildExecutor;
 import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
@@ -45,7 +42,7 @@ public class CrawlJobTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionIfSeedsOriginDontMatchWebsiteOrigin() {
-        CrawlJob sut = new CrawlJob(create("http://domain1"), asList(create("http://domain1"), create("http://domain2")), pageReader, NO_URI_FILTER, buildExecutor(SINGLE_THREAD));
+        new CrawlJob(create("http://domain1"), asList(create("http://domain1"), create("http://domain2")), pageReader, NO_URI_FILTER, new ExecutorBuilder().buildExecutor(SINGLE_THREAD));
     }
 
     @Test
@@ -65,44 +62,5 @@ public class CrawlJobTest {
         Mockito.verify(exceptionSubscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
         Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
 
-    }
-
-    @Slf4j
-    private static class CurrentThreadTestExecutorService extends AbstractExecutorService {
-
-        @Override
-        public void execute(Runnable command) {
-            try {
-                command.run();
-            } catch (Exception e) {
-                //Swallow leaked exception for consistency with executor service
-                log.error("Exception in run: ", e);
-            }
-        }
-
-        @Override
-        public void shutdown() {
-            throw new UnsupportedOperationException("Not implemented!");
-        }
-
-        @Override
-        public List<Runnable> shutdownNow() {
-            throw new UnsupportedOperationException("Not implemented!");
-        }
-
-        @Override
-        public boolean isShutdown() {
-            throw new UnsupportedOperationException("Not implemented!");
-        }
-
-        @Override
-        public boolean isTerminated() {
-            throw new UnsupportedOperationException("Not implemented!");
-        }
-
-        @Override
-        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            throw new UnsupportedOperationException("Not implemented!");
-        }
     }
 }
