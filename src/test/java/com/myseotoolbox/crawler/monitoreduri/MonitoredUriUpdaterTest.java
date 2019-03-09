@@ -6,6 +6,7 @@ import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
+import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,9 +18,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 
-import static com.myseotoolbox.crawler.monitoreduri.TestWorkspaceBuilder.DEFAULT_TEST_WEBSITE_URL;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
+import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_TEST_WEBSITE_URL;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -240,7 +241,7 @@ public class MonitoredUriUpdaterTest {
     }
 
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
-        return new TestWorkspaceBuilder(workspaceRepository, this, seqNumber);
+        return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
     }
 
 }

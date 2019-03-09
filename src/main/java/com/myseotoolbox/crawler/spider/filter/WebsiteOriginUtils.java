@@ -23,6 +23,11 @@ public class WebsiteOriginUtils {
         return possibleChildPath.startsWith(originPath);
     }
 
+
+    public static URI extractOrigin(URI source){
+        return source.resolve("/");
+    }
+
     private static boolean isSchemeMatching(URI origin, URI possibleChild) {
         return Objects.equals(origin.getScheme(), possibleChild.getScheme());
     }

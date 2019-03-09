@@ -2,10 +2,12 @@ package com.myseotoolbox.crawler.spider.filter;
 
 import org.junit.Test;
 
+import java.net.URI;
+
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 import static java.net.URI.create;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.*;
 
 public class WebsiteOriginUtilsTest {
 
@@ -59,5 +61,10 @@ public class WebsiteOriginUtilsTest {
     @Test
     public void shouldBeCaseInsensitive() {
         assertTrue(isChildOf(create("http://host"), create("http://HOST/path")));
+    }
+
+    @Test
+    public void extractOriginShouldKeepProtocol() {
+        assertThat(extractOrigin(create("http://host/something")), is(URI.create("http://host/")));
     }
 }

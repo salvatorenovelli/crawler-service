@@ -16,6 +16,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 
@@ -26,6 +27,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CrawlJobFactoryTest {
 
+    public static List<URI> NO_SEEDS = Collections.emptyList();
     public static final int SINGLE_THREAD = 1;
     public static final URI TEST_ORIGIN = URI.create("http://host/base-path/");
     public static final URI TEST_FILTERED_LINK = TEST_ORIGIN.resolve("path");
@@ -55,28 +57,28 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldCrawlProvidedOrigin() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, NO_SEEDS, SINGLE_THREAD);
         job.start();
         verify(reader).snapshotPage(TEST_ORIGIN);
     }
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
-        CrawlJob job = sut.build(TEST_ORIGIN, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, NO_SEEDS, SINGLE_THREAD);
         job.start();
         verify(monitoredUriUpdater).updateCurrentValue(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldNotifyCrawlPersistence() {
-        CrawlJob job = sut.build(TEST_ORIGIN, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, NO_SEEDS, SINGLE_THREAD);
         job.start();
         verify(crawlPersistence).persistPageCrawl(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, NO_SEEDS, SINGLE_THREAD);
         job.start();
 
         verify(filtersBuilder).buildForOrigin(TEST_ORIGIN);
