@@ -9,7 +9,6 @@ import java.util.List;
 
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
-
 public class CrawlJobFactory {
 
     private final WebPageReader reader;
@@ -20,7 +19,8 @@ public class CrawlJobFactory {
 
     public CrawlJobFactory(WebPageReader reader,
                            WebsiteUriFilterBuilder uriFilterBuilder,
-                           ExecutorBuilder executorBuilder, MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence) {
+                           ExecutorBuilder executorBuilder,
+                           MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence) {
 
         this.reader = reader;
         this.uriFilterBuilder = uriFilterBuilder;
