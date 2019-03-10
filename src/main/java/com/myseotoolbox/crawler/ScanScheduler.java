@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class ScanScheduler {
 
-    public static final String EVERY_DAY_AT_09_PM = "0 30 21 * * *";
+    public static final String EVERY_DAY_AT_09_PM = "0 50 21 * * *";
 
     private final WorkspaceCrawler crawler;
 
