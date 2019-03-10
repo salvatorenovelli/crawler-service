@@ -110,6 +110,13 @@ public class WorkspaceCrawlerTest {
         verifyNoMoreCrawls();
     }
 
+
+    @Test
+    public void exceptionInBuildOrStartShouldNotPreventOtherCrawls() {
+        fail();
+    }
+
+
     private void crawlStartedFor(String origin) {
         crawlStartedForOriginWithSeeds(origin, List.of(origin));
     }

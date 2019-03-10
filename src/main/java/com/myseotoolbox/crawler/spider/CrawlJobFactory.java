@@ -31,7 +31,7 @@ public class CrawlJobFactory {
 
     public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection) {
 
-        CrawlJob job = new CrawlJob(origin, seeds, reader, uriFilterBuilder.buildForOrigin(origin), executorBuilder.buildExecutor(numParallelConnection));
+        CrawlJob job = new CrawlJob(origin, seeds, reader, uriFilterBuilder.buildForOrigin(origin), executorBuilder.buildExecutor(origin.getHost(), numParallelConnection));
 
         job.subscribeToPageCrawled(snapshot -> {
             runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());

@@ -91,7 +91,7 @@ public class CrawlJobFactoryTest {
     //Execute in the test thread instead of spawning a new one
     private class CurrentThreadExecutorBuilder extends ExecutorBuilder {
         @Override
-        public ExecutorService buildExecutor(int concurrentConnections) {
+        public ExecutorService buildExecutor(String namePostfix, int concurrentConnections) {
             return new CurrentThreadTestExecutorService();
         }
     }

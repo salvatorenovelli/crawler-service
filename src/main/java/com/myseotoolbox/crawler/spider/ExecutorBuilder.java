@@ -9,10 +9,10 @@ public class ExecutorBuilder {
 
     private final AtomicInteger threadId = new AtomicInteger(0);
 
-    public ExecutorService buildExecutor(int concurrentConnections) {
+    public ExecutorService buildExecutor(String namePostfix, int concurrentConnections) {
         ThreadFactory factory = r -> {
             Thread thread = new Thread(r);
-            thread.setName("crawler-" + threadId.getAndIncrement());
+            thread.setName("crawler-" + namePostfix + "-" + threadId.getAndIncrement());
             return thread;
         };
         return Executors.newFixedThreadPool(concurrentConnections, factory);

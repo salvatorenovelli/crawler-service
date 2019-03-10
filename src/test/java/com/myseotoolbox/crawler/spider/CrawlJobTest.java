@@ -42,7 +42,7 @@ public class CrawlJobTest {
 
     @Test(expected = IllegalStateException.class)
     public void shouldThrowExceptionIfSeedsOriginDontMatchWebsiteOrigin() {
-        new CrawlJob(create("http://domain1"), asList(create("http://domain1"), create("http://domain2")), pageReader, NO_URI_FILTER, new ExecutorBuilder().buildExecutor(SINGLE_THREAD));
+        new CrawlJob(create("http://domain1"), asList(create("http://domain1"), create("http://domain2")), pageReader, NO_URI_FILTER, new ExecutorBuilder().buildExecutor("", SINGLE_THREAD));
     }
 
     @Test

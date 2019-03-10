@@ -34,10 +34,9 @@ public class WorkspaceCrawler {
                 .collect(Collectors.groupingBy(WebsiteOriginUtils::extractOrigin, Collectors.toSet()));
 
         seedsByOrigin.forEach((origin, seeds) -> {
-            CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), DEFAULT_NUM_CONNECTIONS);
+            CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), Math.min(seeds.size(), 9) + 1);
             job.start();
         });
-
 
     }
 }
