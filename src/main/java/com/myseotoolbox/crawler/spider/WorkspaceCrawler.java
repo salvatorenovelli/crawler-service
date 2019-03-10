@@ -11,10 +11,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
+
 @Component
 public class WorkspaceCrawler {
 
-    public static final int DEFAULT_NUM_CONNECTIONS = 3;
+    public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 10;
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlFactory;
 
@@ -30,13 +32,28 @@ public class WorkspaceCrawler {
                 .stream()
                 .map(Workspace::getWebsiteUrl)
                 .filter(WebsiteOriginUtils::isValidOrigin)
+                .map(this::addTrailingSlashIfMissing)
                 .map(URI::create)
                 .collect(Collectors.groupingBy(WebsiteOriginUtils::extractOrigin, Collectors.toSet()));
 
         seedsByOrigin.forEach((origin, seeds) -> {
-            CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), Math.min(seeds.size(), 9) + 1);
-            job.start();
+            runOrLogWarning(() -> {
+                CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
+                job.start();
+            }, "Error while starting crawl for: " + origin);
         });
 
+    }
+
+    private int getNumConcurrentConnections(Set<URI> seeds) {
+        return endureRange(seeds.size(), 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
+    }
+
+    private int endureRange(int value, int min, int max) {
+        return Math.max(min, Math.min(value, max));
+    }
+
+    private String addTrailingSlashIfMissing(String uri) {
+        return uri + (uri.endsWith("/") ? "" : "/");
     }
 }

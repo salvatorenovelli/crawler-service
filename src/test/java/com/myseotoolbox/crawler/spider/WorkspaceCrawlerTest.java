@@ -6,6 +6,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
@@ -15,7 +16,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.DEFAULT_NUM_CONNECTIONS;
+import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
 import static java.net.URI.create;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.fail;
@@ -110,12 +111,60 @@ public class WorkspaceCrawlerTest {
         verifyNoMoreCrawls();
     }
 
+    @Test
+    public void numConnectionsIsGreaterIfWeHaveMultipleSeeds() {
+        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path2").build();
+
+        sut.crawlAllWorkspaces();
+
+        websiteCrawledWithConcurrentConnections(2);
+    }
+
+    @Test
+    public void shouldNeverUseMoreThanMaxConnections() {
+        for (int i = 0; i < MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN * 2; i++) {
+            givenAWorkspace().withWebsiteUrl("http://host1/path" + i).build();
+        }
+
+        sut.crawlAllWorkspaces();
+
+        websiteCrawledWithConcurrentConnections(MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
+
+    }
+
+    @Test
+    public void numConnectionsOnlyCountsUniqueSeeds() {
+
+        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path2").build();
+
+        sut.crawlAllWorkspaces();
+
+
+        websiteCrawledWithConcurrentConnections(2);
+    }
 
     @Test
     public void exceptionInBuildOrStartShouldNotPreventOtherCrawls() {
-        fail();
+        String originWithException = "http://host1/";
+
+        givenAWorkspace().withWebsiteUrl(originWithException).build();
+        givenAWorkspace().withWebsiteUrl("http://host2/").build();
+
+
+        when(crawlFactory.build(eq(create(originWithException)), anyList(), anyInt())).thenThrow(new RuntimeException("Testing exceptions"));
+
+        sut.crawlAllWorkspaces();
+
+        crawlStartedFor("http://host2");
     }
 
+    private void websiteCrawledWithConcurrentConnections(int numConnections) {
+        verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections));
+    }
 
     private void crawlStartedFor(String origin) {
         crawlStartedForOriginWithSeeds(origin, List.of(origin));
@@ -123,11 +172,11 @@ public class WorkspaceCrawlerTest {
 
 
     private void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
-        Object[] expectedUri = seeds.stream().map(URI::create).toArray();
+        Object[] expectedSeeds = seeds.stream().map(this::addTrailingSlashIfMissing).map(URI::create).toArray();
 
         verify(crawlFactory).build(eq(create(origin).resolve("/")),
-                argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedUri)).matches(argument)),
-                eq(WorkspaceCrawler.DEFAULT_NUM_CONNECTIONS));
+                argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),
+                ArgumentMatchers.anyInt());
 
         mockJobs.forEach(job -> verify(job).start());
     }
@@ -148,7 +197,7 @@ public class WorkspaceCrawlerTest {
 
         private WorkspaceBuilder() {
             curWorkspace = new Workspace();
-            curWorkspace.setCrawlerSettings(new CrawlerSettings(DEFAULT_NUM_CONNECTIONS, true));
+            curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true));
         }
 
         public WorkspaceBuilder withWebsiteUrl(String s) {
@@ -160,5 +209,9 @@ public class WorkspaceCrawlerTest {
             allWorkspaces.add(curWorkspace);
         }
 
+    }
+
+    private String addTrailingSlashIfMissing(String uri) {
+        return uri + (uri.endsWith("/") ? "" : "/");
     }
 }
