@@ -16,7 +16,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @Component
 public class WorkspaceCrawler {
 
-    public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 10;
+    public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 5;
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlFactory;
 
@@ -24,7 +24,6 @@ public class WorkspaceCrawler {
         this.workspaceRepository = workspaceRepository;
         this.crawlFactory = crawlFactory;
     }
-
 
     public void crawlAllWorkspaces() {
 
@@ -46,10 +45,10 @@ public class WorkspaceCrawler {
     }
 
     private int getNumConcurrentConnections(Set<URI> seeds) {
-        return endureRange(seeds.size(), 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
+        return ensureRange(seeds.size(), 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
     }
 
-    private int endureRange(int value, int min, int max) {
+    private int ensureRange(int value, int min, int max) {
         return Math.max(min, Math.min(value, max));
     }
 
