@@ -1,11 +1,14 @@
 package com.myseotoolbox.crawler.model;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor
 public class CrawlerSettings {
-    private int maxConcurrentConnections = 1;
+    private Integer maxConcurrentConnections;
     private boolean crawlEnabled;
+
+    public CrawlerSettings(Integer maxConcurrentConnections, boolean crawlEnabled) {
+        this.maxConcurrentConnections = maxConcurrentConnections != null ? maxConcurrentConnections : 1;
+        this.crawlEnabled = crawlEnabled;
+    }
 }

@@ -1,9 +1,23 @@
 package com.myseotoolbox.crawler.spider.filter;
 
 import java.net.URI;
+import java.net.URL;
+import java.util.List;
 import java.util.Objects;
 
 public class WebsiteOriginUtils {
+
+    public static boolean isValidOrigin(String origin) {
+
+        try {
+            URL url = new URI(origin).toURL();
+            if (!List.of("http", "https").contains(url.getProtocol())) return false;
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
+    }
 
     public static boolean isSubdomain(URI origin, URI possibleSubdomain) {
         return extractHostPort(possibleSubdomain).endsWith("." + extractHostPort(origin));

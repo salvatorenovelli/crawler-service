@@ -67,4 +67,29 @@ public class WebsiteOriginUtilsTest {
     public void extractOriginShouldKeepProtocol() {
         assertThat(extractOrigin(create("http://host/something")), is(URI.create("http://host/")));
     }
+
+    @Test
+    public void isValidOriginShouldFilterNull() {
+        assertFalse(isValidOrigin(null));
+    }
+
+    @Test
+    public void isValidOriginShouldFilterInvalid() {
+        assertFalse(isValidOrigin("TBD"));
+    }
+
+    @Test
+    public void isValidOriginShouldFilterEmpty() {
+        assertFalse(isValidOrigin(""));
+    }
+
+    @Test
+    public void isValidOriginShouldFilterWrongProto() {
+        assertFalse(isValidOrigin("ftp://salve"));
+    }
+
+    @Test
+    public void isValidOriginShouldAllowValid() {
+        assertTrue(isValidOrigin("http://salve"));
+    }
 }

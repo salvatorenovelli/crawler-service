@@ -18,6 +18,7 @@ import java.util.List;
 import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.DEFAULT_NUM_CONNECTIONS;
 import static java.net.URI.create;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -97,6 +98,15 @@ public class WorkspaceCrawlerTest {
         sut.crawlAllWorkspaces();
 
         crawlStartedForOriginWithSeeds("http://host1", List.of("http://host1", "http://host1/path1", "http://host1/path2"));
+        verifyNoMoreCrawls();
+    }
+
+    @Test
+    public void shouldNotTryToBuildInvalidUrl() {
+        givenAWorkspace().withWebsiteUrl("TBD").build();
+
+        sut.crawlAllWorkspaces();
+
         verifyNoMoreCrawls();
     }
 
