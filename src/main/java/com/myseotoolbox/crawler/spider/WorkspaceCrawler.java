@@ -35,12 +35,11 @@ public class WorkspaceCrawler {
                 .map(URI::create)
                 .collect(Collectors.groupingBy(WebsiteOriginUtils::extractOrigin, Collectors.toSet()));
 
-        seedsByOrigin.forEach((origin, seeds) -> {
-            runOrLogWarning(() -> {
-                CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
-                job.start();
-            }, "Error while starting crawl for: " + origin);
-        });
+        seedsByOrigin.forEach((origin, seeds) ->
+                runOrLogWarning(() -> {
+                    CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
+                    job.start();
+                }, "Error while starting crawl for: " + origin));
 
     }
 
