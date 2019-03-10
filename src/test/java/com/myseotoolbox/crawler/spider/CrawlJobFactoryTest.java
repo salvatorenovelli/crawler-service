@@ -16,6 +16,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -99,7 +100,7 @@ public class CrawlJobFactoryTest {
     private PageSnapshot buildSnapshotForUri(InvocationOnMock invocation) {
         String uri = invocation.getArgument(0).toString();
         PageSnapshot snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(uri);
-        snapshot.setLinks(List.of(TEST_FILTERED_LINK.toString()));
+        snapshot.setLinks(Arrays.asList(TEST_FILTERED_LINK.toString()));
         return snapshot;
     }
 }

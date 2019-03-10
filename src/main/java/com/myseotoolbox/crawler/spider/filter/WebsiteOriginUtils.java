@@ -2,7 +2,7 @@ package com.myseotoolbox.crawler.spider.filter;
 
 import java.net.URI;
 import java.net.URL;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
 
 public class WebsiteOriginUtils {
@@ -11,7 +11,7 @@ public class WebsiteOriginUtils {
 
         try {
             URL url = new URI(origin).toURL();
-            if (!List.of("http", "https").contains(url.getProtocol())) return false;
+            if (!Arrays.asList("http", "https").contains(url.getProtocol())) return false;
         } catch (Exception e) {
             return false;
         }

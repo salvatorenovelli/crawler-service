@@ -301,7 +301,7 @@ public class WebPageReaderTest {
 
         String uri = testWebsiteBuilder.buildTestUri(dstUri).toString();
 
-        return new BaseMatcher<>() {
+        return new BaseMatcher<RedirectChainElement>() {
             @Override
             public boolean matches(Object item) {
                 RedirectChainElement element = (RedirectChainElement) item;

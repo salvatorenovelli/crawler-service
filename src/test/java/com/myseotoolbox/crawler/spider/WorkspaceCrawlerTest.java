@@ -14,6 +14,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
@@ -84,8 +85,8 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedForOriginWithSeeds("http://host1", List.of("http://host1", "http://host1/path1", "http://host1/path2"));
-        crawlStartedForOriginWithSeeds("http://host2", List.of("http://host2"));
+        crawlStartedForOriginWithSeeds("http://host1", Arrays.asList("http://host1", "http://host1/path1", "http://host1/path2"));
+        crawlStartedForOriginWithSeeds("http://host2", Arrays.asList("http://host2"));
     }
 
 
@@ -98,7 +99,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedForOriginWithSeeds("http://host1", List.of("http://host1", "http://host1/path1", "http://host1/path2"));
+        crawlStartedForOriginWithSeeds("http://host1", Arrays.asList("http://host1", "http://host1/path1", "http://host1/path2"));
         verifyNoMoreCrawls();
     }
 
@@ -167,7 +168,7 @@ public class WorkspaceCrawlerTest {
     }
 
     private void crawlStartedFor(String origin) {
-        crawlStartedForOriginWithSeeds(origin, List.of(origin));
+        crawlStartedForOriginWithSeeds(origin, Arrays.asList(origin));
     }
 
 

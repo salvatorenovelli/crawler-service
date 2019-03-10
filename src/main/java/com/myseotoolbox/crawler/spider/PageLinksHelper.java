@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 @Slf4j
@@ -23,11 +24,15 @@ public class PageLinksHelper {
             filtered = links
                     .stream()
                     .map(this::toValidUri)
-                    .flatMap(Optional::stream)
+                    .flatMap(this::stream)
                     .collect(Collectors.toList());
         }
 
         return filtered;
+    }
+
+    public <T> Stream<T> stream(Optional<T> opt) {
+        return opt.map(Stream::of).orElseGet(Stream::empty);
     }
 
     private Optional<URI> toValidUri(String str) {
