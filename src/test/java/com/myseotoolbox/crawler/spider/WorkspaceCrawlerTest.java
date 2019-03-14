@@ -15,10 +15,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
 import static java.net.URI.create;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
@@ -163,12 +165,19 @@ public class WorkspaceCrawlerTest {
         crawlStartedFor("http://host2");
     }
 
+    @Test
+    public void shouldOnlyCrawlWhereCrawlingIsEnabled() {
+        givenAWorkspace().withWebsiteUrl("http://host2/").withCrawlingDisabled().build();
+        sut.crawlAllWorkspaces();
+        verifyNoMoreCrawls();
+    }
+
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
         verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections));
     }
 
     private void crawlStartedFor(String origin) {
-        crawlStartedForOriginWithSeeds(origin, Arrays.asList(origin));
+        crawlStartedForOriginWithSeeds(origin, singletonList(origin));
     }
 
 
@@ -210,6 +219,10 @@ public class WorkspaceCrawlerTest {
             allWorkspaces.add(curWorkspace);
         }
 
+        public WorkspaceBuilder withCrawlingDisabled() {
+            curWorkspace.getCrawlerSettings().setCrawlEnabled(false);
+            return this;
+        }
     }
 
     private String addTrailingSlashIfMissing(String uri) {

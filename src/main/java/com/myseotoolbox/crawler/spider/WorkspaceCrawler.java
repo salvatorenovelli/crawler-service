@@ -29,6 +29,7 @@ public class WorkspaceCrawler {
 
         Map<URI, Set<URI>> seedsByOrigin = workspaceRepository.findAll()
                 .stream()
+                .filter(this::isCrawlEnabled)
                 .map(Workspace::getWebsiteUrl)
                 .filter(WebsiteOriginUtils::isValidOrigin)
                 .map(this::addTrailingSlashIfMissing)
@@ -41,6 +42,10 @@ public class WorkspaceCrawler {
                     job.start();
                 }, "Error while starting crawl for: " + origin));
 
+    }
+
+    private boolean isCrawlEnabled(Workspace workspace) {
+        return workspace.getCrawlerSettings().isCrawlEnabled();
     }
 
     private int getNumConcurrentConnections(Set<URI> seeds) {
