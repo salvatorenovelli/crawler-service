@@ -24,10 +24,14 @@ public class TestCalendarService extends CalendarService {
     }
 
     public static Date testDay(int offset) {
-        return convertToDate(LocalDateTime.parse("2000-01-01T00:00:00").plusDays(offset));
+        return localDateTimeToDate(LocalDateTime.parse("2000-01-01T00:00:00").plusDays(offset));
     }
 
-    private static Date convertToDate(LocalDateTime dateTime) {
+    public static Date localDateTimeToDate(LocalDateTime dateTime) {
         return Date.from(dateTime.atZone(ZoneId.systemDefault()).toInstant());
+    }
+
+    public static Date localDateToDate(LocalDate dateTime) {
+        return Date.from(dateTime.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 }

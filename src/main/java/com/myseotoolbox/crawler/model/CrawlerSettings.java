@@ -6,6 +6,7 @@ import lombok.Data;
 public class CrawlerSettings {
     private Integer maxConcurrentConnections;
     private boolean crawlEnabled;
+    private int crawlIntervalDays;
 
     public CrawlerSettings(Integer maxConcurrentConnections, boolean crawlEnabled) {
         this.maxConcurrentConnections = maxConcurrentConnections != null ? maxConcurrentConnections : 1;
