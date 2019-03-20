@@ -215,6 +215,13 @@ public class WorkspaceCrawlerTest {
         crawlStartedFor("http://host1");
     }
 
+    @Test
+    public void shouldPersistLastCrawl() {
+        givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(1).build();
+        sut.crawlAllWorkspaces();
+        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/") && argument.getDate() != null));
+    }
+
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
         verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections));
     }

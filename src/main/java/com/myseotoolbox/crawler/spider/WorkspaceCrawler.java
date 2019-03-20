@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
+import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -46,6 +47,7 @@ public class WorkspaceCrawler {
                 runOrLogWarning(() -> {
                     CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
                     job.start();
+                    websiteCrawlLogRepository.save(new WebsiteCrawlLog(origin.toString(), LocalDate.now()));
                 }, "Error while starting crawl for: " + origin));
 
     }
