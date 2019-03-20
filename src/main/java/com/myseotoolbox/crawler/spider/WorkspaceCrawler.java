@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
+import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Component
@@ -64,10 +65,6 @@ public class WorkspaceCrawler {
 
     private int getNumConcurrentConnections(Set<URI> seeds) {
         return ensureRange(seeds.size(), 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
-    }
-
-    private int ensureRange(int value, int min, int max) {
-        return Math.max(min, Math.min(value, max));
     }
 
     private String addTrailingSlashIfMissing(String uri) {

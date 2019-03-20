@@ -33,6 +33,7 @@ public class WorkspaceCrawlerTest {
 
     private static final int YESTERDAY = -1;
     private static final int TWO_DAYS_AGO = -2;
+    public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = 0;
     private final List<CrawlJob> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
     private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
@@ -207,6 +208,13 @@ public class WorkspaceCrawlerTest {
         crawlStartedFor("http://host1");
     }
 
+    @Test
+    public void canHandleNoCrawlIntervalSpecified() {
+        givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(DEFAULT_CRAWL_VALUE_WHEN_MISSING).withLastCrawlHappened(YESTERDAY).build();
+        sut.crawlAllWorkspaces();
+        crawlStartedFor("http://host1");
+    }
+
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
         verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections));
     }
@@ -242,7 +250,7 @@ public class WorkspaceCrawlerTest {
 
         private WorkspaceBuilder() {
             curWorkspace = new Workspace();
-            curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true));
+            curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true, 1));
         }
 
         public WorkspaceBuilder withWebsiteUrl(String s) {
