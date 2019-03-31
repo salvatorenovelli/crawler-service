@@ -1,11 +1,15 @@
 package com.myseotoolbox.crawler.model;
 
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
+
+@Getter@Setter@EqualsAndHashCode
 public class CrawlerSettings {
 
-    public static final int MIN_CRAWL_INTERVAL = 0;
+    public static final int MIN_CRAWL_INTERVAL = 1;
     public static final int MAX_CRAWL_INTERVAL = 365;
     public static final int MIN_CONCURRENT_CONNECTIONS = 1;
     public static final int MAX_CONCURRENT_CONNECTIONS = 5;
@@ -14,9 +18,9 @@ public class CrawlerSettings {
     private boolean crawlEnabled;
     private int crawlIntervalDays;
 
-    public CrawlerSettings(int maxConcurrentConnections, boolean crawlEnabled, int crawlIntervalDays) {
-        this.maxConcurrentConnections = maxConcurrentConnections;
+    public CrawlerSettings(Integer maxConcurrentConnections, boolean crawlEnabled, Integer crawlIntervalDays) {
+        this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, MIN_CONCURRENT_CONNECTIONS, MAX_CONCURRENT_CONNECTIONS);
         this.crawlEnabled = crawlEnabled;
-        this.crawlIntervalDays = crawlIntervalDays;
+        this.crawlIntervalDays = ensureRange(crawlIntervalDays, MIN_CRAWL_INTERVAL, MAX_CRAWL_INTERVAL);
     }
 }
