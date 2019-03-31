@@ -50,7 +50,7 @@ public class WorkspaceRepositoryTest {
 
         assertThat(all, hasSize(1));
         assertThat(all.get(0).getCrawlerSettings().isCrawlEnabled(), is(true));
-        assertThat(all.get(0).getCrawlerSettings().getCrawlIntervalDays(), is(0));
+        assertThat(all.get(0).getCrawlerSettings().getCrawlIntervalDays(), is(MIN_CRAWL_INTERVAL));
     }
 
     @Test
