@@ -33,7 +33,7 @@ public class WorkspaceCrawlerTest {
 
     private static final int YESTERDAY = -1;
     private static final int TWO_DAYS_AGO = -2;
-    public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = 0;
+    public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
     private final List<CrawlJob> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
     private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
@@ -270,12 +270,14 @@ public class WorkspaceCrawlerTest {
         }
 
         public WorkspaceBuilder withCrawlingDisabled() {
-            curWorkspace.getCrawlerSettings().setCrawlEnabled(false);
+            CrawlerSettings s = curWorkspace.getCrawlerSettings();
+            curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), false, s.getCrawlIntervalDays()));
             return this;
         }
 
         public WorkspaceBuilder withCrawlingIntervalOf(int days) {
-            curWorkspace.getCrawlerSettings().setCrawlIntervalDays(days);
+            CrawlerSettings s = curWorkspace.getCrawlerSettings();
+            curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), s.isCrawlEnabled(), days));
             return this;
         }
 

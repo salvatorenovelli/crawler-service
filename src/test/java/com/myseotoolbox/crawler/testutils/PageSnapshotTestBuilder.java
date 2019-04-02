@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.StandardMetaTagValues.*;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
 
 public class PageSnapshotTestBuilder {
     private PageSnapshot cur = new PageSnapshot();
@@ -28,7 +29,7 @@ public class PageSnapshotTestBuilder {
     }
 
     public static PageSnapshot aPageSnapshotWithStandardValuesForUri(String uri) {
-        PageSnapshot pageSnapshot = new PageSnapshot(uri, STANDARD_TITLE, STANDARD_H1, STANDARD_H2, STANDARD_META_DESCR, STANDARD_CANONICAL);
+        PageSnapshot pageSnapshot = new PageSnapshot(uri, STANDARD_TITLE, STANDARD_H1, STANDARD_H2, STANDARD_META_DESCR, singletonList(uri));
         pageSnapshot.setRedirectChainElements(STANDARD_REDIRECT_CHAIN_ELEMENTS);
         return pageSnapshot;
     }

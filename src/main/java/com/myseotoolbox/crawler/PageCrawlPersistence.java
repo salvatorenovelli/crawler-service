@@ -4,12 +4,14 @@ package com.myseotoolbox.crawler;
 import com.myseotoolbox.crawler.model.PageCrawl;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.PageCrawlRepository;
+import com.myseotoolbox.crawler.utils.IsCanonicalized;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
+import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
 
 
 @Component
@@ -25,6 +27,8 @@ public class PageCrawlPersistence {
     }
 
     public void persistPageCrawl(PageSnapshot curVal) {
+        if (isCanonicalized(curVal)) return;
+
         Optional<PageSnapshot> prevValue = archiveClient.getLastPageSnapshot(curVal.getUri());
         persistPageCrawl(prevValue.orElse(null), curVal);
     }

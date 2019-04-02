@@ -283,7 +283,7 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
         assertThat(pageCrawl.getMetaDescriptions(), valueType(STANDARD_META_DESCR));
         assertThat(pageCrawl.getH1s(), valueType(STANDARD_H1));
         assertThat(pageCrawl.getH2s(), valueType(STANDARD_H2));
-        assertThat(pageCrawl.getCanonicals(), valueType(STANDARD_CANONICAL));
+        assertThat(pageCrawl.getCanonicals(), valueType(singletonList(pageCrawl.getUri())));
 
     }
 
@@ -318,7 +318,7 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
         assertThat(pageCrawl.getMetaDescriptions(), valueType(STANDARD_META_DESCR));
         assertThat(pageCrawl.getH1s(), valueType(STANDARD_H1));
         assertThat(pageCrawl.getH2s(), valueType(STANDARD_H2));
-        assertThat(pageCrawl.getCanonicals(), valueType(STANDARD_CANONICAL));
+        assertThat(pageCrawl.getCanonicals(), valueType(singletonList(pageCrawl.getUri())));
     }
 
     @Test

@@ -3,6 +3,7 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
+import com.myseotoolbox.crawler.utils.IsCanonicalized;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
+import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
 
 @Slf4j
 @ThreadSafe
@@ -48,7 +50,16 @@ class CrawlerQueue implements Consumer<PageSnapshot> {
     public void accept(PageSnapshot snapshot) {
         log.info("Scanned: {} links:{}", snapshot.getUri(), snapshot.getLinks() != null ? snapshot.getLinks().size() : 0);
         notifyListeners(snapshot);
-        onScanCompleted(URI.create(snapshot.getUri()), helper.filterValidLinks(snapshot.getLinks()));
+        List<URI> links = discoverLinks(snapshot);
+        onScanCompleted(URI.create(snapshot.getUri()), links);
+    }
+
+    private List<URI> discoverLinks(PageSnapshot snapshot) {
+        List<URI> links = helper.filterValidLinks(snapshot.getLinks());
+
+        if (isCanonicalized(snapshot))
+            links.addAll(helper.filterValidLinks(snapshot.getCanonicals()));
+        return links;
     }
 
     private synchronized void onScanCompleted(URI baseUri, List<URI> links) {

@@ -11,6 +11,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -357,6 +358,53 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host/base/2/1"));
         verifyNoMoreInteractions(pool);
 
+    }
+
+    @Test
+    public void shouldEnqueueCanonicalLinkIfDifferentFromUri() {
+
+
+        String baseUri = "http://host1/base?t=12345";
+        String canonicalPath = "http://host1/base";
+
+        doAnswer(invocation -> {
+            SnapshotTask task = invocation.getArgument(0);
+            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+            t.setCanonicals(Collections.singletonList(canonicalPath));
+            task.getTaskRequester().accept(t);
+            return null;
+        }).when(pool).accept(taskForUri(baseUri));
+
+
+        sut = new CrawlerQueue(uris(baseUri), pool, NO_URI_FILTER);
+        sut.start();
+
+
+        verify(pool).accept(taskForUri(baseUri));
+        verify(pool).accept(taskForUri(canonicalPath));
+        verifyNoMoreInteractions(pool);
+
+    }
+
+    @Test
+    public void shouldNotCrawlTwiceWhenCanonicalIsSameAsUri() {
+        String baseUri = "http://host1/base";
+        String canonicalPath = "http://host1/base";
+
+        doAnswer(invocation -> {
+            SnapshotTask task = invocation.getArgument(0);
+            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+            t.setCanonicals(Collections.singletonList(canonicalPath));
+            task.getTaskRequester().accept(t);
+            return null;
+        }).when(pool).accept(taskForUri(baseUri));
+
+
+        sut = new CrawlerQueue(uris(baseUri), pool, NO_URI_FILTER);
+        sut.start();
+
+        verify(pool).accept(taskForUri(baseUri));
+        verifyNoMoreInteractions(pool);
     }
 
     private List<URI> uris(String... s) {

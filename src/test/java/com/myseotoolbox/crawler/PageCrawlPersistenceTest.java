@@ -20,10 +20,11 @@ import static com.myseotoolbox.crawler.StandardMetaTagValues.STANDARD_URI;
 import static com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder.a404PageSnapshot;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.referenceTo;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
+import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRedirectChainElementsFor;
 import static java.util.Collections.singletonList;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -171,6 +172,41 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         }));
     }
 
+    @Test
+    public void shouldNotPersistCanonicalizedPagesMultipleTimes() {
+
+        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
+        PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
+        PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
+
+        sut.persistPageCrawl(snapshot0);
+        sut.persistPageCrawl(snapshot1);
+        sut.persistPageCrawl(snapshot2);
+
+
+        verify(repo, times(1)).findTopByUriOrderByCreateDateDesc(snapshot0.getUri());
+
+        verify(repo, times(1)).save(argThat(crawl -> {
+            assertThat(crawl.getUri(), is(snapshot0.getUri()));
+            return true;
+        }));
+
+        verifyNoMoreInteractions(repo);
+    }
+
+    @Test
+    public void shouldNotBotherArchiveIfCanonicalized() {
+        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
+        PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
+        PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
+
+        sut.persistPageCrawl(snapshot0);
+        sut.persistPageCrawl(snapshot1);
+        sut.persistPageCrawl(snapshot2);
+
+        verify(archiveClient).getLastPageSnapshot(snapshot0.getUri());
+        verifyNoMoreInteractions(archiveClient);
+    }
 
     private CrawlHistoryTestBuilder givenCrawlHistory() {
         return new CrawlHistoryTestBuilder(this);

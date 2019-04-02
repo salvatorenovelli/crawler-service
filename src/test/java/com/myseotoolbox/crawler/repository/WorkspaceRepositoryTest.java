@@ -1,14 +1,12 @@
 package com.myseotoolbox.crawler.repository;
 
 import com.myseotoolbox.crawler.model.CrawlerSettings;
-import com.myseotoolbox.crawler.model.CrawlerSettingsSanitizer;
 import com.myseotoolbox.crawler.model.Workspace;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
@@ -24,7 +22,6 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(SpringRunner.class)
 @DataMongoTest
-@Import(CrawlerSettingsSanitizer.class)
 public class WorkspaceRepositoryTest {
 
     @Autowired

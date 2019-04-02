@@ -240,6 +240,26 @@ public class MonitoredUriUpdaterTest {
 
     }
 
+
+    @Test
+    public void itShouldNotPersistCanonicalizedPagesTwice() {
+
+        givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withWebsiteUrl("http://host1/").save();
+
+        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
+        PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
+        PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
+
+        sut.updateCurrentValue(snapshot0);
+        sut.updateCurrentValue(snapshot1);
+        sut.updateCurrentValue(snapshot2);
+
+        assertThat(monitoredUriRepo.findAll(), hasSize(1));
+        assertThat(monitoredUriRepo.findAll().get(0).getUri(), is("http://host1/page1"));
+
+
+    }
+
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
         return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
     }
