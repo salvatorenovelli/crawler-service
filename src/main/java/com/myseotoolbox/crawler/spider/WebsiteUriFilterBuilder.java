@@ -6,7 +6,6 @@ import com.myseotoolbox.crawler.spider.filter.RobotsTxtFilter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 
 @Slf4j
@@ -27,14 +26,11 @@ public class WebsiteUriFilterBuilder {
     }
 
     private RobotsTxtFilter getRobotsTxtFilter(URI websiteOrigin) {
-        RobotsTxtFilter robotsTxt;
-
-        try (InputStream robotsTxtStream = websiteOrigin.resolve("/robots.txt").toURL().openStream()) {
-            robotsTxt = new RobotsTxtFilter(robotsTxtStream);
+        try {
+            return new RobotsTxtFilter(websiteOrigin);
         } catch (IOException e) {
-            log.info("Unable to download robots.txt for website {}. Exception: {}", websiteOrigin, e.toString());
+            log.warn("Unable to download robots.txt for website {}. Exception: {}", websiteOrigin, e.toString());
             return null;
         }
-        return robotsTxt;
     }
 }

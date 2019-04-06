@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 
+import java.io.InputStream;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +24,9 @@ public class TestWebsiteBuilder {
     }
 
     private TestWebsiteRequestHandler handler;
+
+    InputStream robotsTxtStream;
+    boolean robotsTxtRedirect = false;
 
     private TestWebsiteBuilder(Server server) {
         this.server = server;
@@ -123,6 +127,16 @@ public class TestWebsiteBuilder {
 
     public TestWebsiteBuilder disableCharsetHeader() {
         curPage.setCharsetFieldPresent(false);
+        return this;
+    }
+
+    public TestWebsiteBuilder withRobotsTxt(InputStream stream) {
+        this.robotsTxtStream = stream;
+        return this;
+    }
+
+    public TestWebsiteBuilder withRobotTxtHavingRedirect() {
+        this.robotsTxtRedirect = true;
         return this;
     }
 }

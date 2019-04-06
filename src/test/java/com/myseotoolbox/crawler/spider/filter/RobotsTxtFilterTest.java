@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.filter;
 
-import org.apache.commons.io.IOUtils;
+import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -14,10 +15,25 @@ public class RobotsTxtFilterTest {
 
     private RobotsTxtFilter sut;
 
+    TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
+    private InputStream stream = getClass().getResourceAsStream("/robots.txt");
+
     @Before
     public void setUp() throws Exception {
-        InputStream stream = IOUtils.toInputStream("User-agent: *\nDisallow: /*order\n", "UTF-8");
-        sut = new RobotsTxtFilter(stream);
+        givenAWebsite().withRobotsTxt(stream).withRobotTxtHavingRedirect();
+        testWebsiteBuilder.run();
+        sut = new RobotsTxtFilter(testUri("/"));
+    }
+
+    @After
+    public void tearDown() throws Exception {
+        testWebsiteBuilder.tearDown();
+    }
+
+
+    @Test
+    public void shouldGrabRobotsTxtWithRedirect() {
+        assertFalse(sut.shouldCrawl(null, URI.create("http://domain/order")));
     }
 
     @Test
@@ -28,5 +44,13 @@ public class RobotsTxtFilterTest {
     @Test
     public void shouldAllow() {
         assertTrue(sut.shouldCrawl(null, URI.create("http://domain/product")));
+    }
+
+    private URI testUri(String url) {
+        return testWebsiteBuilder.buildTestUri(url);
+    }
+
+    private TestWebsiteBuilder givenAWebsite() {
+        return testWebsiteBuilder;
     }
 }

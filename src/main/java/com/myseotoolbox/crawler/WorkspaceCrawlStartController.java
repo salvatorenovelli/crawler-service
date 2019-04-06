@@ -27,6 +27,13 @@ public class WorkspaceCrawlStartController {
         this.repository = repository;
     }
 
+    @GetMapping("/scan-origin")
+    public String scanOrigin(@RequestParam("url") String url, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) {
+        CrawlJob job = factory.build(URI.create(url), Collections.emptyList(), 1);
+        job.start();
+        return "Crawling " + url + " with " + numConnections + " parallel connections. Started on " + new Date();
+    }
+
     @GetMapping("/scan-workspace")
     public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) throws EntityNotFoundException {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);

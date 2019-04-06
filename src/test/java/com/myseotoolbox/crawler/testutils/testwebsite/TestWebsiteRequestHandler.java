@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
     @Override
     public void handle(String s, Request request,
                        HttpServletRequest httpServletRequest,
-                       HttpServletResponse httpServletResponse) throws UnsupportedEncodingException {
+                       HttpServletResponse httpServletResponse) {
 
 
         requestsReceived.add(ReceivedRequest.from(request));
@@ -45,14 +46,33 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
             path = request.getHttpURI().getPath();
         }
 
-
-        Page page = testWebsiteBuilder.getPage(path);
-        if (page != null) {
-            servePage(page, httpServletResponse);
-            request.setHandled(true);
+        if (path.contains("robots.txt")) {
+            serveRobotsTxt(request, httpServletResponse, path);
+        } else {
+            Page page = testWebsiteBuilder.getPage(path);
+            if (page != null) {
+                servePage(page, httpServletResponse);
+                request.setHandled(true);
+            }
         }
 
 
+    }
+
+    private void serveRobotsTxt(Request request, HttpServletResponse httpServletResponse, String path) {
+        if (path.equals("/robots.txt") && testWebsiteBuilder.robotsTxtRedirect) {
+            httpServletResponse.setStatus(301);
+            httpServletResponse.setHeader("location", "/other/robots.txt");
+        } else {
+            httpServletResponse.setStatus(200);
+            try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
+                outputStream.write(IOUtils.toString(testWebsiteBuilder.robotsTxtStream, StandardCharsets.UTF_8).getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        request.setHandled(true);
     }
 
     private void servePage(Page page, HttpServletResponse response) {
