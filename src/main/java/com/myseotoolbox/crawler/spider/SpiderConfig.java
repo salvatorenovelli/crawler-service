@@ -2,7 +2,6 @@ package com.myseotoolbox.crawler.spider;
 
 
 import com.myseotoolbox.crawler.PageCrawlPersistence;
-import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,6 +11,6 @@ public class SpiderConfig {
 
     @Bean
     public CrawlJobFactory getCrawlJobFactory(PageCrawlPersistence crawlPersistence, MonitoredUriUpdater monitoredUriUpdater) {
-        return new CrawlJobFactory(new WebPageReader(), new WebsiteUriFilterBuilder(), new ExecutorBuilder(), monitoredUriUpdater, crawlPersistence);
+        return new CrawlJobFactory(new WebPageReaderFactory(), new WebsiteUriFilterBuilder(), new ExecutorBuilder(), monitoredUriUpdater, crawlPersistence);
     }
 }

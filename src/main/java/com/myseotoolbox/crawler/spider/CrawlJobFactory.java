@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlPersistence;
-import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 
 import java.net.URI;
@@ -11,18 +10,19 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 
 public class CrawlJobFactory {
 
-    private final WebPageReader reader;
+    private final WebPageReaderFactory webPageReaderFactory;
     private final WebsiteUriFilterBuilder uriFilterBuilder;
     private final ExecutorBuilder executorBuilder;
     private final MonitoredUriUpdater monitoredUriUpdater;
     private final PageCrawlPersistence crawlPersistence;
 
-    public CrawlJobFactory(WebPageReader reader,
-                           WebsiteUriFilterBuilder uriFilterBuilder,
-                           ExecutorBuilder executorBuilder,
-                           MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence) {
+    public CrawlJobFactory(
+            WebPageReaderFactory webPageReaderFactory,
+            WebsiteUriFilterBuilder uriFilterBuilder,
+            ExecutorBuilder executorBuilder,
+            MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence) {
 
-        this.reader = reader;
+        this.webPageReaderFactory = webPageReaderFactory;
         this.uriFilterBuilder = uriFilterBuilder;
         this.executorBuilder = executorBuilder;
         this.monitoredUriUpdater = monitoredUriUpdater;
@@ -31,7 +31,8 @@ public class CrawlJobFactory {
 
     public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection) {
 
-        CrawlJob job = new CrawlJob(origin, seeds, reader, uriFilterBuilder.buildForOrigin(origin), executorBuilder.buildExecutor(origin.getHost(), numParallelConnection));
+        UriFilter uriFilter = uriFilterBuilder.buildForOrigin(origin);
+        CrawlJob job = new CrawlJob(origin, seeds, webPageReaderFactory.buildWithFilter(uriFilter), uriFilter, executorBuilder.buildExecutor(origin.getHost(), numParallelConnection));
 
         job.subscribeToPageCrawled(snapshot -> {
             runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());

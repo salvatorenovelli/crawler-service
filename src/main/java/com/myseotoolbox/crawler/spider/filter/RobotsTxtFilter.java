@@ -37,7 +37,7 @@ public class RobotsTxtFilter implements UriFilter {
     }
 
     @Override
-    public boolean shouldCrawl(URI sourceUri, URI discoveredLink) {
+    public boolean shouldCrawl(URI ignored, URI discoveredLink) {
         return cache.computeIfAbsent(discoveredLink, uri1 -> robotsTxt.query(null, discoveredLink.getPath()));
     }
 }

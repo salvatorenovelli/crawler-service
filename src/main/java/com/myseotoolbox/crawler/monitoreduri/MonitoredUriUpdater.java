@@ -2,10 +2,8 @@ package com.myseotoolbox.crawler.monitoreduri;
 
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
-import com.myseotoolbox.crawler.utils.IsCanonicalized;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -13,7 +11,6 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.util.Objects;
 
 import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
@@ -42,7 +39,6 @@ public class MonitoredUriUpdater {
                     Query query = new Query(new Criteria().andOperator(new Criteria("uri").is(snapshot.getUri()), new Criteria("workspaceNumber").is(workspace.getSeqNumber())));
                     Update update = new Update()
                             .set("uri", snapshot.getUri())
-                            .set("ownerName", workspace.getOwnerName())
                             .set("workspaceNumber", workspace.getSeqNumber())
                             .set("currentValue", snapshot)
                             .set("lastScan", snapshot.getCreateDate());

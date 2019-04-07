@@ -2,7 +2,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
-import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,11 +25,11 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
         executor.submit(() -> {
             try {
                 try {
-                    PageSnapshot snapshot = pageReader.snapshotPage(task.getUri());
-                    task.getTaskRequester().accept(snapshot);
+                    SnapshotResult result = pageReader.snapshotPage(task.getUri());
+                    task.getTaskRequester().accept(result);
                 } catch (SnapshotException e) {
-                    log.warn("Unable to crawl: " + task.getUri(), e.toString());
-                    task.getTaskRequester().accept(e.getPartialSnapshot());
+                    log.warn("Unable to crawl: {}. Exception: {}", task.getUri(), e.getMessage());
+                    task.getTaskRequester().accept(SnapshotResult.forSnapshot(e.getPartialSnapshot()));
                 }
             } catch (Exception e) {
                 log.error("Exception while crawling: " + task.getUri(), e);

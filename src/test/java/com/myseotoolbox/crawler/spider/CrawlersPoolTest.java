@@ -6,6 +6,7 @@ import ch.qos.logback.core.Appender;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,13 +28,14 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CrawlersPoolTest {
 
-    private static final PageSnapshot TEST_SNAPSHOT = new PageSnapshot();
-    private static final PageSnapshot FAILURE_TEST_SNAPSHOT = new PageSnapshot();
+    public static final PageSnapshot FAILURE_TEST_SNAPSHOT = new PageSnapshot();
+
+    private static final SnapshotResult TEST_SNAPSHOT_RESULT = SnapshotResult.forSnapshot(new PageSnapshot());
     private static final URI SUCCESS_TEST_LINK = URI.create("http://host1");
     private static final URI FAILURE_TEST_LINK = URI.create("http://verybadhost");
     @Mock private Appender<ILoggingEvent> mockAppender;
     @Mock private WebPageReader reader;
-    @Mock private Consumer<PageSnapshot> listener;
+    @Mock private Consumer<SnapshotResult> listener;
     @Mock private ExecutorService executor;
     private CrawlersPool sut;
 
@@ -45,7 +47,7 @@ public class CrawlersPoolTest {
             return null;
         }).when(executor).submit(any(Runnable.class));
 
-        when(reader.snapshotPage(SUCCESS_TEST_LINK)).thenReturn(TEST_SNAPSHOT);
+        when(reader.snapshotPage(SUCCESS_TEST_LINK)).thenReturn(TEST_SNAPSHOT_RESULT);
         when(reader.snapshotPage(FAILURE_TEST_LINK)).thenThrow(new SnapshotException(new RuntimeException("This one's not good"), FAILURE_TEST_SNAPSHOT));
 
         ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CrawlersPool.class.getName());
@@ -57,13 +59,13 @@ public class CrawlersPoolTest {
     @Test
     public void shouldSubmitSnapshotWhenSuccessful() {
         sut.accept(new SnapshotTask(SUCCESS_TEST_LINK, listener));
-        verify(listener).accept(TEST_SNAPSHOT);
+        verify(listener).accept(TEST_SNAPSHOT_RESULT);
     }
 
     @Test
     public void shouldSubmitPartialValueWhenExceptionOccur() {
         sut.accept(new SnapshotTask(FAILURE_TEST_LINK, listener));
-        verify(listener).accept(argThat(argument -> argument == FAILURE_TEST_SNAPSHOT));
+        verify(listener).accept(argThat(argument -> argument.getPageSnapshot() == FAILURE_TEST_SNAPSHOT));
     }
 
     @Test

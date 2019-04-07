@@ -3,7 +3,9 @@ package com.myseotoolbox.crawler;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.spider.UriFilter;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
@@ -15,13 +17,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 
 @SuppressWarnings("unchecked")
@@ -30,6 +30,7 @@ public class WebPageReaderTest {
     public static final String TEST_TITLE = "Test withTitle";
     public static final String TEST_ROOT_PAGE_PATH = "/";
     public static final String TEST_REDIRECT_URL = "/another_url";
+    public static final UriFilter ALLOW_ALL_URI = (sourceUri, discoveredLink) -> true;
 
 
     private WebPageReader sut;
@@ -37,7 +38,7 @@ public class WebPageReaderTest {
 
     @Before
     public void setUp() {
-        sut = new WebPageReader();
+        sut = new WebPageReader(ALLOW_ALL_URI);
     }
 
     @After
@@ -50,7 +51,7 @@ public class WebPageReaderTest {
         givenAWebsite().havingRootPage()
                 .run();
 
-        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
         assertNotNull(snapshot.getCreateDate());
     }
 
@@ -59,7 +60,7 @@ public class WebPageReaderTest {
         givenAWebsite().havingRootPage()
                 .withTitle(TEST_TITLE)
                 .run();
-        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
         assertThat(snapshot.getTitle(), is(TEST_TITLE));
     }
 
@@ -68,7 +69,7 @@ public class WebPageReaderTest {
         givenAWebsite().havingRootPage()
                 .withTag("H1", "Test H1")
                 .run();
-        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         List<String> h1s = snapshot.getH1s();
 
@@ -82,7 +83,7 @@ public class WebPageReaderTest {
                 .withTag("H1", "Test H1")
                 .withTag("H1", "Test second H1")
                 .run();
-        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         List<String> h1s = snapshot.getH1s();
 
@@ -99,7 +100,7 @@ public class WebPageReaderTest {
                 .withTag("H2", "Test H2")
                 .run();
 
-        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         List<String> h1s = snapshot.getH1s();
         List<String> h2s = snapshot.getH2s();
@@ -117,7 +118,7 @@ public class WebPageReaderTest {
                 .withLinksTo("/dst1", "/dst2")
                 .run();
 
-        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         assertThat(snapshot.getLinks(), hasSize(2));
         assertThat(snapshot.getLinks().get(0), is("/dst1"));
@@ -132,7 +133,7 @@ public class WebPageReaderTest {
                 .havingPage("/dst").withTitle("You've reached the right place!")
                 .run();
 
-        PageSnapshot pageSnapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        PageSnapshot pageSnapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         assertThat(getDestinationUri(pageSnapshot), is(testUri("/dst").toString()));
         assertThat(pageSnapshot.getTitle(), is("You've reached the right place!"));
@@ -149,7 +150,7 @@ public class WebPageReaderTest {
                 .havingPage("/dst3").withTitle("You've reached the right place!")
                 .run();
 
-        PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/"));
+        PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/")).getPageSnapshot();
 
         assertThat(pageSnapshot.getRedirectChainElements(), contains(
                 el(301, "/dst1"),
@@ -167,7 +168,7 @@ public class WebPageReaderTest {
                 .havingPage("/page").redirectingTo(301, "/dst1")
                 .run();
 
-        PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/page"));
+        PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/page")).getPageSnapshot();
 
         assertThat(pageSnapshot.getRedirectChainElements(), contains(
                 el(301, "/dst1"),
@@ -210,7 +211,7 @@ public class WebPageReaderTest {
                 .withTitle(TEST_TITLE)
                 .run();
 
-        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         List<ReceivedRequest> requests = website.getRequestsReceived();
 
@@ -225,7 +226,7 @@ public class WebPageReaderTest {
                 .withTitle(TEST_TITLE)
                 .run();
 
-        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         assertThat(website.getRequestsReceived().size(), is(1));
 
@@ -282,6 +283,51 @@ public class WebPageReaderTest {
             assertNotNull(defaultVal.getRedirectChainElements());
             assertThat(defaultVal.getCrawlStatus(), containsString("Unable to crawl:"));
         }
+    }
+
+
+    @Test
+    public void shouldReturnBlockedSnapshotIfUrlIsDisallowed() throws Exception {
+
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"));
+
+        givenAWebsite()
+                .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
+                .havingPage("/allowed").redirectingTo(301, "/disallowed").and()
+                .havingPage("/disallowed").withTitle("Whoa! You are not supposed to be here!")
+                .run();
+
+        SnapshotResult snapshotResult = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+
+        assertTrue(snapshotResult.isBlockedChain());
+        assertNull(snapshotResult.getPageSnapshot());
+
+        List<RedirectChainElement> chainElements = snapshotResult.getChain().getElements();
+        assertThat(chainElements, hasSize(2));
+        assertThat(chainElements.get(0).getDestinationURI(), is(testUri("/allowed").toString()));
+        assertThat(chainElements.get(1).getDestinationURI(), is(testUri("/disallowed").toString()));
+
+    }
+
+    @Test
+    public void shouldNotFetchDisallowedUri() throws Exception {
+
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"));
+
+        TestWebsite website = givenAWebsite()
+                .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
+                .havingPage("/allowed").redirectingTo(301, "/disallowed").and()
+                .havingPage("/disallowed").withTitle("Whoa! You are not supposed to be here!")
+                .run();
+
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+
+        List<ReceivedRequest> requests = website.getRequestsReceived();
+
+        assertThat(requests, hasSize(2));
+        assertThat(requests.get(0).getUrl(), is(TEST_ROOT_PAGE_PATH));
+        assertThat(requests.get(1).getUrl(), is(TEST_ROOT_PAGE_PATH + "allowed"));
+
     }
 
     private String getDestinationUri(PageSnapshot pageSnapshot) {

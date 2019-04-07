@@ -217,7 +217,6 @@ public class MonitoredUriUpdaterTest {
 
         MonitoredUri monitoredUri = monitoredUris.get(0);
         assertThat(monitoredUri.getUri(), is(snapshot.getUri()));
-        assertThat(monitoredUri.getOwnerName(), is("salvatore"));
         assertThat(monitoredUri.getWorkspaceNumber(), is(TEST_WORKSPACE_NUMBER));
         assertNotNull(monitoredUri.getLastScan());
 

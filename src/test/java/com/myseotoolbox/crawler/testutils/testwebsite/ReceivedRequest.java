@@ -7,11 +7,19 @@ import org.eclipse.jetty.server.Request;
 public class ReceivedRequest {
 
     private final String userAgent;
+    private final String url;
 
-    ReceivedRequest(String userAgent) {this.userAgent = userAgent;}
+    ReceivedRequest(String userAgent, String url) {
+        this.userAgent = userAgent;
+        this.url = url;
+    }
 
 
     public static ReceivedRequest from(Request request) {
-        return new ReceivedRequest(request.getHeader("User-Agent"));
+        return new ReceivedRequest(request.getHeader("User-Agent"), request.getRequestURI());
+    }
+
+    public String getUrl() {
+        return this.url;
     }
 }

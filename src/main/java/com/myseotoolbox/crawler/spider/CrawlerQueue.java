@@ -2,16 +2,13 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
-import com.myseotoolbox.crawler.utils.IsCanonicalized;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -21,7 +18,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
 
 @Slf4j
 @ThreadSafe
-class CrawlerQueue implements Consumer<PageSnapshot> {
+class CrawlerQueue implements Consumer<SnapshotResult> {
 
     private final Set<URI> visited = new HashSet<>();
     private final Set<URI> inProgress = new HashSet<>();
@@ -47,11 +44,21 @@ class CrawlerQueue implements Consumer<PageSnapshot> {
     }
 
     @Override
-    public void accept(PageSnapshot snapshot) {
-        log.info("Scanned: {} links:{}", snapshot.getUri(), snapshot.getLinks() != null ? snapshot.getLinks().size() : 0);
-        notifyListeners(snapshot);
-        List<URI> links = discoverLinks(snapshot);
-        onScanCompleted(URI.create(snapshot.getUri()), links);
+    public void accept(SnapshotResult result) {
+
+        String sourceUri = result.getUri();
+
+        List<URI> links = result.isBlockedChain() ? Collections.emptyList() : discoverLinks(result.getPageSnapshot());
+
+
+        log.info("Scanned: {} links:{}", sourceUri, links.size());
+
+        if (!result.isBlockedChain()) {
+            notifyListeners(result.getPageSnapshot());
+        }
+
+        onScanCompleted(URI.create(sourceUri), links);
+
     }
 
     private List<URI> discoverLinks(PageSnapshot snapshot) {

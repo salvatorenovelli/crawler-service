@@ -10,4 +10,5 @@ import java.util.Optional;
 
 public interface PageCrawlRepository extends MongoRepository<PageCrawl, String> {
     Optional<PageCrawl> findTopByUriOrderByCreateDateDesc(@Param("uri") String uri);
+    void deleteAllByUri(@Param("uri") String uri);
 }

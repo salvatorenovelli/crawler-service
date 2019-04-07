@@ -53,9 +53,8 @@ public class CrawlJobFactoryTest {
 
         when(testFilter.shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK)).thenReturn(false);
 
-        sut = new CrawlJobFactory(reader, filtersBuilder, executorBuilder, monitoredUriUpdater, crawlPersistence);
+        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersBuilder, executorBuilder, monitoredUriUpdater, crawlPersistence);
     }
-
     @Test
     public void shouldCrawlProvidedOrigin() throws SnapshotException {
         CrawlJob job = sut.build(TEST_ORIGIN, NO_SEEDS, SINGLE_THREAD);
@@ -96,11 +95,20 @@ public class CrawlJobFactoryTest {
             return new CurrentThreadTestExecutorService();
         }
     }
-
     private PageSnapshot buildSnapshotForUri(InvocationOnMock invocation) {
         String uri = invocation.getArgument(0).toString();
         PageSnapshot snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(uri);
         snapshot.setLinks(Arrays.asList(TEST_FILTERED_LINK.toString()));
         return snapshot;
+    }
+
+    private WebPageReaderFactory mockWebPageReaderFactory() {
+
+        return new WebPageReaderFactory(){
+            @Override
+            public WebPageReader buildWithFilter(UriFilter uriFilter) {
+                return reader;
+            }
+        };
     }
 }

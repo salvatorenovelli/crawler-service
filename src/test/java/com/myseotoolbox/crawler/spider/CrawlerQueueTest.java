@@ -1,6 +1,9 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.RedirectChain;
+import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.filter.BasicUriFilter;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
@@ -13,6 +16,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,12 +37,13 @@ public class CrawlerQueueTest {
 
     private CrawlerQueue sut;
     @Mock private CrawlersPool pool;
+    @Mock private Consumer<PageSnapshot> mockListener;
 
     @Before
     public void setUp() {
         doAnswer(invocation -> {
             SnapshotTask task = invocation.getArgument(0);
-            task.getTaskRequester().accept(aPageSnapshotWithStandardValuesForUri(task.getUri().toString()));
+            task.getTaskRequester().accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(task.getUri().toString())));
             return null;
         }).when(pool).accept(any());
     }
@@ -61,6 +66,17 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
+    }
+
+    @Test
+    public void shouldNotifyListenersWithSnapshotResult() {
+        whenCrawling("http://host1").discover("http://host1/dst");
+
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut.subscribeToPageCrawled(mockListener);
+        sut.start();
+
+        verify(mockListener).accept(argThat(argument -> argument.getUri().equals("http://host1")));
     }
 
     @Test
@@ -111,7 +127,7 @@ public class CrawlerQueueTest {
         sut = new CrawlerQueue(uris("http://host1/dst"), pool, NO_URI_FILTER);
 
         try {
-            sut.accept(aPageSnapshotWithStandardValuesForUri("/dst"));
+            sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri("/dst")));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("URI should be absolute"));
@@ -127,7 +143,7 @@ public class CrawlerQueueTest {
         sut = new CrawlerQueue(uris("http://host1/dst"), pool, NO_URI_FILTER);
 
         try {
-            sut.accept(aPageSnapshotWithStandardValuesForUri(("http://host1/dst")));
+            sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("never submitted"));
@@ -144,7 +160,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         try {
-            sut.accept(aPageSnapshotWithStandardValuesForUri(("http://host1")));
+            sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1"))));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("already completed"));
@@ -256,7 +272,7 @@ public class CrawlerQueueTest {
             SnapshotTask task = invocation.getArgument(0);
             PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
             t.setLinks(null);
-            task.getTaskRequester().accept(t);
+            task.getTaskRequester().accept(SnapshotResult.forSnapshot(t));
             return null;
         }).when(pool).accept(taskForUri("http://host1"));
 
@@ -363,17 +379,10 @@ public class CrawlerQueueTest {
     @Test
     public void shouldEnqueueCanonicalLinkIfDifferentFromUri() {
 
-
         String baseUri = "http://host1/base?t=12345";
         String canonicalPath = "http://host1/base";
 
-        doAnswer(invocation -> {
-            SnapshotTask task = invocation.getArgument(0);
-            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
-            t.setCanonicals(Collections.singletonList(canonicalPath));
-            task.getTaskRequester().accept(t);
-            return null;
-        }).when(pool).accept(taskForUri(baseUri));
+        initMocksToReturnCanonical(baseUri, canonicalPath);
 
 
         sut = new CrawlerQueue(uris(baseUri), pool, NO_URI_FILTER);
@@ -391,20 +400,24 @@ public class CrawlerQueueTest {
         String baseUri = "http://host1/base";
         String canonicalPath = "http://host1/base";
 
-        doAnswer(invocation -> {
-            SnapshotTask task = invocation.getArgument(0);
-            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
-            t.setCanonicals(Collections.singletonList(canonicalPath));
-            task.getTaskRequester().accept(t);
-            return null;
-        }).when(pool).accept(taskForUri(baseUri));
-
+        initMocksToReturnCanonical(baseUri, canonicalPath);
 
         sut = new CrawlerQueue(uris(baseUri), pool, NO_URI_FILTER);
         sut.start();
 
         verify(pool).accept(taskForUri(baseUri));
         verifyNoMoreInteractions(pool);
+    }
+
+
+    @Test
+    public void shouldNotNotifyListenersForBlockedRedirectChains() {
+        whenCrawling("http://host1").redirectToBlockedUrl("http://host1/blockedByRobots");
+
+        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut.start();
+
+        verifyNoMoreInteractions(mockListener);
     }
 
     private List<URI> uris(String... s) {
@@ -420,6 +433,18 @@ public class CrawlerQueueTest {
         return URI.create(uri);
     }
 
+    private void initMocksToReturnCanonical(String baseUri, String canonicalPath) {
+        doAnswer(invocation -> {
+            SnapshotTask task = invocation.getArgument(0);
+            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+            t.setCanonicals(Collections.singletonList(canonicalPath));
+
+            SnapshotResult result = SnapshotResult.forSnapshot(t);
+            task.getTaskRequester().accept(result);
+            return null;
+        }).when(pool).accept(taskForUri(baseUri));
+    }
+
     private class CrawlerQueueTestMockBuilder {
 
         private final String baseUri;
@@ -433,11 +458,20 @@ public class CrawlerQueueTest {
                 SnapshotTask task = invocation.getArgument(0);
                 PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
                 t.setLinks(Arrays.asList(discoveredUris));
-                task.getTaskRequester().accept(t);
+                task.getTaskRequester().accept(SnapshotResult.forSnapshot(t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
 
+        public void redirectToBlockedUrl(String redirectDestination) {
+            doAnswer(invocation -> {
+                SnapshotTask task = invocation.getArgument(0);
+                RedirectChain chain = new RedirectChain();
+                chain.addElement(new RedirectChainElement(baseUri, 301, redirectDestination));
+                task.getTaskRequester().accept(SnapshotResult.forBlockedChain(chain));
+                return null;
+            }).when(pool).accept(taskForUri(baseUri));
+        }
     }
 
     private SnapshotTask taskForUri(String uri) {

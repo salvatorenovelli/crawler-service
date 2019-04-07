@@ -1,10 +1,8 @@
 package com.myseotoolbox.crawler.httpclient;
 
 import com.myseotoolbox.crawler.CalendarService;
-import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.RedirectChain;
-import com.myseotoolbox.crawler.model.RedirectChainElement;
-import com.myseotoolbox.crawler.model.RedirectLoopException;
+import com.myseotoolbox.crawler.model.*;
+import com.myseotoolbox.crawler.spider.UriFilter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
@@ -20,8 +18,13 @@ public class WebPageReader {
 
     private final HtmlParser parser = new HtmlParser();
     private final CalendarService calendarService = new CalendarService();
+    private final UriFilter uriFilter;
 
-    public PageSnapshot snapshotPage(URI uri) throws SnapshotException {
+    public WebPageReader(UriFilter uriFilter) {
+        this.uriFilter = uriFilter;
+    }
+
+    public SnapshotResult snapshotPage(URI uri) throws SnapshotException {
 
         String startURI = uri.toString();
         RedirectChain chain = new RedirectChain();
@@ -29,12 +32,15 @@ public class WebPageReader {
         try {
 
             URI baseUri = buildUri(startURI);
-            scanRedirectChain(chain, baseUri);
 
-            PageSnapshot snapshot = parser.parse(startURI, chain.getElements(), chain.getInputStream());
-            snapshot.setCreateDate(calendarService.now());
+            if (scanRedirectChain(chain, baseUri)) {
+                PageSnapshot snapshot = parser.parse(startURI, chain.getElements(), chain.getInputStream());
+                snapshot.setCreateDate(calendarService.now());
+                return SnapshotResult.forSnapshot(snapshot);
+            }
 
-            return snapshot;
+            return SnapshotResult.forBlockedChain(chain);
+
 
         } catch (Exception e) {
             PageSnapshot pageSnapshot = new PageSnapshot();
@@ -60,7 +66,7 @@ public class WebPageReader {
         }
     }
 
-    private void scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
+    private boolean scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
 
         HttpResponse response = new HttpGetRequest(currentURI).execute();
 
@@ -70,11 +76,16 @@ public class WebPageReader {
         redirectChain.addElement(new RedirectChainElement(decode(currentURI), httpStatus, decode(location)));
 
         if (isRedirect(httpStatus)) {
-            scanRedirectChain(redirectChain, location);
+            if (isBlockedChain(currentURI, location)) return false;
+            return scanRedirectChain(redirectChain, location);
         } else {
             redirectChain.setInputStream(response.getInputStream());
+            return true;
         }
+    }
 
+    private boolean isBlockedChain(URI currentURI, URI location) {
+        return !uriFilter.shouldCrawl(currentURI, location);
     }
 
     private String decode(URI currentURI) {
