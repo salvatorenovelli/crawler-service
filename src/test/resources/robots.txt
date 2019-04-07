@@ -1,3 +1,4 @@
 User-agent: *
 
 Disallow: /*order
+Disallow: /*blocked-by-robots

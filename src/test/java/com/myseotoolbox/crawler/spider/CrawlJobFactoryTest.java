@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
@@ -95,11 +96,11 @@ public class CrawlJobFactoryTest {
             return new CurrentThreadTestExecutorService();
         }
     }
-    private PageSnapshot buildSnapshotForUri(InvocationOnMock invocation) {
+    private SnapshotResult buildSnapshotForUri(InvocationOnMock invocation) {
         String uri = invocation.getArgument(0).toString();
         PageSnapshot snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(uri);
         snapshot.setLinks(Arrays.asList(TEST_FILTERED_LINK.toString()));
-        return snapshot;
+        return SnapshotResult.forSnapshot(snapshot);
     }
 
     private WebPageReaderFactory mockWebPageReaderFactory() {

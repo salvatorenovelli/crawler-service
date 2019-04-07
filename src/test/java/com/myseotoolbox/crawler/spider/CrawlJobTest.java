@@ -3,6 +3,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import org.junit.Before;
@@ -36,7 +37,7 @@ public class CrawlJobTest {
 
     @Before
     public void setUp() throws Exception {
-        when(pageReader.snapshotPage(any())).thenAnswer(arguments -> PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(arguments.getArguments()[0].toString()));
+        when(pageReader.snapshotPage(any())).thenAnswer(arguments -> SnapshotResult.forSnapshot(PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(arguments.getArguments()[0].toString())));
         doThrow(new RuntimeException("This should be fine...")).when(exceptionSubscriber).accept(any());
     }
 

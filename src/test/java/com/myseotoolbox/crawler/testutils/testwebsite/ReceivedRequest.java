@@ -1,9 +1,10 @@
 package com.myseotoolbox.crawler.testutils.testwebsite;
 
 import lombok.Getter;
+import lombok.ToString;
 import org.eclipse.jetty.server.Request;
 
-@Getter
+@Getter@ToString
 public class ReceivedRequest {
 
     private final String userAgent;
