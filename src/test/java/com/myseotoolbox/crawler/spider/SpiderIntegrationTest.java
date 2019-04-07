@@ -80,7 +80,21 @@ public class SpiderIntegrationTest {
         assertThat(receivedRequests, hasSize(2));
         assertThat(receivedRequests.get(0).getUrl(), is("/robots.txt"));
         assertThat(receivedRequests.get(1).getUrl(), is("/"));
+    }
 
+    @Test
+    public void shouldNotNotifyListenersWhenChainIsBlocked() {
+        givenAWebsite()
+                .withRobotsTxt(robotsTxt)
+                .havingRootPage().withLinksTo("/dst1", "dst2").and()
+                .havingPage("/dst2").redirectingTo(301, "/blocked-by-robots").save();
+
+        CrawlJob job = buildForOrigin(testUri("/"));
+        job.start();
+
+        verify(crawledPagesListener).accept(uri("/"));
+        verify(crawledPagesListener).accept(uri("/dst1"));
+        verifyNoMoreInteractions(crawledPagesListener);
     }
 
     private PageSnapshot uri(String uri) {

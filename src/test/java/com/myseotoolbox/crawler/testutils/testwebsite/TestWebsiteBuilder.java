@@ -42,6 +42,7 @@ public class TestWebsiteBuilder {
     }
 
     public TestWebsiteBuilder havingPage(String pagePath) {
+        if (curPage != null) throw new IllegalStateException("You didn't save the previous stubbed page!");
         curPage = new Page(pagePath);
         return this;
     }
@@ -79,6 +80,7 @@ public class TestWebsiteBuilder {
     public TestWebsiteBuilder and() {
         if (curPage != null) {
             addPage(curPage);
+            curPage = null;
         }
         return this;
     }
