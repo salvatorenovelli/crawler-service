@@ -29,7 +29,7 @@ public class WorkspaceCrawlStartController {
 
     @GetMapping("/scan-origin")
     public String scanOrigin(@RequestParam("url") String url, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) {
-        CrawlJob job = factory.build(URI.create(url), Collections.emptyList(), 1);
+        CrawlJob job = factory.build(URI.create(url), Collections.emptyList(), numConnections);
         job.start();
         return "Crawling " + url + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
