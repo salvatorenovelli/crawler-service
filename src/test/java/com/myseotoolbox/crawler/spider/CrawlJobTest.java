@@ -42,13 +42,13 @@ public class CrawlJobTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void shouldThrowExceptionIfSeedsOriginDontMatchWebsiteOrigin() {
-        new CrawlJob(create("http://domain1"), asList(create("http://domain1"), create("http://domain2")), pageReader, NO_URI_FILTER, new ExecutorBuilder().buildExecutor("", SINGLE_THREAD));
+    public void shouldThrowExceptionIfSeedsOriginDontMatch() {
+        new CrawlJob(asList(create("http://domain1/"), create("http://domain2/")), pageReader, NO_URI_FILTER, new CrawlExecutorFactory().buildExecutor("", SINGLE_THREAD));
     }
 
     @Test
     public void shouldNotifySubscribers() {
-        CrawlJob sut = new CrawlJob(create("http://domain1"), Collections.emptyList(), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
+        CrawlJob sut = new CrawlJob(Collections.singletonList(create("http://domain1")), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
         sut.subscribeToPageCrawled(subscriber);
         sut.start();
         Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
@@ -56,7 +56,7 @@ public class CrawlJobTest {
 
     @Test
     public void listenerThrowingExceptionsShouldNotPreventOthersToGetMessage() {
-        CrawlJob sut = new CrawlJob(create("http://domain1"), Collections.emptyList(), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
+        CrawlJob sut = new CrawlJob(Collections.singletonList(create("http://domain1")), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
         sut.subscribeToPageCrawled(exceptionSubscriber);
         sut.subscribeToPageCrawled(subscriber);
         sut.start();

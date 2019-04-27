@@ -10,7 +10,12 @@ import org.springframework.context.annotation.Configuration;
 public class SpiderConfig {
 
     @Bean
-    public CrawlJobFactory getCrawlJobFactory(PageCrawlPersistence crawlPersistence, MonitoredUriUpdater monitoredUriUpdater) {
-        return new CrawlJobFactory(new WebPageReaderFactory(), new WebsiteUriFilterBuilder(), new ExecutorBuilder(), monitoredUriUpdater, crawlPersistence);
+    public CrawlExecutorFactory getExecutorBuilder() {
+        return new CrawlExecutorFactory();
+    }
+
+    @Bean
+    public CrawlJobFactory getCrawlJobFactory(PageCrawlPersistence crawlPersistence, MonitoredUriUpdater monitoredUriUpdater, CrawlExecutorFactory crawlExecutorFactory) {
+        return new CrawlJobFactory(new WebPageReaderFactory(), new WebsiteUriFilterFactory(), crawlExecutorFactory, monitoredUriUpdater, crawlPersistence);
     }
 }

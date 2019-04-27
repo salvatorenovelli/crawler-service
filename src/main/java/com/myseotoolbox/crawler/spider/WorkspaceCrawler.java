@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractRoot;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
@@ -23,12 +23,12 @@ public class WorkspaceCrawler {
 
     public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 5;
     private final WorkspaceRepository workspaceRepository;
-    private final CrawlJobFactory crawlFactory;
+    private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
 
-    public WorkspaceCrawler(WorkspaceRepository workspaceRepository, CrawlJobFactory crawlFactory, WebsiteCrawlLogRepository websiteCrawlLogRepository) {
+    public WorkspaceCrawler(WorkspaceRepository workspaceRepository, CrawlJobFactory crawlJobFactory, WebsiteCrawlLogRepository websiteCrawlLogRepository) {
         this.workspaceRepository = workspaceRepository;
-        this.crawlFactory = crawlFactory;
+        this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
     }
 
@@ -41,14 +41,14 @@ public class WorkspaceCrawler {
                 .filter(WebsiteOriginUtils::isValidOrigin)
                 .map(this::addTrailingSlashIfMissing)
                 .map(URI::create)
-                .collect(Collectors.groupingBy(WebsiteOriginUtils::extractOrigin, Collectors.toSet()));
+                .collect(Collectors.groupingBy(WebsiteOriginUtils::extractRoot, Collectors.toSet()));
 
-        seedsByOrigin.forEach((origin, seeds) ->
+        seedsByOrigin.forEach((baseDomainPath, seeds) ->
                 runOrLogWarning(() -> {
-                    CrawlJob job = crawlFactory.build(origin, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
+                    CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
                     job.start();
-                    websiteCrawlLogRepository.save(new WebsiteCrawlLog(origin.toString(), LocalDate.now()));
-                }, "Error while starting crawl for: " + origin));
+                    websiteCrawlLogRepository.save(new WebsiteCrawlLog(baseDomainPath.toString(), LocalDate.now()));
+                }, "Error while starting crawl for: " + baseDomainPath));
 
     }
 
@@ -57,7 +57,7 @@ public class WorkspaceCrawler {
     }
 
     private boolean isDelayExpired(Workspace workspace) {
-        URI origin = extractOrigin(URI.create(workspace.getWebsiteUrl()));
+        URI origin = extractRoot(URI.create(workspace.getWebsiteUrl()));
 
         return websiteCrawlLogRepository.findTopByOriginOrderByDateDesc(origin.toString()).map(lastCrawl -> {
             int crawlIntervalDays = workspace.getCrawlerSettings().getCrawlIntervalDays();

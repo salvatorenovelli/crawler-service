@@ -60,6 +60,9 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
     }
 
     private void serveRobotsTxt(Request request, HttpServletResponse httpServletResponse, String path) {
+
+        if (testWebsiteBuilder.robotsTxtStream == null) return;
+
         if (path.equals("/robots.txt") && testWebsiteBuilder.robotsTxtRedirect) {
             httpServletResponse.setStatus(301);
             httpServletResponse.setHeader("location", "/other/robots.txt");
@@ -68,7 +71,7 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
             try (OutputStream outputStream = httpServletResponse.getOutputStream()) {
                 outputStream.write(IOUtils.toString(testWebsiteBuilder.robotsTxtStream, StandardCharsets.UTF_8).getBytes());
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn("No robots txt configured", e);
             }
         }
 

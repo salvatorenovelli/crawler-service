@@ -32,13 +32,17 @@ public class WebsiteOriginUtils {
         if (!isSchemeMatching(origin, possibleChild)) return false;
         if (!isHostMatching(origin, possibleChild)) return false;
 
-        String originPath = addTrailingSlashIfMissing(origin.getPath());
-        String possibleChildPath = addTrailingSlashIfMissing(possibleChild.getPath());
+        return isSubPath(origin.getPath(), possibleChild.getPath());
+    }
+
+    public static boolean isSubPath(String basePath, String possibleChild) {
+        String originPath = addTrailingSlashIfMissing(basePath);
+        String possibleChildPath = addTrailingSlashIfMissing(possibleChild);
         return possibleChildPath.startsWith(originPath);
     }
 
 
-    public static URI extractOrigin(URI source){
+    public static URI extractRoot(URI source) {
         return source.resolve("/");
     }
 

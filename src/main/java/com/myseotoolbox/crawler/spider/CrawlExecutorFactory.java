@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class ExecutorBuilder {
+public class CrawlExecutorFactory {
 
     private final AtomicInteger threadId = new AtomicInteger(0);
 

@@ -349,33 +349,6 @@ public class CrawlerQueueTest {
         verifyNoMoreInteractions(pool);
     }
 
-
-    @Test
-    public void shouldNotCrawlLinksDiscoveredOnUriOutsideOriginPathIfTheyAreOutsideBasePath() {
-        whenCrawling("http://host/base").discover("http://host", "http://host/base/1");
-        whenCrawling("http://host").discover("http://host/basedisabled-outside", "http://host/disabled-outside", "http://host/base/2");
-        whenCrawling("http://host/base/1").discover("http://host/allowed-outside", "http://host/base/1/1", "http://host/base/2/1");
-
-        sut = new CrawlerQueue(uris("http://host/base"), pool, new BasicUriFilter(URI.create("http://host/base")));
-
-        sut.start();
-
-//        System.out.println(mockingDetails(pool).printInvocations());
-
-        verify(pool).accept(taskForUri("http://host/base"));
-
-        verify(pool).accept(taskForUri("http://host"));
-        verify(pool).accept(taskForUri("http://host/base/1"));
-
-        verify(pool).accept(taskForUri("http://host/base/2"));
-
-        verify(pool).accept(taskForUri("http://host/allowed-outside"));
-        verify(pool).accept(taskForUri("http://host/base/1/1"));
-        verify(pool).accept(taskForUri("http://host/base/2/1"));
-        verifyNoMoreInteractions(pool);
-
-    }
-
     @Test
     public void shouldEnqueueCanonicalLinkIfDifferentFromUri() {
 

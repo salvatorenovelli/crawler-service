@@ -24,11 +24,11 @@ public class BasicUriFilter implements UriFilter {
     @Override
     public boolean shouldCrawl(URI sourceUri, URI discoveredLink) {
 
-        boolean valid = validScheme(discoveredLink) && validExtension(discoveredLink) && validHost(sourceUri, discoveredLink) && validPath(sourceUri, discoveredLink);
+        boolean valid = validScheme(discoveredLink) && validExtension(discoveredLink) && validHost(sourceUri, discoveredLink);
 
         if (!valid && log.isDebugEnabled()) {
             log.debug("Blocked: {} URI: {} src: {}",
-                    getFilterCause(validScheme(discoveredLink), validExtension(discoveredLink), validHost(sourceUri, discoveredLink), validPath(sourceUri, discoveredLink)),
+                    getFilterCause(validScheme(discoveredLink), validExtension(discoveredLink), validHost(sourceUri, discoveredLink)),
                     discoveredLink,
                     sourceUri);
         }
@@ -37,12 +37,8 @@ public class BasicUriFilter implements UriFilter {
 
     }
 
-    private String getFilterCause(boolean scheme, boolean extension, boolean host, boolean path) {
-        return (!scheme ? "SCH " : "") + (!extension ? "EXT " : "") + (!host ? "HOST " : "") + (!path ? "PATH " : "");
-    }
-
-    private boolean validPath(URI sourceUri, URI discoveredLink) {
-        return isChildOfOrigin(sourceUri) || isChildOfOrigin(discoveredLink);
+    private String getFilterCause(boolean scheme, boolean extension, boolean host) {
+        return (!scheme ? "SCH " : "") + (!extension ? "EXT " : "") + (!host ? "HOST " : "");
     }
 
     private boolean validExtension(URI str) {
@@ -54,7 +50,7 @@ public class BasicUriFilter implements UriFilter {
     }
 
     private boolean isSubdomainOfOrigin(URI discoveredLink) {
-        return isSubdomain(websiteOrigin,discoveredLink);
+        return isSubdomain(websiteOrigin, discoveredLink);
     }
 
     private boolean isChildOfOrigin(URI discoveredLink) {

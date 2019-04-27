@@ -1,38 +1,47 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlPersistence;
+import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 public class CrawlJobFactory {
 
     private final WebPageReaderFactory webPageReaderFactory;
-    private final WebsiteUriFilterBuilder uriFilterBuilder;
-    private final ExecutorBuilder executorBuilder;
+    private final WebsiteUriFilterFactory uriFilterFactory;
+    private final CrawlExecutorFactory crawlExecutorFactory;
     private final MonitoredUriUpdater monitoredUriUpdater;
     private final PageCrawlPersistence crawlPersistence;
 
     public CrawlJobFactory(
             WebPageReaderFactory webPageReaderFactory,
-            WebsiteUriFilterBuilder uriFilterBuilder,
-            ExecutorBuilder executorBuilder,
+            WebsiteUriFilterFactory uriFilterFactory,
+            CrawlExecutorFactory crawlExecutorFactory,
             MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence) {
 
         this.webPageReaderFactory = webPageReaderFactory;
-        this.uriFilterBuilder = uriFilterBuilder;
-        this.executorBuilder = executorBuilder;
+        this.uriFilterFactory = uriFilterFactory;
+        this.crawlExecutorFactory = crawlExecutorFactory;
         this.monitoredUriUpdater = monitoredUriUpdater;
         this.crawlPersistence = crawlPersistence;
     }
 
     public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection) {
 
-        UriFilter uriFilter = uriFilterBuilder.buildForOrigin(origin);
-        CrawlJob job = new CrawlJob(origin, seeds, webPageReaderFactory.buildWithFilter(uriFilter), uriFilter, executorBuilder.buildExecutor(origin.getHost(), numParallelConnection));
+        List<String> allowedPaths = extractAllowedPathFromSeeds(seeds);
+
+        UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths);
+        WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
+        ExecutorService executor = crawlExecutorFactory.buildExecutor(origin.getHost(), numParallelConnection);
+
+        CrawlJob job = new CrawlJob(seeds, webPageReader, uriFilter, executor);
 
         job.subscribeToPageCrawled(snapshot -> {
             runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
@@ -40,5 +49,15 @@ public class CrawlJobFactory {
         });
 
         return job;
+    }
+
+    /**
+     * Hack.
+     * <p>
+     * Instead of interpreting seeds as filters, we should ask the user for filters.      *
+     * Or should we? The user might not care or know. This is how it works in most of the crawlers.
+     */
+    private ArrayList<String> extractAllowedPathFromSeeds(List<URI> seeds) {
+        return seeds.stream().map(URI::getPath).collect(Collectors.toCollection(ArrayList::new));
     }
 }

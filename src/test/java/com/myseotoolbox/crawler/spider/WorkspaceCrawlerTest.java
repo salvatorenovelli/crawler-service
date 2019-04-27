@@ -24,6 +24,7 @@ import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CO
 import static java.net.URI.create;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -64,6 +65,12 @@ public class WorkspaceCrawlerTest {
                         .filter(websiteCrawlLog -> websiteCrawlLog.getOrigin().equals(invocation.getArgument(0)))
                         .findFirst());
 
+    }
+
+
+    @Test
+    public void shouldSubmitCorrectSeeds() {
+        fail();
     }
 
     @Test
@@ -187,6 +194,17 @@ public class WorkspaceCrawlerTest {
 
 
     @Test
+    public void shouldConsiderOriginFOrCrawlInterval() {
+        fail();
+        givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/cde").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
+
+        sut.crawlAllWorkspaces();
+
+        verifyNoMoreCrawls();
+    }
+
+    @Test
     public void shouldOnlyCrawlAtConfiguredInterval() {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(1).withLastCrawlHappened(YESTERDAY).build();
         givenAWorkspace().withWebsiteUrl("http://host2/").withCrawlingIntervalOf(2).withLastCrawlHappened(TWO_DAYS_AGO).build();
@@ -218,6 +236,13 @@ public class WorkspaceCrawlerTest {
     @Test
     public void shouldPersistLastCrawl() {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(1).build();
+        sut.crawlAllWorkspaces();
+        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/") && argument.getDate() != null));
+    }
+
+    @Test
+    public void shouldPersistLastCrawlShouldSaveBaseDomain() {
+        givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(1).build();
         sut.crawlAllWorkspaces();
         verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/") && argument.getDate() != null));
     }

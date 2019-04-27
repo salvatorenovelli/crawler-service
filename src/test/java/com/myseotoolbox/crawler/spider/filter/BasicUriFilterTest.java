@@ -42,20 +42,21 @@ public class BasicUriFilterTest {
 
     @Test
     public void shouldAllowSubdomainsWhenLinkingFromInside() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host"));
-        assertTrue(sut.shouldCrawl(URI.create("http://host"), URI.create("http://www.host")));
+        BasicUriFilter sut = new BasicUriFilter(BASE);
+        assertTrue(sut.shouldCrawl(BASE, URI.create("http://www.host")));
     }
+
     @Test
     public void shouldNotAllowSubdomainsWhenLinkingFromOutside() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host"));
+        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://www.host")));
     }
 
 
     @Test
     public void shouldNotCrawlEntirelyDifferentDomains() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host"));
-        assertFalse(sut.shouldCrawl(URI.create("http://host"), URI.create("http://differentHost")));
+        BasicUriFilter sut = new BasicUriFilter(BASE);
+        assertFalse(sut.shouldCrawl(BASE, URI.create("http://differentHost")));
     }
 
     @Test
@@ -66,11 +67,6 @@ public class BasicUriFilterTest {
         assertTrue(sut.shouldCrawl(URI.create("http://host/base"), URI.create("http://host/outside")));
     }
 
-    @Test
-    public void shouldDisallowUriWithDestinationOutsideBaseWhenDiscoveredOutsideBase() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host/base"));
-        assertFalse(sut.shouldCrawl(BASE, URI.create("http://host/outside")));
-    }
 
     @Test
     public void shouldAllowUriInsideBaseEvenIfDiscoveredOutsideBase() {
@@ -78,27 +74,11 @@ public class BasicUriFilterTest {
         assertTrue(sut.shouldCrawl(BASE, URI.create("http://host/base/inside")));
     }
 
-    @Test
-    public void shouldBeAbleToRecognizeChild() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host/base"));
-        assertFalse(sut.shouldCrawl(BASE, URI.create("http://host/basedisabled")));
-    }
 
     @Test
     public void shouldAllowHttps() {
         BasicUriFilter sut = new BasicUriFilter(BASE);
         assertTrue(sut.shouldCrawl(BASE, URI.create("https://host/")));
-    }
-
-    @Test
-    public void shouldBeFineWithBaseHavingTrailingSlashes() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host/base/"));
-
-        assertTrue(sut.shouldCrawl(URI.create("http://host/base/1"), URI.create("http://host/base/inside")));
-        assertTrue(sut.shouldCrawl(URI.create("http://host/base"), URI.create("http://host/base/inside")));
-        assertTrue(sut.shouldCrawl(URI.create("http://host/base/"), URI.create("http://host/base/inside")));
-
-        assertFalse(sut.shouldCrawl(URI.create("http://host/base1/"), URI.create("http://host/basedisabled")));
     }
 
     @Test
