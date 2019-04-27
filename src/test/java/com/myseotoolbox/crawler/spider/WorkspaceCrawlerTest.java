@@ -17,11 +17,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
 import static java.net.URI.create;
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.fail;
@@ -69,11 +69,6 @@ public class WorkspaceCrawlerTest {
 
 
     @Test
-    public void shouldSubmitCorrectSeeds() {
-        fail();
-    }
-
-    @Test
     public void shouldCrawlAllTheWorkspaces() {
         givenAWorkspace().withWebsiteUrl("http://host1").build();
         givenAWorkspace().withWebsiteUrl("http://host2").build();
@@ -107,8 +102,8 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedForOriginWithSeeds("http://host1", Arrays.asList("http://host1", "http://host1/path1", "http://host1/path2"));
-        crawlStartedForOriginWithSeeds("http://host2", Arrays.asList("http://host2"));
+        crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1", "http://host1/path2"));
+        crawlStartedForOriginWithSeeds("http://host2", asList("http://host2"));
     }
 
 
@@ -121,7 +116,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedForOriginWithSeeds("http://host1", Arrays.asList("http://host1", "http://host1/path1", "http://host1/path2"));
+        crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1", "http://host1/path2"));
         verifyNoMoreCrawls();
     }
 
@@ -255,9 +250,10 @@ public class WorkspaceCrawlerTest {
         crawlStartedForOriginWithSeeds(origin, singletonList(origin));
     }
 
-
     private void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
         Object[] expectedSeeds = seeds.stream().map(this::addTrailingSlashIfMissing).map(URI::create).toArray();
+
+//        System.out.println(mockingDetails(crawlFactory).printInvocations());
 
         verify(crawlFactory).build(eq(create(origin).resolve("/")),
                 argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),

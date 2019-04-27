@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.function.Consumer;
 
@@ -20,8 +21,7 @@ import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -52,6 +52,16 @@ public class CrawlJobTest {
         sut.subscribeToPageCrawled(subscriber);
         sut.start();
         Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
+    }
+
+    @Test
+    public void shouldOnlyVisitSeedsNotTheRoot() {
+        CrawlJob sut = new CrawlJob(Arrays.asList(create("http://domain1/path1"), create("http://domain1/path2")), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService());
+        sut.subscribeToPageCrawled(subscriber);
+        sut.start();
+        Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1/path1")));
+        Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1/path2")));
+        verifyNoMoreInteractions(subscriber);
     }
 
     @Test

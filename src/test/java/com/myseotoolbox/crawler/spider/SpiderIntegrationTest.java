@@ -59,11 +59,6 @@ public class SpiderIntegrationTest {
     }
 
     @Test
-    public void addmorestuffhere() {
-        fail();
-    }
-
-    @Test
     public void basicLinkFollowing() {
 
         givenAWebsite()
@@ -119,6 +114,23 @@ public class SpiderIntegrationTest {
         verifyNoMoreInteractions(crawledPagesListener);
 
 
+    }
+
+    @Test
+    public void shouldNotVisitOtherDomains() {
+
+        givenAWebsite()
+                .havingPage("/base").withLinksTo("/base/abc", "http://differentdomain")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
+        job.start();
+
+        verify(crawledPagesListener).accept(uri("/base"));
+        verify(crawledPagesListener).accept(uri("/base2"));
+        verify(crawledPagesListener).accept(uri("/base/abc"));
+
+        verifyNoMoreInteractions(crawledPagesListener);
     }
 
     @Test

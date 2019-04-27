@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -53,25 +53,22 @@ public class CrawlJobFactoryTest {
         when(reader.snapshotPage(any())).thenAnswer(this::buildSnapshotForUri);
 
 
-        when(testFilter.shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK)).then(invocation -> {
-            return false;
-        });
+        when(testFilter.shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK)).then(invocation -> false);
 
         sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersBuilder, crawlExecutorFactory, monitoredUriUpdater, crawlPersistence);
     }
 
 
     @Test
-    public void addPathFilteringHere() {
-        fail();
+    public void shouldOnlyCrawlOnlyFromTheSeeds() throws SnapshotException {
+        CrawlJob job = sut.build(TEST_ORIGIN, seeds("/path1", "/path2"), SINGLE_THREAD);
+        job.start();
+
+        verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
+        verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path2"));
+        verifyNoMoreInteractions(reader);
     }
 
-    @Test
-    public void shouldCrawlProvidedOrigin() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD);
-        job.start();
-        verify(reader).snapshotPage(TEST_ORIGIN);
-    }
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
@@ -99,6 +96,7 @@ public class CrawlJobFactoryTest {
 
     //Execute in the test thread instead of spawning a new one
     private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
+
         @Override
         public ExecutorService buildExecutor(String namePostfix, int concurrentConnections) {
             return new CurrentThreadTestExecutorService();
@@ -120,5 +118,9 @@ public class CrawlJobFactoryTest {
                 return reader;
             }
         };
+    }
+
+    private List<URI> seeds(String... seeds) {
+        return Arrays.stream(seeds).map(TEST_ORIGIN::resolve).collect(Collectors.toList());
     }
 }
