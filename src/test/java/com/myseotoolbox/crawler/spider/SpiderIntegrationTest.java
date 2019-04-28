@@ -41,6 +41,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 @RunWith(MockitoJUnitRunner.class)
 public class SpiderIntegrationTest {
 
+    public static final int MAX_CRAWLS = 100;
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
     private InputStream robotsTxt = getClass().getResourceAsStream("/robots.txt");
@@ -177,7 +178,7 @@ public class SpiderIntegrationTest {
         CrawlJobFactory crawlJobFactory = spiderConfig
                 .getCrawlJobFactory(Mockito.mock(PageCrawlPersistence.class), Mockito.mock(MonitoredUriUpdater.class), testExecutorBuilder);
 
-        CrawlJob job = crawlJobFactory.build(origin, seeds, 1);
+        CrawlJob job = crawlJobFactory.build(origin, seeds, 1, MAX_CRAWLS);
 
         job.subscribeToPageCrawled(crawledPagesListener);
         return job;

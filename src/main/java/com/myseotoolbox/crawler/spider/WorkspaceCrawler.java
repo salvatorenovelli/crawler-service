@@ -22,6 +22,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 public class WorkspaceCrawler {
 
     public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 5;
+    public static final int MAX_URL_PER_DOMAIN = 10000;
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
@@ -45,7 +46,7 @@ public class WorkspaceCrawler {
 
         seedsByOrigin.forEach((baseDomainPath, seeds) ->
                 runOrLogWarning(() -> {
-                    CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds));
+                    CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN);
                     job.start();
                     websiteCrawlLogRepository.save(new WebsiteCrawlLog(baseDomainPath.toString(), LocalDate.now()));
                 }, "Error while starting crawl for: " + baseDomainPath));

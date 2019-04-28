@@ -17,10 +17,10 @@ public class CrawlJob {
 
     private final CrawlerQueue crawlerQueue;
 
-    public CrawlJob(List<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor) {
+    public CrawlJob(String name, List<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls) {
         verifySameOrigin(seeds);
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
-        this.crawlerQueue = new CrawlerQueue(seeds, pool, uriFilter);
+        this.crawlerQueue = new CrawlerQueue(name, seeds, pool, uriFilter, maxCrawls);
     }
 
     public void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {

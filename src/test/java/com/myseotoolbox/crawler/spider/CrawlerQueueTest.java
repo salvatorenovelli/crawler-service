@@ -32,7 +32,9 @@ import static org.mockito.Mockito.*;
 public class CrawlerQueueTest {
 
     private static final UriFilter NO_URI_FILTER = (s, d) -> true;
+    private static final int MAX_CRAWLS = 100;
     private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família";
+    private static final String QUEUE_NAME = "name";
 
 
     private CrawlerQueue sut;
@@ -51,7 +53,7 @@ public class CrawlerQueueTest {
 
     @Test
     public void shouldRequireProcessingOfAllSeeds() {
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
         verify(pool).accept(taskForUri("http://host1"));
     }
@@ -62,7 +64,7 @@ public class CrawlerQueueTest {
 
         whenCrawling("http://host1").discover("http://host1");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -72,7 +74,7 @@ public class CrawlerQueueTest {
     public void shouldNotifyListenersWithSnapshotResult() {
         whenCrawling("http://host1").discover("http://host1/dst");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.subscribeToPageCrawled(mockListener);
         sut.start();
 
@@ -85,7 +87,7 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").discover("/dst");
         whenCrawling("http://host1/dst").discover("http://host1/dst");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         sut.start();
 
@@ -99,7 +101,7 @@ public class CrawlerQueueTest {
 
         whenCrawling("http://host1").discover("/");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         sut.start();
 
@@ -112,7 +114,7 @@ public class CrawlerQueueTest {
     public void takeAlwaysReturnAbsoluteUri() {
         whenCrawling("http://host1").discover("/dst");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         sut.start();
 
@@ -124,7 +126,7 @@ public class CrawlerQueueTest {
     @Test
     public void onSnapshotCompleteShouldNeverBeFedRelativeUrisAsTakeNeverReturnsIt() {
 
-        sut = new CrawlerQueue(uris("http://host1/dst"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/dst"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         try {
             sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri("/dst")));
@@ -140,7 +142,7 @@ public class CrawlerQueueTest {
     @Test
     public void completingASnapshotNeverSubmittedShouldThrowException() {
 
-        sut = new CrawlerQueue(uris("http://host1/dst"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/dst"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         try {
             sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
@@ -156,7 +158,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldAlertIfCompleteTheSameSnapshotTwice() {
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         try {
@@ -173,7 +175,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldProcessAllSeedsWhenMultipleSeedsAreFed() {
 
-        sut = new CrawlerQueue(uris("http://host1", "http://host2"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1", "http://host2"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -188,7 +190,7 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").discover(LOCATION_WITH_UNICODE_CHARACTERS);
 
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         sut.start();
 
@@ -202,7 +204,7 @@ public class CrawlerQueueTest {
     public void discoveringDuplicateLinksInPageDoesNotEnqueueItMultipleTimes() {
         whenCrawling("http://host1").discover("http://host1/dst1", "http://host1/dst2", "http://host1/dst1");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -217,7 +219,7 @@ public class CrawlerQueueTest {
     public void shouldNotAcceptFilteredUris() {
         whenCrawling("http://host1").discover("http://host1/dst1", "http://host1/dst2", "http://host1/shouldReject");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, (s, d) -> !d.toString().equals("http://host1/shouldReject"));
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, (s, d) -> !d.toString().equals("http://host1/shouldReject"), MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -237,7 +239,7 @@ public class CrawlerQueueTest {
         doAnswer(invocation -> null).when(pool).accept(taskForUri("http://host1/dst1"));
 
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
 
@@ -250,7 +252,7 @@ public class CrawlerQueueTest {
     public void canHandleInvalidEmptyJavascriptLinks() {
         whenCrawling("http://host1").discover("javascript:{}", "/dst1");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -261,7 +263,7 @@ public class CrawlerQueueTest {
     public void canHandleInvalidLink() {
         whenCrawling("http://host1").discover("not a valid link", "/dst1");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -278,7 +280,7 @@ public class CrawlerQueueTest {
             return null;
         }).when(pool).accept(taskForUri("http://host1"));
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -288,7 +290,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldIgnoreFragment() {
         whenCrawling("http://host1").discover("http://host1#someFragment");
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -301,7 +303,7 @@ public class CrawlerQueueTest {
     @Test
     public void canManageLinkWithFragmentOnly() {
         whenCrawling("http://host1").discover("#");
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -313,7 +315,7 @@ public class CrawlerQueueTest {
     public void canManageEmptyLinks() {
         whenCrawling("http://host1").discover("%20#");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -324,7 +326,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldBeAbleToHandleURIWithSpaces() {
         whenCrawling("http://host1").discover("/this destination contains spaces");
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -335,7 +337,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldBeAbleToHandleURIWithEncodedSpaces() {
         whenCrawling("http://host1").discover("/this%20destination%20contains%20spaces");
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -348,7 +350,7 @@ public class CrawlerQueueTest {
     public void shouldHandleUriWithLeadingSpaces() {
         whenCrawling("http://host1").discover("/leadingspaces    ");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
@@ -366,7 +368,7 @@ public class CrawlerQueueTest {
         initMocksToReturnCanonical(baseUri, canonicalPath);
 
 
-        sut = new CrawlerQueue(uris(baseUri), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris(baseUri), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
 
@@ -384,7 +386,7 @@ public class CrawlerQueueTest {
 
         initMocksToReturnCanonical(baseUri, canonicalPath);
 
-        sut = new CrawlerQueue(uris(baseUri), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris(baseUri), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verify(pool).accept(taskForUri(baseUri));
@@ -397,7 +399,7 @@ public class CrawlerQueueTest {
     public void shouldNotNotifyListenersForBlockedRedirectChains() {
         whenCrawling("http://host1").redirectToBlockedUrl("http://host1/blockedByRobots");
 
-        sut = new CrawlerQueue(uris("http://host1"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         verifyNoMoreInteractions(mockListener);
@@ -411,7 +413,7 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1/path1").discover("http://host1/path2");
         whenCrawling("http://host1/path2").discover("http://host1/path3");
 
-        sut = new CrawlerQueue(uris("http://host1/"), pool, NO_URI_FILTER);
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
         Mockito.inOrder(pool);
@@ -421,6 +423,45 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1/path2"));
         verify(pool).accept(taskForUri("http://host1/path3"));
         verify(pool).shutDown();
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void shouldNotCrawlMoreThanSpecified_discoverOneByOne() {
+        whenCrawling("http://host1/").discover("http://host1/1");
+        whenCrawling("http://host1/1").discover("http://host1/2");
+        whenCrawling("http://host1/2").discover("http://host1/3");
+        whenCrawling("http://host1/3").discover("http://host1/should-not-get-here");
+
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/"), pool, NO_URI_FILTER, 4);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1/"));
+        verify(pool).accept(taskForUri("http://host1/1"));
+        verify(pool).accept(taskForUri("http://host1/2"));
+        verify(pool).accept(taskForUri("http://host1/3"));
+        verify(pool).shutDown();
+
+        System.out.println(mockingDetails(pool).printInvocations());
+
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void shouldNotCrawlMoreThanSpecified_discoverAllAtOnce() {
+        whenCrawling("http://host1/").discover("http://host1/1", "http://host1/2", "http://host1/3", "http://host1/should-not-get-here");
+
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/"), pool, NO_URI_FILTER, 4);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1/"));
+        verify(pool).accept(taskForUri("http://host1/1"));
+        verify(pool).accept(taskForUri("http://host1/2"));
+        verify(pool).accept(taskForUri("http://host1/3"));
+        verify(pool).shutDown();
+
+        System.out.println(mockingDetails(pool).printInvocations());
+
         verifyNoMoreInteractions(pool);
     }
 

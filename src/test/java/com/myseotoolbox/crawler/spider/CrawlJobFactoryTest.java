@@ -30,6 +30,7 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CrawlJobFactoryTest {
 
+    public static final int MAX_CRAWLS = 100;
     public static List<URI> ONLY_ROOT = Collections.singletonList(URI.create("http://host/"));
     public static final int SINGLE_THREAD = 1;
     public static final URI TEST_ORIGIN = URI.create("http://host/");
@@ -61,7 +62,7 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldOnlyCrawlOnlyFromTheSeeds() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, seeds("/path1", "/path2"), SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, seeds("/path1", "/path2"), SINGLE_THREAD, MAX_CRAWLS);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
@@ -72,21 +73,21 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS);
         job.start();
         verify(monitoredUriUpdater).updateCurrentValue(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldNotifyCrawlPersistence() {
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS);
         job.start();
         verify(crawlPersistence).persistPageCrawl(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD);
+        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS);
         job.start();
 
         verify(testFilter).shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK);

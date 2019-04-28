@@ -33,15 +33,16 @@ public class CrawlJobFactory {
         this.crawlPersistence = crawlPersistence;
     }
 
-    public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection) {
+    public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection, int maxCrawls) {
 
+        String name = origin.getHost();
         List<String> allowedPaths = extractAllowedPathFromSeeds(seeds);
 
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths);
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
-        ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), numParallelConnection);
+        ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(name, numParallelConnection);
 
-        CrawlJob job = new CrawlJob(seeds, webPageReader, uriFilter, executor);
+        CrawlJob job = new CrawlJob(name, seeds, webPageReader, uriFilter, executor, maxCrawls);
 
         job.subscribeToPageCrawled(snapshot -> {
             runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());

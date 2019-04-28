@@ -35,6 +35,7 @@ public class WorkspaceCrawlerTest {
     private static final int YESTERDAY = -1;
     private static final int TWO_DAYS_AGO = -2;
     public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
+    public static final int MAX_CRAWLS =100;
     private final List<CrawlJob> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
     private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
@@ -49,7 +50,7 @@ public class WorkspaceCrawlerTest {
     public void setUp() {
         sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository);
 
-        when(crawlFactory.build(any(URI.class), anyList(), anyInt())).thenAnswer(
+        when(crawlFactory.build(any(URI.class), anyList(), anyInt(), anyInt())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
                     mockJobs.add(mock);
@@ -173,7 +174,7 @@ public class WorkspaceCrawlerTest {
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
 
-        when(crawlFactory.build(eq(create(originWithException)), anyList(), anyInt())).thenThrow(new RuntimeException("Testing exceptions"));
+        when(crawlFactory.build(eq(create(originWithException)), anyList(), anyInt(), anyInt())).thenThrow(new RuntimeException("Testing exceptions"));
 
         sut.crawlAllWorkspaces();
 
@@ -243,7 +244,7 @@ public class WorkspaceCrawlerTest {
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
-        verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections));
+        verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections), anyInt());
     }
 
     private void crawlStartedFor(String origin) {
@@ -257,7 +258,7 @@ public class WorkspaceCrawlerTest {
 
         verify(crawlFactory).build(eq(create(origin).resolve("/")),
                 argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),
-                ArgumentMatchers.anyInt());
+                ArgumentMatchers.anyInt(), anyInt());
 
         mockJobs.forEach(job -> verify(job).start());
     }

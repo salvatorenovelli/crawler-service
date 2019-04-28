@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
+import com.myseotoolbox.crawler.utils.LoggingUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -29,9 +30,14 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
     private final List<Consumer<PageSnapshot>> onSnapshotListeners = new ArrayList<>();
     private final PageLinksHelper helper = new PageLinksHelper();
 
-    public CrawlerQueue(List<URI> seeds, CrawlersPool crawlersPool, UriFilter filter) {
+    private final int maxCrawls;
+    private final String queueName;
+
+    public CrawlerQueue(String queueName, List<URI> seeds, CrawlersPool crawlersPool, UriFilter filter, int maxCrawls) {
+        this.queueName = queueName;
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;
+        this.maxCrawls = maxCrawls;
         this.seeds.addAll(seeds);
     }
 
@@ -85,8 +91,21 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
                 .filter(uri -> !alreadyVisited(uri))
                 .distinct()
                 .collect(Collectors.toList());
-        if (newLinks.size() > 0) {
-            submitTasks(newLinks);
+
+
+        submitTasks(newLinks);
+
+    }
+
+    private synchronized void submitTasks(List<URI> seeds) {
+
+        List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
+
+        if (allowedSeeds.size() > 0) {
+            inProgress.addAll(allowedSeeds);
+            allowedSeeds.stream()
+                    .map(uri -> new SnapshotTask(uri, this))
+                    .forEach(crawlersPool::accept);
         } else {
             if (inProgress.size() == 0) {
                 crawlersPool.shutDown();
@@ -94,11 +113,22 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
         }
     }
 
-    private synchronized void submitTasks(List<URI> seeds) {
-        inProgress.addAll(seeds);
-        seeds.stream()
-                .map(uri -> new SnapshotTask(uri, this))
-                .forEach(crawlersPool::accept);
+    private List<URI> calculateAllowedSeeds(List<URI> seeds) {
+
+        int totUrlEnqueued = inProgress.size() + visited.size();
+
+        if (totUrlEnqueued >= this.maxCrawls) {
+            LoggingUtils.logWarningOnce(this, log, "Unable to enqueue more URL. Max size exceeded for " + this.queueName);
+            return Collections.emptyList();
+        }
+
+        if (seeds.size() + totUrlEnqueued >= this.maxCrawls) {
+            int remaining = this.maxCrawls - totUrlEnqueued;
+            return seeds.subList(0, remaining);
+        }
+
+        return seeds;
+
     }
 
     private synchronized boolean alreadyVisited(URI uri) {
