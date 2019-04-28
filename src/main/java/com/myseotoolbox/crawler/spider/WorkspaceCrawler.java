@@ -52,7 +52,7 @@ public class WorkspaceCrawler {
                     log.info("Crawling {} with seeds: {}", baseDomainPath, seeds);
                     CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN);
                     job.start();
-                    websiteCrawlLogRepository.save(new WebsiteCrawlLog(baseDomainPath.toString(), LocalDate.now()));
+                    seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
                 }, "Error while starting crawl for: " + baseDomainPath));
 
     }
@@ -62,9 +62,8 @@ public class WorkspaceCrawler {
     }
 
     private boolean isDelayExpired(Workspace workspace) {
-        URI origin = extractRoot(URI.create(workspace.getWebsiteUrl()));
 
-        return websiteCrawlLogRepository.findTopByOriginOrderByDateDesc(origin.toString()).map(lastCrawl -> {
+        return websiteCrawlLogRepository.findTopByOriginOrderByDateDesc(workspace.getWebsiteUrl()).map(lastCrawl -> {
             int crawlIntervalDays = workspace.getCrawlerSettings().getCrawlIntervalDays();
             boolean delayExpired = LocalDate.now().minusDays(crawlIntervalDays).compareTo(lastCrawl.getDate()) >= 0;
 

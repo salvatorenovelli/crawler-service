@@ -50,7 +50,7 @@ public class WebsiteOriginUtils {
         return Objects.equals(origin.getScheme(), possibleChild.getScheme());
     }
 
-    private static String addTrailingSlashIfMissing(String path) {
+    public static String addTrailingSlashIfMissing(String path) {
         return path + (path.endsWith("/") ? "" : "/");
     }
 

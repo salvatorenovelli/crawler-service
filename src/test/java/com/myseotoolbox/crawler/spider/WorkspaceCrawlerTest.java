@@ -6,7 +6,6 @@ import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -25,7 +24,6 @@ import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -61,11 +59,6 @@ public class WorkspaceCrawlerTest {
 
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
 
-        when(websiteCrawlLogRepository
-                .findTopByOriginOrderByDateDesc(anyString()))
-                .thenAnswer(invocation -> crawlLogs.stream()
-                        .filter(websiteCrawlLog -> websiteCrawlLog.getOrigin().equals(invocation.getArgument(0)))
-                        .findFirst());
 
     }
 
@@ -81,12 +74,10 @@ public class WorkspaceCrawlerTest {
         crawlStartedFor("http://host2");
     }
 
-
     @Test
     public void shouldNotCrawlTwice() {
         givenAWorkspace().withWebsiteUrl("http://host1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1").build();
-
+        givenAWorkspace().withWebsiteUrl("http://host1/").build();
 
         sut.crawlAllWorkspaces();
 
@@ -94,12 +85,11 @@ public class WorkspaceCrawlerTest {
         verifyNoMoreCrawls();
     }
 
-
     @Test
     public void shouldGroupByOrigin() {
         givenAWorkspace().withWebsiteUrl("http://host1").build();
         givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path2").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path2/").build();
         givenAWorkspace().withWebsiteUrl("http://host2").build();
 
         sut.crawlAllWorkspaces();
@@ -107,7 +97,6 @@ public class WorkspaceCrawlerTest {
         crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1", "http://host1/path2"));
         crawlStartedForOriginWithSeeds("http://host2", asList("http://host2"));
     }
-
 
     @Test
     public void shouldNotHaveDuplicatesInSeeds() {
@@ -190,14 +179,14 @@ public class WorkspaceCrawlerTest {
     }
 
 
-    @Test@Ignore
-    public void shouldConsiderOriginFOrCrawlInterval() {
-        fail();
+    @Test
+    public void shouldConsiderPathForCrawlInterval() {
         givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
-        givenAWorkspace().withWebsiteUrl("http://host1/cde").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/cde").withCrawlingIntervalOf(1).withLastCrawlHappened(YESTERDAY).build();
 
         sut.crawlAllWorkspaces();
 
+        crawlStartedFor("http://host1/cde");
         verifyNoMoreCrawls();
     }
 
@@ -238,10 +227,26 @@ public class WorkspaceCrawlerTest {
     }
 
     @Test
-    public void shouldPersistLastCrawlShouldSaveBaseDomain() {
+    public void shouldNotPersistTwice() {
         givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(1).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
+
         sut.crawlAllWorkspaces();
-        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/") && argument.getDate() != null));
+
+        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
+        verify(websiteCrawlLogRepository, times(2)).findTopByOriginOrderByDateDesc(anyString());
+
+        verifyNoMoreInteractions(websiteCrawlLogRepository);
+    }
+
+    @Test
+    public void shouldPersistLastCrawlShouldSaveBaseDomain() {
+        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
+        sut.crawlAllWorkspaces();
+
+        System.out.println(mockingDetails(websiteCrawlLogRepository).printInvocations());
+
+        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
@@ -249,24 +254,32 @@ public class WorkspaceCrawlerTest {
     }
 
     private void crawlStartedFor(String origin) {
-        crawlStartedForOriginWithSeeds(origin, singletonList(origin));
+        crawlStartedForOriginWithSeeds(addTrailingSlashIfMissing(origin), singletonList(origin));
     }
 
     private void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
         Object[] expectedSeeds = seeds.stream().map(this::addTrailingSlashIfMissing).map(URI::create).toArray();
 
-//        System.out.println(mockingDetails(crawlFactory).printInvocations());
+        try {
+            verify(crawlFactory).build(eq(create(origin).resolve("/")),
+                    argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),
+                    ArgumentMatchers.anyInt(), anyInt());
 
-        verify(crawlFactory).build(eq(create(origin).resolve("/")),
-                argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),
-                ArgumentMatchers.anyInt(), anyInt());
-
-        mockJobs.forEach(job -> verify(job).start());
+            mockJobs.forEach(job -> verify(job).start());
+        } catch (Throwable e) {
+            System.out.println(mockingDetails(crawlFactory).printInvocations());
+            throw e;
+        }
     }
 
     private void verifyNoMoreCrawls() {
-        verifyNoMoreInteractions(crawlFactory);
-        mockJobs.forEach(Mockito::verifyNoMoreInteractions);
+        try {
+            verifyNoMoreInteractions(crawlFactory);
+            mockJobs.forEach(Mockito::verifyNoMoreInteractions);
+        } catch (Throwable e) {
+            System.out.println(mockingDetails(crawlFactory).printInvocations());
+            throw e;
+        }
     }
 
     private WorkspaceBuilder givenAWorkspace() {
@@ -290,6 +303,11 @@ public class WorkspaceCrawlerTest {
 
         public void build() {
             allWorkspaces.add(curWorkspace);
+            when(websiteCrawlLogRepository
+                    .findTopByOriginOrderByDateDesc(curWorkspace.getWebsiteUrl()))
+                    .thenAnswer(invocation -> crawlLogs.stream()
+                            .filter(websiteCrawlLog -> websiteCrawlLog.getOrigin().equals(invocation.getArgument(0)))
+                            .findFirst());
         }
 
         public WorkspaceBuilder withCrawlingDisabled() {
