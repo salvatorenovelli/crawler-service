@@ -36,7 +36,7 @@ public class WorkspaceCrawlerTest {
     private static final int YESTERDAY = -1;
     private static final int TWO_DAYS_AGO = -2;
     public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
-    public static final int MAX_CRAWLS =100;
+    public static final int MAX_CRAWLS = 100;
     private final List<CrawlJob> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
     private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
@@ -190,7 +190,7 @@ public class WorkspaceCrawlerTest {
     }
 
 
-    @Test@Ignore
+    @Test
     public void shouldConsiderOriginFOrCrawlInterval() {
         fail();
         givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
