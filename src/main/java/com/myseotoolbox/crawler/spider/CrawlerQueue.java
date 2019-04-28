@@ -54,7 +54,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
         String sourceUri = result.getUri();
         List<URI> links = result.isBlockedChain() ? Collections.emptyList() : discoverLinks(result.getPageSnapshot());
 
-        log.info("Scanned: {} links:{}", sourceUri, links.size());
+        log.trace("Scanned: {} links:{}", sourceUri, links.size());
 
         if (!result.isBlockedChain()) {
             notifyListeners(result.getPageSnapshot());

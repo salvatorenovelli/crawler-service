@@ -25,10 +25,12 @@ public class WorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
+    private final WorkspaceCrawler workspaceCrawler;
 
-    public WorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository) {
+    public WorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler) {
         this.factory = factory;
         this.repository = repository;
+        this.workspaceCrawler = workspaceCrawler;
     }
 
     @GetMapping("/scan-origin")
@@ -45,4 +47,12 @@ public class WorkspaceCrawlStartController {
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
+
+    @GetMapping("/scan-all-workspaces")
+    public String scanAllWorkspaces() {
+        workspaceCrawler.crawlAllWorkspaces();
+        return "Started on " + new Date();
+    }
+
+
 }

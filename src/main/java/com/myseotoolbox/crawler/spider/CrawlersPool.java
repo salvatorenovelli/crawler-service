@@ -19,11 +19,6 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
     public CrawlersPool(WebPageReader pageReader, ThreadPoolExecutor executor) {
         this.pageReader = pageReader;
         this.executor = executor;
-        startMonitoring();
-    }
-
-    private void startMonitoring() {
-        new CrawlerPoolStatusMonitor(this.executor).start();
     }
 
     @Override

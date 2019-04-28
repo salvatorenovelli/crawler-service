@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -18,6 +19,7 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractR
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
+@Slf4j
 @Component
 public class WorkspaceCrawler {
 
@@ -34,6 +36,7 @@ public class WorkspaceCrawler {
     }
 
     public void crawlAllWorkspaces() {
+        log.info("Starting workspaces crawl...");
 
         Map<URI, Set<URI>> seedsByOrigin = workspaceRepository.findAll()
                 .stream()
@@ -46,6 +49,7 @@ public class WorkspaceCrawler {
 
         seedsByOrigin.forEach((baseDomainPath, seeds) ->
                 runOrLogWarning(() -> {
+                    log.info("Crawling {} with seeds: {}", baseDomainPath, seeds);
                     CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN);
                     job.start();
                     websiteCrawlLogRepository.save(new WebsiteCrawlLog(baseDomainPath.toString(), LocalDate.now()));
@@ -62,7 +66,16 @@ public class WorkspaceCrawler {
 
         return websiteCrawlLogRepository.findTopByOriginOrderByDateDesc(origin.toString()).map(lastCrawl -> {
             int crawlIntervalDays = workspace.getCrawlerSettings().getCrawlIntervalDays();
-            return LocalDate.now().minusDays(crawlIntervalDays).compareTo(lastCrawl.getDate()) >= 0;
+            boolean delayExpired = LocalDate.now().minusDays(crawlIntervalDays).compareTo(lastCrawl.getDate()) >= 0;
+
+            if (!delayExpired) {
+                log.info("Workspace {} doesnt need crawl yet. Crawl interval: {} Last Crawl: {}",
+                        workspace.getOwnerName() + " - " + workspace.getName(),
+                        crawlIntervalDays,
+                        lastCrawl.getDate());
+            }
+
+            return delayExpired;
         }).orElse(true);
     }
 

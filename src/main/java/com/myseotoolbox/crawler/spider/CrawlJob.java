@@ -21,6 +21,12 @@ public class CrawlJob {
         verifySameOrigin(seeds);
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
         this.crawlerQueue = new CrawlerQueue(name, seeds, pool, uriFilter, maxCrawls);
+        startMonitoring(name, executor);
+    }
+
+
+    private void startMonitoring(String name, ThreadPoolExecutor executor) {
+        new CrawlerPoolStatusMonitor(name, executor).start();
     }
 
     public void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {
