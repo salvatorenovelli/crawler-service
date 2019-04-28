@@ -7,17 +7,23 @@ import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 @Slf4j
 public class CrawlersPool implements Consumer<SnapshotTask> {
 
-    private final ExecutorService executor;
+    private final ThreadPoolExecutor executor;
     private final WebPageReader pageReader;
 
-    public CrawlersPool(WebPageReader pageReader, ExecutorService executor) {
+    public CrawlersPool(WebPageReader pageReader, ThreadPoolExecutor executor) {
         this.pageReader = pageReader;
         this.executor = executor;
+        startMonitoring();
+    }
+
+    private void startMonitoring() {
+        new CrawlerPoolStatusMonitor(this.executor).start();
     }
 
     @Override
@@ -35,5 +41,11 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
                 log.error("Exception while crawling: " + task.getUri(), e);
             }
         });
+    }
+
+    public void shutDown() {
+        log.info("Shutting down executor {}", executor);
+        if (executor.getQueue().size() > 0) throw new IllegalStateException("Crawler terminated with pending tasks!");
+        executor.shutdown();
     }
 }

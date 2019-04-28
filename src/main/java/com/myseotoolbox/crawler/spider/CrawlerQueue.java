@@ -24,12 +24,12 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
     private final Set<URI> inProgress = new HashSet<>();
     private final List<URI> seeds = new ArrayList<>();
 
-    private final Consumer<SnapshotTask> crawlersPool;
+    private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
     private final List<Consumer<PageSnapshot>> onSnapshotListeners = new ArrayList<>();
     private final PageLinksHelper helper = new PageLinksHelper();
 
-    public CrawlerQueue(List<URI> seeds, Consumer<SnapshotTask> crawlersPool, UriFilter filter) {
+    public CrawlerQueue(List<URI> seeds, CrawlersPool crawlersPool, UriFilter filter) {
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;
         this.seeds.addAll(seeds);
@@ -85,8 +85,12 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
                 .filter(uri -> !alreadyVisited(uri))
                 .distinct()
                 .collect(Collectors.toList());
-        if (links.size() > 0) {
+        if (newLinks.size() > 0) {
             submitTasks(newLinks);
+        } else {
+            if (inProgress.size() == 0) {
+                crawlersPool.shutDown();
+            }
         }
     }
 
@@ -94,7 +98,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
         inProgress.addAll(seeds);
         seeds.stream()
                 .map(uri -> new SnapshotTask(uri, this))
-                .forEach(crawlersPool);
+                .forEach(crawlersPool::accept);
     }
 
     private synchronized boolean alreadyVisited(URI uri) {

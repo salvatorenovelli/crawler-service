@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -98,7 +98,7 @@ public class CrawlJobFactoryTest {
     private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
 
         @Override
-        public ExecutorService buildExecutor(String namePostfix, int concurrentConnections) {
+        public ThreadPoolExecutor buildExecutor(String namePostfix, int concurrentConnections) {
             return new CurrentThreadTestExecutorService();
         }
     }

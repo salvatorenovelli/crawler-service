@@ -7,7 +7,7 @@ import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
@@ -39,7 +39,7 @@ public class CrawlJobFactory {
 
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths);
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
-        ExecutorService executor = crawlExecutorFactory.buildExecutor(origin.getHost(), numParallelConnection);
+        ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), numParallelConnection);
 
         CrawlJob job = new CrawlJob(seeds, webPageReader, uriFilter, executor);
 

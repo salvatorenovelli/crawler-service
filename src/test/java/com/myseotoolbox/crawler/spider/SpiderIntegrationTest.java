@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -27,7 +27,6 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractR
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -186,7 +185,7 @@ public class SpiderIntegrationTest {
 
     private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
         @Override
-        public ExecutorService buildExecutor(String namePostfix, int concurrentConnections) {
+        public ThreadPoolExecutor buildExecutor(String namePostfix, int concurrentConnections) {
             return new CurrentThreadTestExecutorService();
         }
     }

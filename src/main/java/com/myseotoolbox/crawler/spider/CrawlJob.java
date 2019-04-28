@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
@@ -17,7 +17,7 @@ public class CrawlJob {
 
     private final CrawlerQueue crawlerQueue;
 
-    public CrawlJob(List<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ExecutorService executor) {
+    public CrawlJob(List<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor) {
         verifySameOrigin(seeds);
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
         this.crawlerQueue = new CrawlerQueue(seeds, pool, uriFilter);

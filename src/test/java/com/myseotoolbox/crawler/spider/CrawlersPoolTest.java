@@ -16,7 +16,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -36,7 +36,7 @@ public class CrawlersPoolTest {
     @Mock private Appender<ILoggingEvent> mockAppender;
     @Mock private WebPageReader reader;
     @Mock private Consumer<SnapshotResult> listener;
-    @Mock private ExecutorService executor;
+    @Mock private ThreadPoolExecutor executor;
     private CrawlersPool sut;
 
     @Before

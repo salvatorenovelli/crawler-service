@@ -3,15 +3,18 @@ package com.myseotoolbox.crawler.testutils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
-import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * Thread builder that doesn't really return a thread but makes the current thread execute the {@link Runnable} command
  */
 
 @Slf4j
-public class CurrentThreadTestExecutorService extends AbstractExecutorService {
+public class CurrentThreadTestExecutorService extends ThreadPoolExecutor {
+
+    public CurrentThreadTestExecutorService() {
+        super(1, 1, 0, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+    }
 
     @Override
     public void execute(Runnable command) {
@@ -44,7 +47,7 @@ public class CurrentThreadTestExecutorService extends AbstractExecutorService {
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(long timeout, TimeUnit unit) {
         throw new UnsupportedOperationException("Not implemented!");
     }
 }

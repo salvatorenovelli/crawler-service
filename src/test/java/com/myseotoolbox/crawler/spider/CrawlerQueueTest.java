@@ -4,12 +4,12 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChain;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.model.SnapshotResult;
-import com.myseotoolbox.crawler.spider.filter.BasicUriFilter;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
@@ -208,6 +208,7 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/dst1"));
         verify(pool).accept(taskForUri("http://host1/dst2"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
 
     }
@@ -222,6 +223,7 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/dst1"));
         verify(pool).accept(taskForUri("http://host1/dst2"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
 
     }
@@ -290,6 +292,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
 
     }
@@ -302,6 +305,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
     }
 
@@ -313,6 +317,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
     }
 
@@ -323,6 +328,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
     }
 
@@ -334,6 +340,7 @@ public class CrawlerQueueTest {
 
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/this%20destination%20contains%20spaces"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
     }
 
@@ -346,6 +353,7 @@ public class CrawlerQueueTest {
 
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/leadingspaces"));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
     }
 
@@ -364,6 +372,7 @@ public class CrawlerQueueTest {
 
         verify(pool).accept(taskForUri(baseUri));
         verify(pool).accept(taskForUri(canonicalPath));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
 
     }
@@ -379,6 +388,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri(baseUri));
+        verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
     }
 
@@ -391,6 +401,27 @@ public class CrawlerQueueTest {
         sut.start();
 
         verifyNoMoreInteractions(mockListener);
+    }
+
+    @Test
+    public void shouldShutdownPoolWhenFinished() {
+
+        whenCrawling("http://host1/").discover("http://host1/path0");
+        whenCrawling("http://host1/path0").discover("http://host1/path1");
+        whenCrawling("http://host1/path1").discover("http://host1/path2");
+        whenCrawling("http://host1/path2").discover("http://host1/path3");
+
+        sut = new CrawlerQueue(uris("http://host1/"), pool, NO_URI_FILTER);
+        sut.start();
+
+        Mockito.inOrder(pool);
+        verify(pool).accept(taskForUri("http://host1/"));
+        verify(pool).accept(taskForUri("http://host1/path0"));
+        verify(pool).accept(taskForUri("http://host1/path1"));
+        verify(pool).accept(taskForUri("http://host1/path2"));
+        verify(pool).accept(taskForUri("http://host1/path3"));
+        verify(pool).shutDown();
+        verifyNoMoreInteractions(pool);
     }
 
     private List<URI> uris(String... s) {
