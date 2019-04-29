@@ -29,11 +29,11 @@ public class MetaTagSanitizer {
     private static String sanitize(String s) {
         if (s == null) return null;
 
-        s = s.trim();
         s = StringEscapeUtils.unescapeHtml(s);
         s = StringEscapeUtils.unescapeJava(s);
         s = normalizeNewLines(s);
         s = removeMultipleSpaces(s);
+        s = s.trim();
 
         return s;
     }

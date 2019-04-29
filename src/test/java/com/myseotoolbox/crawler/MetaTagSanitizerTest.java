@@ -22,11 +22,11 @@ public class MetaTagSanitizerTest {
     @Test
     public void normalizeSpace() {
         PageSnapshot snapshot = new PageSnapshot();
-        snapshot.setTitle("&nbsp;");
+        snapshot.setTitle("This is&nbsp;a type of space");
 
         MetaTagSanitizer.sanitize(snapshot);
 
-        assertThat(snapshot.getTitle(), is(" "));
+        assertThat(snapshot.getTitle(), is("This is a type of space"));
     }
 
     @Test
@@ -40,5 +40,15 @@ public class MetaTagSanitizerTest {
         MetaTagSanitizer.sanitize(snapshot);
 
         assertThat(snapshot.getTitle(), is("This contains title is intended to have multiple spaces"));
+    }
+
+    @Test
+    public void shouldTrimNbsps() {
+        PageSnapshot snapshot = new PageSnapshot();
+        snapshot.setTitle("This title has deliberate nbsp at the end&nbsp;");
+
+        MetaTagSanitizer.sanitize(snapshot);
+
+        assertThat(snapshot.getTitle(), is("This title has deliberate nbsp at the end"));
     }
 }

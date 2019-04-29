@@ -1,9 +1,12 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.ArchiveServiceClient;
 import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
+import com.myseotoolbox.crawler.repository.PageCrawlRepository;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
+import com.myseotoolbox.crawler.testutils.PageCrawlMatchers;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
@@ -24,12 +27,12 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractRoot;
+import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 /**
  * NOTE!!! PLEASE READ
@@ -43,13 +46,17 @@ public class SpiderIntegrationTest {
 
     public static final int MAX_CRAWLS = 100;
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
-
     private InputStream robotsTxt = getClass().getResourceAsStream("/robots.txt");
-    TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
+
     @Mock private Consumer<PageSnapshot> crawledPagesListener;
+    @Mock private PageCrawlRepository reppageCrawlRepository;
+    private PageCrawlPersistence pageCrawlPersistence;
+
+    TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     @Before
     public void setUp() throws Exception {
+        pageCrawlPersistence = new PageCrawlPersistence(mock(ArchiveServiceClient.class), reppageCrawlRepository);
         testWebsiteBuilder.run();
     }
 
@@ -164,6 +171,20 @@ public class SpiderIntegrationTest {
         verifyNoMoreInteractions(crawledPagesListener);
     }
 
+
+    @Test
+    public void shouldSanitizeTags() {
+        givenAWebsite().havingRootPage().withTitle("This has leading spaces    ").save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(reppageCrawlRepository).save(argThat(crawl -> {
+            assertThat(crawl.getTitle(), valueType("This has leading spaces"));
+            return true;
+        }));
+    }
+
     private PageSnapshot uri(String uri) {
         return argThat(argument -> argument.getUri().equals(testUri(uri).toString()));
     }
@@ -176,7 +197,7 @@ public class SpiderIntegrationTest {
         SpiderConfig spiderConfig = new SpiderConfig();
 
         CrawlJobFactory crawlJobFactory = spiderConfig
-                .getCrawlJobFactory(Mockito.mock(PageCrawlPersistence.class), Mockito.mock(MonitoredUriUpdater.class), testExecutorBuilder);
+                .getCrawlJobFactory(pageCrawlPersistence, mock(MonitoredUriUpdater.class), testExecutorBuilder);
 
         CrawlJob job = crawlJobFactory.build(origin, seeds, 1, MAX_CRAWLS);
 
