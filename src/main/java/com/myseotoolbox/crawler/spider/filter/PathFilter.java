@@ -1,10 +1,12 @@
 package com.myseotoolbox.crawler.spider.filter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.AntPathMatcher;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class PathFilter {
 
     private final List<String> allowedPaths;
@@ -27,6 +29,10 @@ public class PathFilter {
     }
 
     public boolean shouldCrawl(String path) {
-        return allowedPaths.stream().anyMatch(s -> matcher.match(s, path));
+        boolean b = allowedPaths.stream().anyMatch(s -> matcher.match(s, path));
+        if (!b) {
+            log.debug("Blocked: PATH URI: {}", path);
+        }
+        return b;
     }
 }

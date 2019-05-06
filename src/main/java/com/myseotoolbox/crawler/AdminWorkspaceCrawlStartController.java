@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 
 @RestController
 @Profile("dev")
-public class WorkspaceCrawlStartController {
+public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
     private final WorkspaceCrawler workspaceCrawler;
 
-    public WorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler) {
+    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler) {
         this.factory = factory;
         this.repository = repository;
         this.workspaceCrawler = workspaceCrawler;

@@ -62,6 +62,16 @@ public class WorkspaceCrawlerTest {
 
     }
 
+    @Test
+    public void nullCrawlerSettingsDontStopOtherCrawls() {
+        givenAWorkspace().withWebsiteUrl("http://host1").build();
+        givenAWorkspace().withCrawlerSettings(null).build();
+
+        sut.crawlAllWorkspaces();
+
+        crawlStartedFor("http://host1");
+
+    }
 
     @Test
     public void shouldCrawlAllTheWorkspaces() {
@@ -324,6 +334,11 @@ public class WorkspaceCrawlerTest {
 
         public WorkspaceBuilder withLastCrawlHappened(int dayOffset) {
             crawlLogs.add(new WebsiteCrawlLog(curWorkspace.getWebsiteUrl(), LocalDate.now().plusDays(dayOffset)));
+            return this;
+        }
+
+        public WorkspaceBuilder withCrawlerSettings(CrawlerSettings settings) {
+            curWorkspace.setCrawlerSettings(settings);
             return this;
         }
     }

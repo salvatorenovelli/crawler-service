@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -58,7 +59,8 @@ public class WorkspaceCrawler {
     }
 
     private boolean shouldCrawl(Workspace workspace) {
-        return workspace.getCrawlerSettings().isCrawlEnabled() && isDelayExpired(workspace);
+        CrawlerSettings crawlerSettings = workspace.getCrawlerSettings();
+        return crawlerSettings != null && crawlerSettings.isCrawlEnabled() && isDelayExpired(workspace);
     }
 
     private boolean isDelayExpired(Workspace workspace) {

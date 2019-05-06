@@ -31,6 +31,7 @@ import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
@@ -184,6 +185,7 @@ public class SpiderIntegrationTest {
             return true;
         }));
     }
+
 
     private PageSnapshot uri(String uri) {
         return argThat(argument -> argument.getUri().equals(testUri(uri).toString()));

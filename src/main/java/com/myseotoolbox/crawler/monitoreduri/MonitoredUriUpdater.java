@@ -49,6 +49,6 @@ public class MonitoredUriUpdater {
     }
 
     private boolean websiteUrlMatch(String origin, String uri) {
-        return WebsiteOriginUtils.isChildOf(URI.create(origin), URI.create(uri));
+        return origin != null && WebsiteOriginUtils.isChildOf(URI.create(origin), URI.create(uri));
     }
 }

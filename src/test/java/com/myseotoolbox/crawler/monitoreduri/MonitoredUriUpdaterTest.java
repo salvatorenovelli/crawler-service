@@ -259,6 +259,19 @@ public class MonitoredUriUpdaterTest {
 
     }
 
+    @Test
+    public void shouldBeAbleToHandleNullOrigin() {
+        givenAWorkspaceWithSeqNumber(1).withWebsiteUrl("http://host1/").save();
+        givenAWorkspaceWithSeqNumber(2).withOwner("salvatore").withWebsiteUrl(null).save();
+        givenAWorkspaceWithSeqNumber(3).withWebsiteUrl("http://host1/").save();
+
+        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
+        sut.updateCurrentValue(snapshot0);
+
+        assertThat(monitoredUriRepo.findAllByWorkspaceNumber(1), hasSize(1));
+        assertThat(monitoredUriRepo.findAllByWorkspaceNumber(3), hasSize(1));
+    }
+
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
         return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
     }
