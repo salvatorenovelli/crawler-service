@@ -10,52 +10,46 @@ public class BasicUriFilterTest {
 
     private static final URI BASE = URI.create("http://host");
 
+    BasicUriFilter sut = new BasicUriFilter(BASE);
+
     @Test
     public void shouldFilterCss() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(BASE, URI.create("http://host1/main.css")));
     }
 
     @Test
     public void shouldAllowHttpsWhenStartingFromHttp() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertTrue(sut.shouldCrawl(BASE, URI.create("https://host/salve")));
     }
 
     @Test
     public void shouldNotCrawlDifferentPortsWhenDiscoveredInsideOrigin() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(BASE, URI.create("http://host:8080/salve")));
     }
 
     @Test
     public void shouldNotCrawlDifferentPortsWhenDiscoveredOutOrigin() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://host:8080/salve")));
     }
 
     @Test
     public void port80IsSameAsNoPortSpecified() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertTrue(sut.shouldCrawl(BASE, URI.create("http://host:80/salve")));
     }
 
     @Test
     public void shouldAllowSubdomainsWhenLinkingFromInside() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertTrue(sut.shouldCrawl(BASE, URI.create("http://www.host")));
     }
 
     @Test
     public void shouldNotAllowSubdomainsWhenLinkingFromOutside() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://www.host")));
     }
 
 
     @Test
     public void shouldNotCrawlEntirelyDifferentDomains() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(BASE, URI.create("http://differentHost")));
     }
 
@@ -77,7 +71,6 @@ public class BasicUriFilterTest {
 
     @Test
     public void shouldAllowHttps() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertTrue(sut.shouldCrawl(BASE, URI.create("https://host/")));
     }
 
@@ -89,7 +82,6 @@ public class BasicUriFilterTest {
 
     @Test
     public void shouldOnlyAllowValidSchemes() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertFalse(sut.shouldCrawl(BASE, URI.create("mailto:info@host")));
         assertFalse(sut.shouldCrawl(BASE, URI.create("ftp://host")));
         //wrong scheme
@@ -98,7 +90,6 @@ public class BasicUriFilterTest {
 
     @Test
     public void hostIsCaseInsensitive() {
-        BasicUriFilter sut = new BasicUriFilter(BASE);
         assertTrue(sut.shouldCrawl(BASE, URI.create("http://HOST/")));
     }
 }
