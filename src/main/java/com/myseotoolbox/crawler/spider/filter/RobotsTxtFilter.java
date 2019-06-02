@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.USER_AGENT;
-
 @Slf4j
 public class RobotsTxtFilter implements UriFilter {
 
@@ -31,7 +29,7 @@ public class RobotsTxtFilter implements UriFilter {
             CloseableHttpResponse response = httpclient.execute(httpget);
             final HttpEntity entity = response.getEntity();
             SimpleRobotRulesParser parser = new SimpleRobotRulesParser();
-            this.robotRules = parser.parseContent(websiteOrigin.toString(), IOUtils.toByteArray(entity.getContent()), null, USER_AGENT);
+            this.robotRules = parser.parseContent(websiteOrigin.toString(), IOUtils.toByteArray(entity.getContent()), null, "");
             if (robotRules.getRobotRules().size() < 1) log.warn("robots.txt was empty for {}", websiteOrigin);
 
         }
@@ -40,6 +38,8 @@ public class RobotsTxtFilter implements UriFilter {
 
     @Override
     public boolean shouldCrawl(URI ignored, URI discoveredLink) {
-        return cache.computeIfAbsent(discoveredLink, uri1 -> robotRules.isAllowed(discoveredLink.toString()));
+        Boolean allowed = cache.computeIfAbsent(discoveredLink, uri1 -> robotRules.isAllowed(discoveredLink.toString()));
+        if (!allowed) log.debug("Blocked: ROBOTS  URI: {}", discoveredLink);
+        return allowed;
     }
 }

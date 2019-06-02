@@ -59,7 +59,7 @@ public class SiteMap {
                 return sm.getSiteMapUrls().stream().map(siteMapURL -> siteMapURL.getUrl().toString()).distinct().collect(Collectors.toList());
             }
         } catch (UnknownFormatException | IOException e) {
-            log.warn("Error while fetching {}. Error: {}", url, e.toString());
+            log.warn("Error while fetching sitemap for {}. Error: {}", url, e.toString());
             return Collections.emptyList();
         }
 

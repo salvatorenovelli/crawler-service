@@ -23,6 +23,7 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
 
     @Override
     public void accept(SnapshotTask task) {
+        log.debug("Task submitted: {}", task.getUri());
         executor.submit(() -> {
             try {
                 try {

@@ -2,3 +2,7 @@ User-agent: *
 
 Disallow: /*order
 Disallow: /*blocked-by-robots
+
+
+User-agent: Mozilla/4.0 (compatible; BullsEye; Windows 95)
+Disallow: /
