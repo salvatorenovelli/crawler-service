@@ -8,21 +8,30 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
 
 
 @Slf4j
 public class SiteMap {
     private final URL url;
+    private final Predicate<String> uriFilter;
     private SiteMapParser siteMapParser = new SiteMapParser();
 
     public SiteMap(String url) throws MalformedURLException {
-        this.url = new URL(url);
+        this(url, (s) -> true);
     }
 
+    public SiteMap(String url, Predicate<String> uriFilter) throws MalformedURLException {
+        this.url = new URL(url);
+        this.uriFilter = uriFilter;
+    }
 
     public List<String> getUris() {
         return extractUrls(this.url);
@@ -30,6 +39,9 @@ public class SiteMap {
 
     private List<String> extractUrls(URL url) {
 
+        if (!shouldFetch(url)) {
+            return Collections.emptyList();
+        }
 
         try {
             log.info("Fetching sitemap on {}", url.toString());
@@ -47,5 +59,13 @@ public class SiteMap {
         }
 
 
+    }
+
+    private boolean shouldFetch(URL url) {
+        return isSameDomain(url) && (url.getPath().equals("/sitemap.xml") || uriFilter.test(url.toString()));
+    }
+
+    private boolean isSameDomain(URL url) {
+        return isHostMatching(URI.create(url.toString()), URI.create(this.url.toString()));
     }
 }

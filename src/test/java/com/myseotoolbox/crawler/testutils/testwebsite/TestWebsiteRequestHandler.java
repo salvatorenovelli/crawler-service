@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,7 +94,14 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         sb.append("<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
         for (String url : siteMap.getUrls()) {
-            sb.append("<sitemap><loc>" + testWebsiteBuilder.buildTestUri(url).resolve("sitemap.xml").toString() + "</loc></sitemap>\n");
+
+            URI uri = testWebsiteBuilder.buildTestUri(url);
+            if (URI.create(url).isAbsolute()) {
+                uri = URI.create(url);
+            }
+
+            sb.append("<sitemap><loc>" + uri.resolve("sitemap.xml").toString() + "</loc></sitemap>\n");
+
         }
 
         sb.append("</sitemapindex>");
@@ -103,7 +111,11 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         sb.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
         for (String url : siteMap.getUrls()) {
-            sb.append("<url><loc>").append(testWebsiteBuilder.buildTestUri(url)).append("</loc></url>\n");
+            URI uri = testWebsiteBuilder.buildTestUri(url);
+            if (URI.create(url).isAbsolute()) {
+                uri = URI.create(url);
+            }
+            sb.append("<url><loc>").append(uri).append("</loc></url>\n");
         }
 
         sb.append("</urlset>");
