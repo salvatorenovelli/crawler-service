@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractRoot;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 

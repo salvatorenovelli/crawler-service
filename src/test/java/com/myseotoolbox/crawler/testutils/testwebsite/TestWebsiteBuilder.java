@@ -2,14 +2,14 @@ package com.myseotoolbox.crawler.testutils.testwebsite;
 
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 
 import java.io.InputStream;
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public class TestWebsiteBuilder {
@@ -27,6 +27,7 @@ public class TestWebsiteBuilder {
 
     InputStream robotsTxtStream;
     boolean robotsTxtRedirect = false;
+    private Map<String, TestSiteMap> sitemaps = new HashMap<>();
 
     private TestWebsiteBuilder(Server server) {
         this.server = server;
@@ -140,6 +141,69 @@ public class TestWebsiteBuilder {
     public TestWebsiteBuilder withRobotTxtHavingRedirect() {
         this.robotsTxtRedirect = true;
         return this;
+    }
+
+    public TestSiteMapBuilder withSitemapOn(String location) {
+        return new TestSiteMapBuilder(this, location, false);
+    }
+
+    public TestSiteMap getSitemap(String path) {
+        return sitemaps.get(path);
+    }
+
+    public TestSiteMapBuilder withSitemapIndexOn(String location) {
+        return new TestSiteMapBuilder(this, location, true);
+    }
+
+    public class TestSiteMapBuilder {
+        private final TestWebsiteBuilder parent;
+        private final String location;
+        private final boolean isSitemapIndex;
+        private List<String> urls = new ArrayList<>();
+
+        public TestSiteMapBuilder(TestWebsiteBuilder parent, String location, boolean isSitemapIndex) {
+            this.parent = parent;
+            this.location = location + "sitemap.xml";
+            this.isSitemapIndex = isSitemapIndex;
+        }
+
+        public TestSiteMapBuilder havingUrls(String... urls) {
+            this.urls.addAll(Arrays.asList(urls));
+            return this;
+        }
+
+        public TestSiteMapBuilder havingChildSitemaps(String... childUrls) {
+            this.urls.addAll(Arrays.asList(childUrls));
+            return this;
+        }
+
+        public TestWebsiteBuilder build() {
+            this.parent.addSitemap(location, new TestSiteMap(isSitemapIndex, urls));
+            return parent;
+        }
+
+        public TestWebsiteBuilder and() {
+            return build();
+        }
+    }
+
+    private void addSitemap(String location, TestSiteMap sitemap) {
+        this.sitemaps.put(location, sitemap);
+    }
+
+    @Getter
+    public class TestSiteMap {
+        private final boolean isSiteMapIndex;
+        private final List<String> urls;
+
+        public TestSiteMap(boolean isSiteMapIndex, List<String> urls) {
+            this.isSiteMapIndex = isSiteMapIndex;
+            this.urls = urls;
+        }
+
+        public void addAll(List<String> urls) {
+            this.urls.addAll(urls);
+        }
     }
 }
 

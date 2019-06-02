@@ -20,6 +20,7 @@ public class HttpGetRequest {
     private static final Pattern xmlContentTypeRxp = Pattern.compile("(application|text)/\\w*\\+?xml.*");
 
 
+    public static final String USER_AGENT = "Mozilla/5.0 (compatible; SeoBot/1.0)";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
 
     private static final Logger logger = LoggerFactory.getLogger(HttpGetRequest.class);
@@ -37,7 +38,7 @@ public class HttpGetRequest {
         connection.setRequestMethod("GET");
         connection.setInstanceFollowRedirects(false);
         connection.setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT);
-        connection.setRequestProperty("User-Agent","Mozilla/5.0 (compatible; SeoBot/1.0)");
+        connection.setRequestProperty("User-Agent", USER_AGENT);
 
         connection.connect();
         URI dstURI = uri;

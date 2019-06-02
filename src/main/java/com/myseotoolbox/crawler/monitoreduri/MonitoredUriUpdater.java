@@ -18,6 +18,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
 
 @Component
 public class MonitoredUriUpdater {
+    public static final boolean DONT_MATCH_SCHEMA = false;
     private final MongoOperations mongoOperations;
     private final WorkspaceRepository workspaceRepository;
 
@@ -28,6 +29,7 @@ public class MonitoredUriUpdater {
 
     public void updateCurrentValue(PageSnapshot snapshot) {
 
+        //this is canonicalized to a different URL. No need to re-persist it. We'll crawl the canonical version and persist that separately
         if (isCanonicalized(snapshot)) return;
 
         sanitize(snapshot);
@@ -49,6 +51,6 @@ public class MonitoredUriUpdater {
     }
 
     private boolean websiteUrlMatch(String origin, String uri) {
-        return origin != null && WebsiteOriginUtils.isChildOf(URI.create(origin), URI.create(uri));
+        return origin != null && WebsiteOriginUtils.isChildOf(URI.create(origin), URI.create(uri), DONT_MATCH_SCHEMA);
     }
 }

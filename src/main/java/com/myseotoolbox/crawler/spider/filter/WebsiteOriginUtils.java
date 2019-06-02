@@ -28,8 +28,11 @@ public class WebsiteOriginUtils {
     }
 
     public static boolean isChildOf(URI origin, URI possibleChild) {
+        return isChildOf(origin, possibleChild, true);
+    }
 
-        if (!isSchemeMatching(origin, possibleChild)) return false;
+    public static boolean isChildOf(URI origin, URI possibleChild, boolean matchSchema) {
+        if (matchSchema && !isSchemeMatching(origin, possibleChild)) return false;
         if (!isHostMatching(origin, possibleChild)) return false;
 
         return isSubPath(origin.getPath(), possibleChild.getPath());

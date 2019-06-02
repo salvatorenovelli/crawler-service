@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +47,8 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
 
         if (path.contains("robots.txt")) {
             serveRobotsTxt(request, httpServletResponse, path);
+        } else if (path.contains("sitemap.xml")) {
+            serveSitemap(request, httpServletResponse, path);
         } else {
             Page page = testWebsiteBuilder.getPage(path);
             if (page != null) {
@@ -57,6 +58,55 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         }
 
 
+    }
+
+    private void serveSitemap(Request request, HttpServletResponse response, String path) {
+
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.setHeader("content-type", "application/xml");
+
+        try (OutputStream outputStream = response.getOutputStream()) {
+            IOUtils.write(render(this.testWebsiteBuilder.getSitemap(path)), outputStream, "UTF-8");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        request.setHandled(true);
+    }
+
+    private CharSequence render(TestWebsiteBuilder.TestSiteMap siteMap) {
+        StringBuffer sb = new StringBuffer();
+
+        sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+
+
+        if (siteMap.isSiteMapIndex()) {
+            renderSitemapIndex(sb, siteMap);
+        } else {
+            renderSitemap(sb, siteMap);
+        }
+
+
+        return sb;
+    }
+
+    private void renderSitemapIndex(StringBuffer sb, TestWebsiteBuilder.TestSiteMap siteMap) {
+        sb.append("<sitemapindex xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+
+        for (String url : siteMap.getUrls()) {
+            sb.append("<sitemap><loc>" + testWebsiteBuilder.buildTestUri(url).resolve("sitemap.xml").toString() + "</loc></sitemap>\n");
+        }
+
+        sb.append("</sitemapindex>");
+    }
+
+    private void renderSitemap(StringBuffer sb, TestWebsiteBuilder.TestSiteMap siteMap) {
+        sb.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
+
+        for (String url : siteMap.getUrls()) {
+            sb.append("<url><loc>").append(testWebsiteBuilder.buildTestUri(url)).append("</loc></url>\n");
+        }
+
+        sb.append("</urlset>");
     }
 
     private void serveRobotsTxt(Request request, HttpServletResponse httpServletResponse, String path) {

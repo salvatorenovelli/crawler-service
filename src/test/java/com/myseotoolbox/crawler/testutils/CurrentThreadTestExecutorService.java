@@ -28,7 +28,6 @@ public class CurrentThreadTestExecutorService extends ThreadPoolExecutor {
 
     @Override
     public void shutdown() {
-        throw new UnsupportedOperationException("Not implemented!");
     }
 
     @Override
