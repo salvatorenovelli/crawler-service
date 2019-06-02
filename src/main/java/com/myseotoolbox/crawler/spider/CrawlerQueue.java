@@ -33,7 +33,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
     private final int maxCrawls;
     private final String queueName;
 
-    public CrawlerQueue(String queueName, List<URI> seeds, CrawlersPool crawlersPool, UriFilter filter, int maxCrawls) {
+    public CrawlerQueue(String queueName, Collection<URI> seeds, CrawlersPool crawlersPool, UriFilter filter, int maxCrawls) {
         this.queueName = queueName;
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;

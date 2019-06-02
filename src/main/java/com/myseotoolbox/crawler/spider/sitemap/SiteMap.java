@@ -25,13 +25,17 @@ public class SiteMap {
 
     private SiteMapParser siteMapParser = new SiteMapParser();
 
-    public SiteMap(String url) throws MalformedURLException {
+    public SiteMap(String url) {
         this(url, Collections.singletonList("/"));
     }
 
-    public SiteMap(String url, List<String> allowedPaths) throws MalformedURLException {
-        this.url = new URL(url);
-        this.pathFilter = new PathFilter(allowedPaths);
+    public SiteMap(String url, List<String> allowedPaths) {
+        try {
+            this.url = new URL(url);
+            this.pathFilter = new PathFilter(allowedPaths);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public List<String> getUris() {

@@ -5,7 +5,7 @@ import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
@@ -58,7 +58,7 @@ public class CrawlJobFactory {
      * Instead of interpreting seeds as filters, we should ask the user for filters.      *
      * Or should we? The user might not care or know. This is how it works in most of the crawlers.
      */
-    private ArrayList<String> extractAllowedPathFromSeeds(List<URI> seeds) {
-        return seeds.stream().map(URI::getPath).collect(Collectors.toCollection(ArrayList::new));
+    private List<String> extractAllowedPathFromSeeds(Collection<URI> seeds) {
+        return seeds.stream().map(URI::getPath).collect(Collectors.toList());
     }
 }

@@ -6,15 +6,15 @@ import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.crawler.spider.sitemap.SiteMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
@@ -79,7 +79,7 @@ public class WorkspaceCrawler {
         }).orElse(true);
     }
 
-    private int getNumConcurrentConnections(Set<URI> seeds) {
+    private int getNumConcurrentConnections(Collection<URI> seeds) {
         return ensureRange(seeds.size(), 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
     }
 
