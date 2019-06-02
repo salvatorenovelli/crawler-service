@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
+import com.myseotoolbox.crawler.spider.filter.PathFilter;
 import crawlercommons.sitemaps.AbstractSiteMap;
 import crawlercommons.sitemaps.SiteMapIndex;
 import crawlercommons.sitemaps.SiteMapParser;
@@ -12,7 +13,6 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
@@ -21,16 +21,17 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 @Slf4j
 public class SiteMap {
     private final URL url;
-    private final Predicate<String> uriFilter;
+    private final PathFilter pathFilter;
+
     private SiteMapParser siteMapParser = new SiteMapParser();
 
     public SiteMap(String url) throws MalformedURLException {
-        this(url, (s) -> true);
+        this(url, Collections.singletonList("/"));
     }
 
-    public SiteMap(String url, Predicate<String> uriFilter) throws MalformedURLException {
+    public SiteMap(String url, List<String> allowedPaths) throws MalformedURLException {
         this.url = new URL(url);
-        this.uriFilter = uriFilter;
+        this.pathFilter = new PathFilter(allowedPaths);
     }
 
     public List<String> getUris() {
@@ -62,7 +63,7 @@ public class SiteMap {
     }
 
     private boolean shouldFetch(URL url) {
-        return isSameDomain(url) && (url.getPath().equals("/sitemap.xml") || uriFilter.test(url.toString()));
+        return isSameDomain(url) && (url.getPath().equals("/sitemap.xml") || pathFilter.shouldCrawl(url.getPath()));
     }
 
     private boolean isSameDomain(URL url) {

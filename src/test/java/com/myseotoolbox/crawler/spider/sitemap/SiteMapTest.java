@@ -13,12 +13,14 @@ import org.springframework.boot.logging.LoggingSystem;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 public class SiteMapTest {
 
@@ -96,12 +98,32 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), (s) -> !URI.create(s).getPath().startsWith("/uk"));
+        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), Collections.singletonList("/it"));
         List<String> urls = siteMap.getUris();
 
         assertThat(urls, hasSize(2));
         assertThat(urls, hasItems(uri("/it/1"), uri("/it/2")));
 
+    }
+
+    @Test
+    public void shouldBeTolerantToTrailingSlashInAllowedPaths() throws MalformedURLException {
+        givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/it/", "/uk/")
+                .and()
+                .withSitemapOn("/it/")
+                .havingUrls("/it/1", "/it/2")
+                .and()
+                .withSitemapOn("/uk/")
+                .havingUrls("/uk/1", "/uk/2").build();
+
+
+        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), Collections.singletonList("/it/"));
+        List<String> urls = siteMap.getUris();
+
+        assertThat(urls, hasSize(2));
+        assertThat(urls, hasItems(uri("/it/1"), uri("/it/2")));
     }
 
     @Test
@@ -116,7 +138,7 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), (s) -> !URI.create(s).getPath().startsWith("/uk"));
+        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), Collections.singletonList("/it"));
         siteMap.getUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(Collectors.toList());
@@ -131,7 +153,7 @@ public class SiteMapTest {
                 .havingUrls("/location1", "/location2", "https://differentdomain/location2")
                 .build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), (s) -> true);
+        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
         List<String> uris = siteMap.getUris();
 
         assertThat(uris, hasSize(2));
