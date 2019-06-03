@@ -3,15 +3,19 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
+import com.myseotoolbox.crawler.spider.sitemap.SiteMap;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
+@Slf4j
 public class CrawlJobFactory {
 
     private final WebPageReaderFactory webPageReaderFactory;
@@ -42,7 +46,10 @@ public class CrawlJobFactory {
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(name, numParallelConnection);
 
-        CrawlJob job = new CrawlJob(name, seeds, webPageReader, uriFilter, executor, maxCrawls);
+        List<URI> seedsFromSitemap = getSeedsFromSitemap(origin, allowedPaths);
+
+        List<URI> allSeeds = concat(seeds, seedsFromSitemap);
+        CrawlJob job = new CrawlJob(name, allSeeds, webPageReader, uriFilter, executor, maxCrawls);
 
         job.subscribeToPageCrawled(snapshot -> {
             runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
@@ -60,5 +67,16 @@ public class CrawlJobFactory {
      */
     private List<String> extractAllowedPathFromSeeds(Collection<URI> seeds) {
         return seeds.stream().map(URI::getPath).collect(Collectors.toList());
+    }
+
+    private List<URI> concat(Collection<URI> seeds, Collection<URI> seedsFromSitemap) {
+        return Stream.concat(seeds.stream(), seedsFromSitemap.stream()).collect(Collectors.toList());
+    }
+
+    private List<URI> getSeedsFromSitemap(URI origin, List<String> allowedPaths) {
+        log.debug("Fetching seeds from sitemap for {} with allowed paths: {}", origin, allowedPaths);
+        List<URI> sitemapSeeds = new SiteMap(origin.toString(), allowedPaths).getUris().stream().map(URI::create).collect(Collectors.toList());
+        log.info("Found {} seeds for {}", sitemapSeeds.size(), origin);
+        return sitemapSeeds;
     }
 }
