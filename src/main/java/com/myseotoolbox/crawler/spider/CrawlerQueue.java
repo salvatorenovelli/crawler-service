@@ -38,7 +38,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;
         this.maxCrawls = maxCrawls;
-        this.seeds.addAll(seeds);
+        this.seeds.addAll(seeds.stream().distinct().collect(Collectors.toList()));
     }
 
     public synchronized void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {

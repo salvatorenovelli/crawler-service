@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 
+import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.SnapshotResult;
@@ -74,6 +75,13 @@ public class CrawlJobTest {
         sut.start();
         Mockito.verify(exceptionSubscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
         Mockito.verify(subscriber).accept(argThat(argument -> argument.getUri().equals("http://domain1")));
+    }
 
+    @Test
+    public void shouldNotVisitDuplicateSeeds() throws SnapshotException {
+        CrawlJob sut = new CrawlJob(TEST_NAME, Arrays.asList(create("http://domain1"), create("http://domain1")), pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService(), MAX_CRAWLS);
+        sut.start();
+        verify(pageReader).snapshotPage(create("http://domain1"));
+        verifyNoMoreInteractions(pageReader);
     }
 }

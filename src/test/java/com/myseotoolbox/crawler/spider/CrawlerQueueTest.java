@@ -465,6 +465,15 @@ public class CrawlerQueueTest {
         verifyNoMoreInteractions(pool);
     }
 
+    @Test
+    public void shouldNotCrawlDuplicateSeeds() {
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/", "http://host1/"), pool, NO_URI_FILTER, 4);
+        sut.start();
+        verify(pool).accept(taskForUri("http://host1/"));
+        verify(pool).shutDown();
+        verifyNoMoreInteractions(pool);
+    }
+
     private List<URI> uris(String... s) {
         return Stream.of(s).map(URI::create).collect(Collectors.toList());
     }
