@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler;
 
 
+import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.model.EntityNotFoundException;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -26,18 +27,20 @@ public class AdminWorkspaceCrawlStartController {
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
     private final WorkspaceCrawler workspaceCrawler;
+    private final PageCrawlListener pageCrawlListener;
 
-    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler) {
+    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, PageCrawlListener pageCrawlListener) {
         this.factory = factory;
         this.repository = repository;
         this.workspaceCrawler = workspaceCrawler;
+        this.pageCrawlListener = pageCrawlListener;
     }
 
     @GetMapping("/scan-origin")
     public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) {
         URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
-        CrawlJob job = factory.build(origin, seedsAsUri, numConnections, WorkspaceCrawler.MAX_URL_PER_DOMAIN);
+        CrawlJob job = factory.build(origin, seedsAsUri, numConnections, WorkspaceCrawler.MAX_URL_PER_DOMAIN, pageCrawlListener);
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -46,7 +49,7 @@ public class AdminWorkspaceCrawlStartController {
     public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) throws EntityNotFoundException {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
-        CrawlJob job = factory.build(origin, Collections.singletonList(origin), numConnections, WorkspaceCrawler.MAX_URL_PER_DOMAIN);
+        CrawlJob job = factory.build(origin, Collections.singletonList(origin), numConnections, WorkspaceCrawler.MAX_URL_PER_DOMAIN, pageCrawlListener);
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
     }

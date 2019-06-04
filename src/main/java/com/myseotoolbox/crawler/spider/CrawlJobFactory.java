@@ -1,8 +1,8 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.PageCrawlPersistence;
+import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
-import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
+import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SiteMap;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,50 +13,43 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
-
 @Slf4j
 public class CrawlJobFactory {
 
     private final WebPageReaderFactory webPageReaderFactory;
     private final WebsiteUriFilterFactory uriFilterFactory;
     private final CrawlExecutorFactory crawlExecutorFactory;
-    private final MonitoredUriUpdater monitoredUriUpdater;
-    private final PageCrawlPersistence crawlPersistence;
+    private final RobotsTxtFactory robotsTxtFactory;
 
     public CrawlJobFactory(
             WebPageReaderFactory webPageReaderFactory,
             WebsiteUriFilterFactory uriFilterFactory,
             CrawlExecutorFactory crawlExecutorFactory,
-            MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence) {
-
+            RobotsTxtFactory robotsTxtFactory) {
         this.webPageReaderFactory = webPageReaderFactory;
         this.uriFilterFactory = uriFilterFactory;
         this.crawlExecutorFactory = crawlExecutorFactory;
-        this.monitoredUriUpdater = monitoredUriUpdater;
-        this.crawlPersistence = crawlPersistence;
+        this.robotsTxtFactory = robotsTxtFactory;
     }
 
-    public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection, int maxCrawls) {
+    public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection, int maxCrawls, PageCrawlListener onPageCrawled) {
 
         String name = origin.getHost();
         List<String> allowedPaths = extractAllowedPathFromSeeds(seeds);
 
-        UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths);
+        RobotsTxt robotsTxt = robotsTxtFactory.buildRobotsTxtFor(origin);
+
+        UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths, robotsTxt);
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(name, numParallelConnection);
 
-        List<URI> seedsFromSitemap = getSeedsFromSitemap(origin, allowedPaths);
+        List<URI> seedsFromSitemap = getSeedsFromSitemap(origin, robotsTxt.getSitemaps(), allowedPaths);
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
-        CrawlJob job = new CrawlJob(name, allSeeds, webPageReader, uriFilter, executor, maxCrawls);
 
-        job.subscribeToPageCrawled(snapshot -> {
-            runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
-            runOrLogWarning(() -> crawlPersistence.persistPageCrawl(snapshot), "Error while persisting crawl for uri: " + snapshot.getUri());
-        });
-
-        return job;
+        CrawlJob crawlJob = new CrawlJob(name, allSeeds, webPageReader, uriFilter, executor, maxCrawls);
+        crawlJob.subscribeToPageCrawled(onPageCrawled);
+        return crawlJob;
     }
 
     /**
@@ -73,10 +66,10 @@ public class CrawlJobFactory {
         return Stream.concat(seeds.stream(), seedsFromSitemap.stream()).collect(Collectors.toList());
     }
 
-    private List<URI> getSeedsFromSitemap(URI origin, List<String> allowedPaths) {
-        log.debug("Fetching seeds from sitemap for {} with allowed paths: {}", origin, allowedPaths);
-        List<URI> sitemapSeeds = new SiteMap(origin.toString(), allowedPaths).getUris().stream().map(URI::create).collect(Collectors.toList());
-        log.info("Found {} seeds for {}", sitemapSeeds.size(), origin);
+    private List<URI> getSeedsFromSitemap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
+        log.info("Fetching {} sitemap for {} with allowed paths: {}", sitemaps.size(), origin, allowedPaths);
+        List<URI> sitemapSeeds = new SiteMap(sitemaps, allowedPaths).getUris().stream().map(URI::create).collect(Collectors.toList());
+        log.info("Found {} seeds from sitemap for {}", sitemapSeeds.size(), origin);
         return sitemapSeeds;
     }
 }

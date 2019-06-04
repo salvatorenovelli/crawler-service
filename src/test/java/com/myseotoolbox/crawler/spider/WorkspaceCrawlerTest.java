@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
@@ -8,7 +9,6 @@ import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
@@ -24,7 +24,7 @@ import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -42,14 +42,15 @@ public class WorkspaceCrawlerTest {
     @Mock private CrawlJobFactory crawlFactory;
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
+    @Mock private PageCrawlListener pageCrawlListener;
 
     WorkspaceCrawler sut;
 
     @Before
     public void setUp() {
-        sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository, pageCrawlListener);
 
-        when(crawlFactory.build(any(URI.class), anyList(), anyInt(), anyInt())).thenAnswer(
+        when(crawlFactory.build(any(URI.class), anyList(), anyInt(), anyInt(), any())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
                     mockJobs.add(mock);
@@ -174,7 +175,7 @@ public class WorkspaceCrawlerTest {
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
 
-        when(crawlFactory.build(eq(create(originWithException)), anyList(), anyInt(), anyInt())).thenThrow(new RuntimeException("Testing exceptions"));
+        when(crawlFactory.build(eq(create(originWithException)), anyList(), anyInt(), anyInt(), any())).thenThrow(new RuntimeException("Testing exceptions"));
 
         sut.crawlAllWorkspaces();
 
@@ -260,7 +261,7 @@ public class WorkspaceCrawlerTest {
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
-        verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections), anyInt());
+        verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections), anyInt(), any());
     }
 
     private void crawlStartedFor(String origin) {
@@ -273,7 +274,7 @@ public class WorkspaceCrawlerTest {
         try {
             verify(crawlFactory).build(eq(create(origin).resolve("/")),
                     argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),
-                    ArgumentMatchers.anyInt(), anyInt());
+                    anyInt(), anyInt(), any());
 
             mockJobs.forEach(job -> verify(job).start());
         } catch (Throwable e) {

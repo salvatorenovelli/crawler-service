@@ -1,10 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.ArchiveServiceClient;
-import com.myseotoolbox.crawler.PageCrawlPersistence;
+import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
-import com.myseotoolbox.crawler.repository.PageCrawlRepository;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
@@ -21,17 +18,17 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractRoot;
-import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * NOTE!!! PLEASE READ
@@ -47,15 +44,13 @@ public class SpiderIntegrationTest {
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
     private InputStream robotsTxt = getClass().getResourceAsStream("/robots.txt");
 
-    @Mock private Consumer<PageSnapshot> crawledPagesListener;
-    @Mock private PageCrawlRepository reppageCrawlRepository;
-    private PageCrawlPersistence pageCrawlPersistence;
+    @Mock private PageCrawlListener listener;
+    private RobotsTxtFactory robotstxtFactory = new RobotsTxtFactory();
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     @Before
     public void setUp() throws Exception {
-        pageCrawlPersistence = new PageCrawlPersistence(mock(ArchiveServiceClient.class), reppageCrawlRepository);
         testWebsiteBuilder.run();
     }
 
@@ -74,11 +69,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(crawledPagesListener).accept(uri("/"));
-        verify(crawledPagesListener).accept(uri("/abc"));
-        verify(crawledPagesListener).accept(uri("/cde"));
+        verify(listener).accept(uri("/"));
+        verify(listener).accept(uri("/abc"));
+        verify(listener).accept(uri("/cde"));
 
-        verifyNoMoreInteractions(crawledPagesListener);
+        verifyNoMoreInteractions(listener);
 
     }
 
@@ -92,11 +87,11 @@ public class SpiderIntegrationTest {
         job.start();
 
 
-        verify(crawledPagesListener).accept(uri("/base"));
-        verify(crawledPagesListener).accept(uri("/base/abc"));
-        verify(crawledPagesListener).accept(uri("/base/cde"));
+        verify(listener).accept(uri("/base"));
+        verify(listener).accept(uri("/base/abc"));
+        verify(listener).accept(uri("/base/cde"));
 
-        verifyNoMoreInteractions(crawledPagesListener);
+        verifyNoMoreInteractions(listener);
 
     }
 
@@ -111,13 +106,13 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
         job.start();
 
-        verify(crawledPagesListener).accept(uri("/base"));
-        verify(crawledPagesListener).accept(uri("/base2"));
-        verify(crawledPagesListener).accept(uri("/base/abc"));
-        verify(crawledPagesListener).accept(uri("/base/cde"));
-        verify(crawledPagesListener).accept(uri("/base2/fgh"));
+        verify(listener).accept(uri("/base"));
+        verify(listener).accept(uri("/base2"));
+        verify(listener).accept(uri("/base/abc"));
+        verify(listener).accept(uri("/base/cde"));
+        verify(listener).accept(uri("/base2/fgh"));
 
-        verifyNoMoreInteractions(crawledPagesListener);
+        verifyNoMoreInteractions(listener);
 
 
     }
@@ -132,11 +127,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
         job.start();
 
-        verify(crawledPagesListener).accept(uri("/base"));
-        verify(crawledPagesListener).accept(uri("/base2"));
-        verify(crawledPagesListener).accept(uri("/base/abc"));
+        verify(listener).accept(uri("/base"));
+        verify(listener).accept(uri("/base2"));
+        verify(listener).accept(uri("/base/abc"));
 
-        verifyNoMoreInteractions(crawledPagesListener);
+        verifyNoMoreInteractions(listener);
     }
 
     @Test
@@ -151,8 +146,7 @@ public class SpiderIntegrationTest {
         List<ReceivedRequest> receivedRequests = save.getRequestsReceived();
 
         assertThat(receivedRequests, hasSize(2));
-        assertThat(receivedRequests.get(0).getUrl(), is("/robots.txt"));
-        assertThat(receivedRequests.get(1).getUrl(), is("/"));
+        assertThat(receivedRequests.stream().map(ReceivedRequest::getUrl).collect(Collectors.toList()), hasItems("/robots.txt", "/"));
     }
 
     @Test
@@ -165,9 +159,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(crawledPagesListener).accept(uri("/"));
-        verify(crawledPagesListener).accept(uri("/dst1"));
-        verifyNoMoreInteractions(crawledPagesListener);
+        verify(listener).accept(uri("/"));
+        verify(listener).accept(uri("/dst1"));
+        verifyNoMoreInteractions(listener);
     }
 
 
@@ -178,8 +172,8 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(reppageCrawlRepository).save(argThat(crawl -> {
-            assertThat(crawl.getTitle(), valueType("This has leading spaces"));
+        verify(listener).accept(argThat(snapshot -> {
+            assertThat(snapshot.getTitle(), is("This has leading spaces"));
             return true;
         }));
     }
@@ -197,11 +191,10 @@ public class SpiderIntegrationTest {
         SpiderConfig spiderConfig = new SpiderConfig();
 
         CrawlJobFactory crawlJobFactory = spiderConfig
-                .getCrawlJobFactory(pageCrawlPersistence, mock(MonitoredUriUpdater.class), testExecutorBuilder);
+                .getCrawlJobFactory(testExecutorBuilder, robotstxtFactory);
 
-        CrawlJob job = crawlJobFactory.build(origin, seeds, 1, MAX_CRAWLS);
+        CrawlJob job = crawlJobFactory.build(origin, seeds, 1, MAX_CRAWLS, listener);
 
-        job.subscribeToPageCrawled(crawledPagesListener);
         return job;
     }
 

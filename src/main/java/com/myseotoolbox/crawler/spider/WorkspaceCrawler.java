@@ -1,20 +1,22 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
-import com.myseotoolbox.crawler.spider.sitemap.SiteMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
@@ -28,11 +30,16 @@ public class WorkspaceCrawler {
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
+    private final PageCrawlListener crawlListener;
 
-    public WorkspaceCrawler(WorkspaceRepository workspaceRepository, CrawlJobFactory crawlJobFactory, WebsiteCrawlLogRepository websiteCrawlLogRepository) {
+    public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
+                            CrawlJobFactory crawlJobFactory,
+                            WebsiteCrawlLogRepository websiteCrawlLogRepository,
+                            PageCrawlListener crawlListener) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
+        this.crawlListener = crawlListener;
     }
 
     public void crawlAllWorkspaces() {
@@ -50,8 +57,9 @@ public class WorkspaceCrawler {
         seedsByOrigin.forEach((baseDomainPath, seeds) ->
                 runOrLogWarning(() -> {
                     log.info("Crawling {} with seeds: {}", baseDomainPath, seeds);
-                    CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN);
+                    CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN, crawlListener);
                     job.start();
+                    //this needs to go
                     seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
                 }, "Error while starting crawl for: " + baseDomainPath));
 
