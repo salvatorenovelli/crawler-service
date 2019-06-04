@@ -3,7 +3,6 @@ package com.myseotoolbox.crawler.monitoreduri;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -11,8 +10,10 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isChildOf;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
 
 
@@ -51,6 +52,32 @@ public class MonitoredUriUpdater {
     }
 
     private boolean websiteUrlMatch(String origin, String uri) {
-        return origin != null && WebsiteOriginUtils.isChildOf(URI.create(origin), URI.create(uri), DONT_MATCH_SCHEMA);
+
+        if (origin == null) return false;
+
+        URI originUri = URI.create(origin);
+        URI possibleChildUri = URI.create(uri);
+
+        URI alternateOrigin = getAlternateOrigin(originUri);
+
+        return isChildOf(originUri, possibleChildUri, DONT_MATCH_SCHEMA) ||
+                isChildOf(alternateOrigin, possibleChildUri, DONT_MATCH_SCHEMA);
+    }
+
+    private URI getAlternateOrigin(URI originUri) {
+
+        if (originUri.getHost().startsWith("www.")) {
+            return alterHost(originUri, originUri.getHost().substring(4));
+        }
+
+        return alterHost(originUri, "www." + originUri.getHost());
+    }
+
+    private URI alterHost(URI originUri, String newDomain) {
+        try {
+            return new URI(originUri.getScheme(), originUri.getUserInfo(), newDomain, originUri.getPort(), originUri.getPath(), originUri.getQuery(), originUri.getFragment());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

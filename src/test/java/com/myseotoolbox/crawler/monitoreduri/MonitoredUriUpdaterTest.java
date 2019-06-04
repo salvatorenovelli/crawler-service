@@ -165,16 +165,36 @@ public class MonitoredUriUpdaterTest {
     }
 
     @Test
-    public void shouldNotCreateHttpWhenWebsiteUrlIsHttps() {
+    public void shouldPersistDifferentSchema() {
         givenAWorkspaceWithSeqNumber(0).withWebsiteUrl("https://host").save();
-
-
         PageSnapshot snapshot = aTestPageSnapshotForUri("http://host/page1").build();
 
         sut.updateCurrentValue(snapshot);
-        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
-        assertThat(monitoredUris1, hasSize(0));
 
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris1, hasSize(1));
+    }
+
+    @Test
+    public void shouldPersist_www_fromNon_www() {
+        givenAWorkspaceWithSeqNumber(0).withWebsiteUrl("https://host").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://www.host").build();
+
+        sut.updateCurrentValue(snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris1, hasSize(1));
+    }
+
+    @Test
+    public void shouldPersist_Non_www_from_www() {
+        givenAWorkspaceWithSeqNumber(0).withWebsiteUrl("https://www.host").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://host").build();
+
+        sut.updateCurrentValue(snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris1, hasSize(1));
     }
 
     @Test
@@ -194,7 +214,7 @@ public class MonitoredUriUpdaterTest {
         //this could be made configurable in future releases
         givenAWorkspaceWithSeqNumber(1).withWebsiteUrl("http://host").save();
 
-        PageSnapshot snapshot = aTestPageSnapshotForUri("http://www.host").build();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("http://subdomain.host").build();
 
         sut.updateCurrentValue(snapshot);
 
