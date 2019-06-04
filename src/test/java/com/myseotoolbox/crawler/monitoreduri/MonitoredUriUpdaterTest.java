@@ -292,6 +292,18 @@ public class MonitoredUriUpdaterTest {
         assertThat(monitoredUriRepo.findAllByWorkspaceNumber(3), hasSize(1));
     }
 
+    @Test
+    public void shouldFailGracefullyWithEmptyWebsiteUrl() {
+        givenAWorkspaceWithSeqNumber(0).withWebsiteUrl("").save();
+
+        PageSnapshot snapshot = aTestPageSnapshotForUri("http://host1/page1").build();
+
+        sut.updateCurrentValue(snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris1, hasSize(0));
+    }
+
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
         return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
     }

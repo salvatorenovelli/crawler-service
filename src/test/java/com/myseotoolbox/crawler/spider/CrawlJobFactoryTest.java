@@ -13,7 +13,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -40,7 +40,7 @@ public class CrawlJobFactoryTest {
 
     @Mock private UriFilter testFilter;
     @Mock private WebPageReader reader;
-    @Mock private WebsiteUriFilterFactory filtersBuilder;
+    @Spy private WebsiteUriFilterFactory filtersFactory = new WebsiteUriFilterFactory();
     @Mock private RobotsTxt mockRobotsTxt;
     @Mock private PageCrawlListener listener;
     @Mock private SitemapReader sitemapReader;
@@ -56,13 +56,13 @@ public class CrawlJobFactoryTest {
 
     @Before
     public void setUp() throws Exception {
-        when(filtersBuilder.build(Mockito.any(), Mockito.anyList(), any(RobotsTxt.class))).thenReturn(testFilter);
+//        when(filtersBuilder.build(Mockito.any(), Mockito.anyList(), any(RobotsTxt.class))).thenReturn(testFilter);
         when(reader.snapshotPage(any())).thenAnswer(this::buildSnapshotForUri);
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
 
         when(testFilter.shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK)).then(invocation -> false);
 
-        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersBuilder, crawlExecutorFactory, robotsTxtFactory, sitemapReader);
+        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, robotsTxtFactory, sitemapReader);
     }
 
     @Test
@@ -104,6 +104,18 @@ public class CrawlJobFactoryTest {
         verify(reader).snapshotPage(TEST_ORIGIN);
         verify(reader).snapshotPage(linkFromSitemap);
         verifyNoMoreInteractions(reader);
+    }
+
+
+    @Test
+    public void shouldNormalizeSeedsWIthEmptyPathToRootPath() {
+        URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
+        when(sitemapReader.getSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
+
+        CrawlJob job = sut.build(TEST_ORIGIN, Collections.singletonList(URI.create("http://host")), SINGLE_THREAD, MAX_CRAWLS, listener);
+        job.start();
+
+        verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);
     }
 
     //Execute in the test thread instead of spawning a new one

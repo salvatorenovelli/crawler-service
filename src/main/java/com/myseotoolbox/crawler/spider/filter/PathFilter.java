@@ -19,8 +19,8 @@ public class PathFilter {
     }
 
     private String validatePath(String s) {
-        if (!s.startsWith("/")) throw new IllegalArgumentException("Relative path needed but found: " + s);
-        if (s.contains(":")) throw new IllegalArgumentException("Invalid URL path: " + s);
+        if (!s.startsWith("/")) throw new IllegalArgumentException("Relative path needed but found: '" + s + "'");
+        if (s.contains(":")) throw new IllegalArgumentException("Invalid URL path: '" + s + "'");
         return s;
     }
 

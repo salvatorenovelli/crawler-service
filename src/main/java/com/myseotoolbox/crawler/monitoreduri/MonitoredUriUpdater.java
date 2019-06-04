@@ -3,6 +3,7 @@ package com.myseotoolbox.crawler.monitoreduri;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -53,7 +54,7 @@ public class MonitoredUriUpdater {
 
     private boolean websiteUrlMatch(String origin, String uri) {
 
-        if (origin == null) return false;
+        if (origin == null || StringUtils.isEmpty(origin)) return false;
 
         URI originUri = URI.create(origin);
         URI possibleChildUri = URI.create(uri);
