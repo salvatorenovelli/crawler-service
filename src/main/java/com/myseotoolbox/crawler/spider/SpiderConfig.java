@@ -1,14 +1,13 @@
 package com.myseotoolbox.crawler.spider;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SpiderConfig {
 
-    @Autowired private SitemapReader sitemapReader;
 
     @Bean
     public CrawlExecutorFactory getExecutorBuilder() {
@@ -16,7 +15,7 @@ public class SpiderConfig {
     }
 
     @Bean
-    public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, RobotsTxtFactory robotstxtFactory) {
+    public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, RobotsTxtFactory robotstxtFactory, SitemapReader sitemapReader) {
         return new CrawlJobFactory(new WebPageReaderFactory(), new WebsiteUriFilterFactory(), crawlExecutorFactory, robotstxtFactory, sitemapReader);
     }
 }

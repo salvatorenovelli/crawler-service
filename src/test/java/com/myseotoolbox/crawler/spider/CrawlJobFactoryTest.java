@@ -6,6 +6,7 @@ import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import org.junit.Before;

@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
@@ -43,6 +44,8 @@ public class SpiderIntegrationTest {
     private InputStream robotsTxt = getClass().getResourceAsStream("/robots.txt");
 
     @Mock private PageCrawlListener listener;
+    @Mock private SitemapReader sitemapReader;
+
     private RobotsTxtFactory robotstxtFactory = new RobotsTxtFactory();
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
@@ -202,7 +205,7 @@ public class SpiderIntegrationTest {
         SpiderConfig spiderConfig = new SpiderConfig();
 
         CrawlJobFactory crawlJobFactory = spiderConfig
-                .getCrawlJobFactory(testExecutorBuilder, robotstxtFactory);
+                .getCrawlJobFactory(testExecutorBuilder, robotstxtFactory, sitemapReader);
 
         CrawlJob job = crawlJobFactory.build(origin, seeds, 1, MAX_CRAWLS, listener);
 

@@ -1,6 +1,5 @@
-package com.myseotoolbox.crawler.spider;
+package com.myseotoolbox.crawler.spider.sitemap;
 
-import com.myseotoolbox.crawler.spider.sitemap.SiteMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
