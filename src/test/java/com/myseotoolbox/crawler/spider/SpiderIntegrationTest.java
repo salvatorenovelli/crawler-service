@@ -25,10 +25,8 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 /**
  * NOTE!!! PLEASE READ
@@ -178,6 +176,19 @@ public class SpiderIntegrationTest {
         }));
     }
 
+    @Test
+    public void shouldTrimUrls() {
+        givenAWebsite()
+                .havingRootPage().withLinksTo("/dst1   ").save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(listener).accept(uri("/"));
+        verify(listener).accept(uri("/dst1"));
+        System.out.println(mockingDetails(listener).printInvocations());
+        verifyNoMoreInteractions(listener);
+    }
 
     private PageSnapshot uri(String uri) {
         return argThat(argument -> argument.getUri().equals(testUri(uri).toString()));
