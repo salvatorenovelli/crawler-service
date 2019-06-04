@@ -3,7 +3,6 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.spider.sitemap.SiteMap;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -20,16 +19,18 @@ public class CrawlJobFactory {
     private final WebsiteUriFilterFactory uriFilterFactory;
     private final CrawlExecutorFactory crawlExecutorFactory;
     private final RobotsTxtFactory robotsTxtFactory;
+    private final SitemapReader sitemapReader;
 
-    public CrawlJobFactory(
-            WebPageReaderFactory webPageReaderFactory,
-            WebsiteUriFilterFactory uriFilterFactory,
-            CrawlExecutorFactory crawlExecutorFactory,
-            RobotsTxtFactory robotsTxtFactory) {
+    public CrawlJobFactory(WebPageReaderFactory webPageReaderFactory,
+                           WebsiteUriFilterFactory uriFilterFactory,
+                           CrawlExecutorFactory crawlExecutorFactory,
+                           RobotsTxtFactory robotsTxtFactory,
+                           SitemapReader sitemapReader) {
         this.webPageReaderFactory = webPageReaderFactory;
         this.uriFilterFactory = uriFilterFactory;
         this.crawlExecutorFactory = crawlExecutorFactory;
         this.robotsTxtFactory = robotsTxtFactory;
+        this.sitemapReader = sitemapReader;
     }
 
     public CrawlJob build(URI origin, List<URI> seeds, int numParallelConnection, int maxCrawls, PageCrawlListener onPageCrawled) {
@@ -43,7 +44,7 @@ public class CrawlJobFactory {
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(name, numParallelConnection);
 
-        List<URI> seedsFromSitemap = getSeedsFromSitemap(origin, robotsTxt.getSitemaps(), allowedPaths);
+        List<URI> seedsFromSitemap = sitemapReader.getSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), allowedPaths);
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 
@@ -66,10 +67,4 @@ public class CrawlJobFactory {
         return Stream.concat(seeds.stream(), seedsFromSitemap.stream()).collect(Collectors.toList());
     }
 
-    private List<URI> getSeedsFromSitemap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
-        log.info("Fetching {} sitemap for {} with allowed paths: {}", sitemaps.size(), origin, allowedPaths);
-        List<URI> sitemapSeeds = new SiteMap(sitemaps, allowedPaths).getUris().stream().map(URI::create).collect(Collectors.toList());
-        log.info("Found {} seeds from sitemap for {}", sitemapSeeds.size(), origin);
-        return sitemapSeeds;
-    }
 }

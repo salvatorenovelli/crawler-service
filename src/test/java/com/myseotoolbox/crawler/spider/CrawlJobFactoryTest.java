@@ -42,31 +42,27 @@ public class CrawlJobFactoryTest {
     @Mock private WebsiteUriFilterFactory filtersBuilder;
     @Mock private RobotsTxt mockRobotsTxt;
     @Mock private PageCrawlListener listener;
+    @Mock private SitemapReader sitemapReader;
 
     private CrawlExecutorFactory crawlExecutorFactory = new CurrentThreadCrawlExecutorFactory();
 
-    CrawlJobFactory sut;
     private RobotsTxtFactory robotsTxtFactory = new RobotsTxtFactory() {
         @Override
-        public RobotsTxt buildRobotsTxtFor(URI websiteOrigin) {
-            return mockRobotsTxt;
-        }
+        public RobotsTxt buildRobotsTxtFor(URI websiteOrigin) { return mockRobotsTxt;}
     };
 
+    CrawlJobFactory sut;
 
     @Before
     public void setUp() throws Exception {
-
         when(filtersBuilder.build(Mockito.any(), Mockito.anyList(), any(RobotsTxt.class))).thenReturn(testFilter);
         when(reader.snapshotPage(any())).thenAnswer(this::buildSnapshotForUri);
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
 
-
         when(testFilter.shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK)).then(invocation -> false);
 
-        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersBuilder, crawlExecutorFactory, robotsTxtFactory);
+        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersBuilder, crawlExecutorFactory, robotsTxtFactory, sitemapReader);
     }
-
 
     @Test
     public void shouldOnlyCrawlOnlyFromTheSeeds() throws SnapshotException {
@@ -78,14 +74,12 @@ public class CrawlJobFactoryTest {
         verifyNoMoreInteractions(reader);
     }
 
-
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
         CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS, listener);
         job.start();
         verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
-
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
@@ -94,6 +88,20 @@ public class CrawlJobFactoryTest {
 
         verify(testFilter).shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK);
         verify(reader).snapshotPage(TEST_ORIGIN);
+        verifyNoMoreInteractions(reader);
+    }
+
+    @Test
+    public void shouldTakeSeedsFromSitemap() throws SnapshotException {
+
+        URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
+        when(sitemapReader.getSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
+
+        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS, listener);
+        job.start();
+
+        verify(reader).snapshotPage(TEST_ORIGIN);
+        verify(reader).snapshotPage(linkFromSitemap);
         verifyNoMoreInteractions(reader);
     }
 
