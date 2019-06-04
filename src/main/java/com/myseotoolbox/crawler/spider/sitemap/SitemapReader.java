@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -12,8 +13,22 @@ import java.util.stream.Collectors;
 public class SitemapReader {
     public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrl, List<String> allowedPaths) {
         log.info("Fetching {} sitemap for {} with allowed paths: {}", sitemapsUrl.size(), origin, allowedPaths);
-        List<URI> sitemapSeeds = new SiteMap(sitemapsUrl, allowedPaths).getUris().stream().map(URI::create).collect(Collectors.toList());
+        List<URI> sitemapSeeds = new SiteMap(sitemapsUrl, allowedPaths).getUris()
+                .stream()
+                .map(this::toValidUri)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
         log.info("Found {} seeds from sitemap for {}", sitemapSeeds.size(), origin);
         return sitemapSeeds;
+    }
+
+    private Optional<URI> toValidUri(String s) {
+        try {
+            return Optional.of(URI.create(s));
+        } catch (IllegalArgumentException e) {
+            return Optional.empty();
+        }
     }
 }

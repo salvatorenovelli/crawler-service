@@ -135,7 +135,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
 
         String path = uri.toString();
         if (containsUnicodeCharacters(path)) {
-            log.warn("Redirect destination {} contains non ASCII characters (as required by the standard)", path);
+            log.debug("Redirect destination {} contains non ASCII characters (as required by the standard)", path);
             return sourceUri.resolve(SafeStringEscaper.escapeString(path));
         } else {
             try {

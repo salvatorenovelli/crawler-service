@@ -44,6 +44,17 @@ public class SitemapReaderTest {
         assertThat(uris, hasItems(uri("/location1"), uri("/location2")));
     }
 
+    @Test
+    public void shouldOnlyReturnValidUri() {
+        givenAWebsite()
+                .withSitemapOn("/")
+                .havingUrls("/location1", "/location2", "/should not add this")
+                .build();
+
+        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUri("/sitemap.xml"), Collections.singletonList("/"));
+
+        assertThat(uris, hasItems(uri("/location1"), uri("/location2")));
+    }
 
     private URI uri(String s) {
         return testWebsiteBuilder.buildTestUri(s);
