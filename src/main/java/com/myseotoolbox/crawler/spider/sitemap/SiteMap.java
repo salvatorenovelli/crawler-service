@@ -5,14 +5,15 @@ import crawlercommons.sitemaps.AbstractSiteMap;
 import crawlercommons.sitemaps.SiteMapIndex;
 import crawlercommons.sitemaps.SiteMapParser;
 import crawlercommons.sitemaps.UnknownFormatException;
+import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
@@ -20,28 +21,28 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 
 @Slf4j
 public class SiteMap {
-    private final URL url;
+
     private final PathFilter pathFilter;
+    private final List<URL> siteMapsUrls;
 
     private SiteMapParser siteMapParser = new SiteMapParser();
 
     public SiteMap(String url) {
-        this(url, Collections.singletonList("/"));
+        this(Collections.singletonList(url), Collections.singletonList("/"));
     }
 
-    public SiteMap(String url, List<String> allowedPaths) {
-        try {
-            this.url = new URL(url);
-            this.pathFilter = new PathFilter(allowedPaths);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
-        }
+    public SiteMap(List<String> sitemaps, List<String> allowedPaths) {
+        this.siteMapsUrls = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
+        this.pathFilter = new PathFilter(allowedPaths);
     }
 
     public List<String> getUris() {
-        return extractUrls(this.url);
+        return this.siteMapsUrls.stream().flatMap(url -> extractUrls(url).stream()).distinct().collect(Collectors.toList());
     }
 
+    /**
+     * Recursively scan Sitemap Index (the type of sitemap that has links to other sitemaps) and collect urls
+     */
     private List<String> extractUrls(URL url) {
 
         if (!shouldFetch(url)) {
@@ -67,10 +68,19 @@ public class SiteMap {
     }
 
     private boolean shouldFetch(URL url) {
-        return isSameDomain(url) && (url.getPath().equals("/sitemap.xml") || pathFilter.shouldCrawl(url.getPath()));
+        try {
+            return isSameDomain(url) && (this.siteMapsUrls.contains(url) || pathFilter.shouldCrawl(url.getPath()));
+        } catch (IllegalArgumentException e) {
+            log.warn("Unable to fetch sitemap on {}. {}", url, e.toString());
+            return false;
+        }
     }
 
     private boolean isSameDomain(URL url) {
-        return isHostMatching(URI.create(url.toString()), URI.create(this.url.toString()));
+        return isHostMatching(URI.create(url.toString()), URI.create(this.siteMapsUrls.get(0).toString()));
+    }
+
+    private URL mapToUrlOrLogWarning(String s) {
+        return Try.of(() -> new URL(s)).onFailure(throwable -> log.warn("Unable to crawl sitemap on {}. Error: {}", s, throwable.toString())).getOrElse((URL) null);
     }
 }

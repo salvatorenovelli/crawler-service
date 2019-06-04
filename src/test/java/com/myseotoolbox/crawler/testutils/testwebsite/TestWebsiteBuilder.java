@@ -90,8 +90,12 @@ public class TestWebsiteBuilder {
         if (!server.isStarted()) {
             throw new IllegalStateException("Sorry, you'll need to start the server before asking for URI. (At the moment the server port is not known)");
         }
+        return URI.create(getBaseUriAsString()).resolve(uri);
+    }
+
+    public String getBaseUriAsString() {
         int localPort = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
-        return URI.create("http://localhost:" + localPort + uri);
+        return "http://localhost:" + localPort;
     }
 
     public TestWebsite save() {
@@ -163,7 +167,7 @@ public class TestWebsiteBuilder {
 
         public TestSiteMapBuilder(TestWebsiteBuilder parent, String location, boolean isSitemapIndex) {
             this.parent = parent;
-            this.location = location + "sitemap.xml";
+            this.location = location + (location.endsWith("xml") ? "" : "sitemap.xml");
             this.isSitemapIndex = isSitemapIndex;
         }
 

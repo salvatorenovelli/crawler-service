@@ -13,17 +13,19 @@ import org.springframework.boot.logging.LoggingSystem;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.toList;
+import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class SiteMapTest {
 
+    public static final List<String> ALLOW_ALL = Collections.singletonList("/");
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private TestWebsite testWebsite;
 
@@ -98,7 +100,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), Collections.singletonList("/it"));
+        SiteMap siteMap = new SiteMap(uris("/sitemap.xml"), Collections.singletonList("/it"));
         List<String> urls = siteMap.getUris();
 
         assertThat(urls, hasSize(2));
@@ -119,7 +121,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = new SiteMap(uris("/sitemap.xml"), Collections.singletonList("/it/"));
         List<String> urls = siteMap.getUris();
 
         assertThat(urls, hasSize(2));
@@ -138,16 +140,16 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"), Collections.singletonList("/it"));
+        SiteMap siteMap = new SiteMap(uris("/sitemap.xml"), Collections.singletonList("/it"));
         siteMap.getUris();
 
-        List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(Collectors.toList());
+        List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());
         assertThat(requestsReceived, hasSize(2));
         assertThat(requestsReceived, hasItems("/sitemap.xml", "/it/sitemap.xml"));
     }
 
     @Test
-    public void shouldListUrlWithDifferentDomains() throws MalformedURLException {
+    public void shouldListUrlWithDifferentDomains() {
         givenAWebsite()
                 .withSitemapOn("/")
                 .havingUrls("/location1", "/location2", "https://differentdomain/location2")
@@ -182,8 +184,80 @@ public class SiteMapTest {
         assertThat(differentDomainWebsite.getRequestsReceived(), hasSize(0));
     }
 
+
+    @Test
+    public void shouldFetchMultipleSitemaps() {
+        givenAWebsite()
+                .withSitemapOn("/one/")
+                .havingUrls("/one/1", "/one/2")
+                .and()
+                .withSitemapOn("/two/")
+                .havingUrls("/two/1", "/two/2").build();
+
+        SiteMap siteMap = new SiteMap(uris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
+        List<String> uris = siteMap.getUris();
+
+
+        assertThat(uris, hasSize(4));
+        assertThat(uris, hasItems(uri("/one/1"), uri("/one/2"), uri("/two/1"), uri("/two/2")));
+
+    }
+
+    @Test
+    public void shouldDedupWhenFetchingMultipleSitemaps() {
+        givenAWebsite()
+                .withSitemapOn("/sitemap_one.xml")
+                .havingUrls("/1", "/2")
+                .and()
+                .withSitemapOn("/sitemap_two.xml")
+                .havingUrls("/1", "/3").build();
+
+        SiteMap siteMap = new SiteMap(uris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
+        List<String> uris = siteMap.getUris();
+
+
+        assertThat(uris, hasSize(3));
+        assertThat(uris, hasItems(uri("/1"), uri("/2"), uri("/3")));
+    }
+
+    @Test
+    public void shouldBeAbleToDealWithMalformedUriInSitemapIndex() {
+        givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/invalid url/")
+                .havingChildSitemaps("/valid-url/").and()
+                .withSitemapOn("/valid-url/")
+                .havingUrls("/valid-url/1", "/valid-url/2")
+                .build();
+
+        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
+        List<String> uris = siteMap.getUris();
+
+
+        assertThat(uris, hasSize(2));
+        assertThat(uris, hasItems(uri("/valid-url/1"), uri("/valid-url/2")));
+    }
+
+    @Test
+    public void shouldBeAbleToDealWithMalformedUriInSitemap() {
+        givenAWebsite()
+                .withSitemapOn("/")
+                .havingUrls("/valid-url1", "/valid-url2", "/invalid url")
+                .build();
+
+        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
+        List<String> uris = siteMap.getUris();
+
+
+        assertTrue(uris.size() >= 2);
+    }
+
     private String uri(String s) {
         return testUri(s).toString();
+    }
+
+    private List<String> uris(String... s) {
+        return Arrays.stream(s).map(this::testUri).map(URI::toString).collect(toList());
     }
 
     private URI testUri(String url) {

@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +47,7 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
 
         if (path.contains("robots.txt")) {
             serveRobotsTxt(request, httpServletResponse, path);
-        } else if (path.contains("sitemap.xml")) {
+        } else if (path.contains("sitemap")) {
             serveSitemap(request, httpServletResponse, path);
         } else {
             Page page = testWebsiteBuilder.getPage(path);
@@ -67,7 +66,8 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         response.setHeader("content-type", "application/xml");
 
         try (OutputStream outputStream = response.getOutputStream()) {
-            IOUtils.write(render(this.testWebsiteBuilder.getSitemap(path)), outputStream, "UTF-8");
+            CharSequence render = render(this.testWebsiteBuilder.getSitemap(path));
+            IOUtils.write(render, outputStream, "UTF-8");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -95,12 +95,12 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
 
         for (String url : siteMap.getUrls()) {
 
-            URI uri = testWebsiteBuilder.buildTestUri(url);
-            if (URI.create(url).isAbsolute()) {
-                uri = URI.create(url);
+            String out = testWebsiteBuilder.getBaseUriAsString() + url + "sitemap.xml";
+            if (url.startsWith("http")) {
+                out = url;
             }
 
-            sb.append("<sitemap><loc>" + uri.resolve("sitemap.xml").toString() + "</loc></sitemap>\n");
+            sb.append("<sitemap><loc>" + out + "</loc></sitemap>\n");
 
         }
 
@@ -111,11 +111,11 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         sb.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">");
 
         for (String url : siteMap.getUrls()) {
-            URI uri = testWebsiteBuilder.buildTestUri(url);
-            if (URI.create(url).isAbsolute()) {
-                uri = URI.create(url);
+            String out = testWebsiteBuilder.getBaseUriAsString() + url;
+            if (url.startsWith("http")) {
+                out = url;
             }
-            sb.append("<url><loc>").append(uri).append("</loc></url>\n");
+            sb.append("<url><loc>").append(out).append("</loc></url>\n");
         }
 
         sb.append("</urlset>");
