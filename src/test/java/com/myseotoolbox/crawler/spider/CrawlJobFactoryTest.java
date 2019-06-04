@@ -38,7 +38,6 @@ public class CrawlJobFactoryTest {
     private static final URI TEST_ORIGIN = URI.create("http://host/");
     private static final URI TEST_FILTERED_LINK = TEST_ORIGIN.resolve("base-path/path");
 
-    @Mock private UriFilter testFilter;
     @Mock private WebPageReader reader;
     @Spy private WebsiteUriFilterFactory filtersFactory = new WebsiteUriFilterFactory();
     @Mock private RobotsTxt mockRobotsTxt;
@@ -59,8 +58,6 @@ public class CrawlJobFactoryTest {
 //        when(filtersBuilder.build(Mockito.any(), Mockito.anyList(), any(RobotsTxt.class))).thenReturn(testFilter);
         when(reader.snapshotPage(any())).thenAnswer(this::buildSnapshotForUri);
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
-
-        when(testFilter.shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK)).then(invocation -> false);
 
         sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, robotsTxtFactory, sitemapReader);
     }
@@ -87,7 +84,6 @@ public class CrawlJobFactoryTest {
         CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS, listener);
         job.start();
 
-        verify(testFilter).shouldCrawl(TEST_ORIGIN, TEST_FILTERED_LINK);
         verify(reader).snapshotPage(TEST_ORIGIN);
         verifyNoMoreInteractions(reader);
     }
