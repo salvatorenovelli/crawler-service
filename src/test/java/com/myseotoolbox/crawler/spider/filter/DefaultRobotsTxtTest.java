@@ -1,5 +1,7 @@
 package com.myseotoolbox.crawler.spider.filter;
 
+import com.myseotoolbox.crawler.spider.robotstxt.DefaultRobotsTxt;
+import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.junit.After;
 import org.junit.Before;
@@ -11,9 +13,9 @@ import java.net.URI;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class RobotsTxtFilterTest {
+public class DefaultRobotsTxtTest {
 
-    private RobotsTxtFilter sut;
+    private RobotsTxt sut;
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private InputStream stream = getClass().getResourceAsStream("/robots.txt");
@@ -22,7 +24,7 @@ public class RobotsTxtFilterTest {
     public void setUp() throws Exception {
         givenAWebsite().withRobotsTxt(stream).withRobotTxtHavingRedirect();
         testWebsiteBuilder.run();
-        sut = new RobotsTxtFilter(testUri("/"));
+        sut = new DefaultRobotsTxt(testUri("/"));
     }
 
     @After

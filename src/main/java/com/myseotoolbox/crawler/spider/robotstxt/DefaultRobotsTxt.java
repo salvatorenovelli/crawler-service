@@ -1,6 +1,5 @@
-package com.myseotoolbox.crawler.spider.filter;
+package com.myseotoolbox.crawler.spider.robotstxt;
 
-import com.myseotoolbox.crawler.spider.UriFilter;
 import crawlercommons.robots.SimpleRobotRules;
 import crawlercommons.robots.SimpleRobotRulesParser;
 import lombok.extern.slf4j.Slf4j;
@@ -13,15 +12,16 @@ import org.apache.http.impl.client.HttpClients;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
-public class RobotsTxtFilter implements UriFilter {
+public class DefaultRobotsTxt implements RobotsTxt {
 
     private final ConcurrentHashMap<URI, Boolean> cache = new ConcurrentHashMap<>();
     private final SimpleRobotRules robotRules;
 
-    public RobotsTxtFilter(URI websiteOrigin) throws IOException {
+    public DefaultRobotsTxt(URI websiteOrigin) throws IOException {
 
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
 
@@ -41,5 +41,9 @@ public class RobotsTxtFilter implements UriFilter {
         Boolean allowed = cache.computeIfAbsent(discoveredLink, uri1 -> robotRules.isAllowed(discoveredLink.toString()));
         if (!allowed) log.debug("Blocked: ROBOTS  URI: {}", discoveredLink);
         return allowed;
+    }
+
+    public List<String> getSitemaps() {
+        return this.robotRules.getSitemaps();
     }
 }
