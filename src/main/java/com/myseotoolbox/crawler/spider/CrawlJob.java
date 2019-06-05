@@ -7,20 +7,20 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
-
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class CrawlJob {
 
     private final CrawlerQueue crawlerQueue;
 
-    public CrawlJob(String name, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls) {
-        verifySameOrigin(seeds);
+    public CrawlJob(URI origin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls) {
+        String name = origin.getHost();
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
-        this.crawlerQueue = new CrawlerQueue(name, seeds, pool, uriFilter, maxCrawls);
+        this.crawlerQueue = new CrawlerQueue(name, removeSeedsOutsideOrigin(origin, seeds), pool, uriFilter, maxCrawls);
         startMonitoring(name, executor);
     }
 
@@ -37,13 +37,11 @@ public class CrawlJob {
         crawlerQueue.start();
     }
 
-
-    private void verifySameOrigin(Collection<URI> seeds) {
-        if (seeds.size() > 0) {
-            URI websiteOrigin = WebsiteOriginUtils.extractRoot(seeds.iterator().next());//takes the first one
-            if (seeds.stream().anyMatch(uri -> !isHostMatching(websiteOrigin, uri)))
-                throw new IllegalStateException("Seeds host must match website origin. Origin: " + websiteOrigin + " Seeds:" + seeds);
-        }
+    private List<URI> removeSeedsOutsideOrigin(URI origin, Collection<URI> seeds) {
+        List<URI> filtered = seeds.stream().filter(u -> WebsiteOriginUtils.isHostMatching(origin, u)).collect(Collectors.toList());
+        if (filtered.size() != seeds.size())
+            log.warn("Seeds from external domains found on {}. Original Seeds: {} Filtered Seeds: {}", origin, seeds.size(), filtered.size());
+        return filtered;
     }
 
 }

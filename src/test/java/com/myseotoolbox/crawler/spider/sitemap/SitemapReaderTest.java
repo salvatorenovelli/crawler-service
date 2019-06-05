@@ -39,9 +39,9 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/outside/shouldnotaddthis")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUri("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
-        assertThat(uris, hasItems(uri("/location1"), uri("/location2")));
+        assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
 
     @Test
@@ -51,12 +51,24 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/should not add this")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUri("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
-        assertThat(uris, hasItems(uri("/location1"), uri("/location2")));
+        assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
 
-    private URI uri(String s) {
+    @Test
+    public void shouldOnlyGetSameDomain() {
+        givenAWebsite()
+                .withSitemapOn("/")
+                .havingUrls("/location1", "/location2", "http://another-domain/")
+                .build();
+
+        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+
+        assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
+    }
+
+    private URI testUri(String s) {
         return testWebsiteBuilder.buildTestUri(s);
     }
 
@@ -64,7 +76,7 @@ public class SitemapReaderTest {
         return testWebsiteBuilder;
     }
 
-    private List<String> testUri(String url) {
+    private List<String> testUris(String url) {
         return Collections.singletonList(testWebsiteBuilder.buildTestUri(url).toString());
     }
 }

@@ -50,7 +50,7 @@ public class CrawlJobFactory {
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 
-        CrawlJob crawlJob = new CrawlJob(name, allSeeds, webPageReader, uriFilter, executor, maxCrawls);
+        CrawlJob crawlJob = new CrawlJob(origin, allSeeds, webPageReader, uriFilter, executor, maxCrawls);
         crawlJob.subscribeToPageCrawled(onPageCrawled);
         return crawlJob;
     }
