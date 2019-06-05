@@ -17,7 +17,7 @@ public class AsyncWorkspaceCrawlerConfig {
     @Qualifier("crawl-job-init-executor")
     public Executor getCrawlJobInit() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(1);
+        executor.setCorePoolSize(MAX_CONCURRENT_CRAWL_START);
         executor.setMaxPoolSize(MAX_CONCURRENT_CRAWL_START);
         executor.setThreadNamePrefix("crawljobinit-");
         executor.initialize();
