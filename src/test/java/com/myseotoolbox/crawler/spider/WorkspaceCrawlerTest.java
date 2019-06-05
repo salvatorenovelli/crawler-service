@@ -6,11 +6,13 @@ import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.Spy;
 import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -18,6 +20,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
 import static java.net.URI.create;
@@ -45,10 +48,11 @@ public class WorkspaceCrawlerTest {
     @Mock private PageCrawlListener pageCrawlListener;
 
     WorkspaceCrawler sut;
+    @Spy private Executor executor = new CurrentThreadTestExecutorService();
 
     @Before
     public void setUp() {
-        sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository, pageCrawlListener);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository, pageCrawlListener, executor);
 
         when(crawlFactory.build(any(URI.class), anyList(), anyInt(), anyInt(), any())).thenAnswer(
                 invocation -> {
@@ -59,8 +63,6 @@ public class WorkspaceCrawlerTest {
         );
 
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
-
-
     }
 
     @Test
@@ -258,6 +260,16 @@ public class WorkspaceCrawlerTest {
         System.out.println(mockingDetails(websiteCrawlLogRepository).printInvocations());
 
         verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
+    }
+
+    @Test
+    public void shouldExecuteEveryCrawlInADifferentThread() {
+        givenAWorkspace().withWebsiteUrl("http://host1").withCrawlingIntervalOf(1).build();
+        givenAWorkspace().withWebsiteUrl("http://host2").withCrawlingIntervalOf(1).build();
+
+        sut.crawlAllWorkspaces();
+
+        verify(executor, times(2)).execute(any());
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {

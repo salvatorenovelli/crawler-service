@@ -8,6 +8,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -16,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
@@ -31,15 +33,18 @@ public class WorkspaceCrawler {
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
     private final PageCrawlListener crawlListener;
+    private final Executor executor;
 
     public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
                             CrawlJobFactory crawlJobFactory,
                             WebsiteCrawlLogRepository websiteCrawlLogRepository,
-                            PageCrawlListener crawlListener) {
+                            PageCrawlListener crawlListener,
+                            @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
         this.crawlListener = crawlListener;
+        this.executor = executor;
     }
 
     public void crawlAllWorkspaces() {
@@ -55,13 +60,14 @@ public class WorkspaceCrawler {
                 .collect(Collectors.groupingBy(WebsiteOriginUtils::extractRoot, Collectors.toSet()));
 
         seedsByOrigin.forEach((baseDomainPath, seeds) ->
-                runOrLogWarning(() -> {
+                executor.execute(() -> runOrLogWarning(() -> {
                     log.info("Crawling {} with seeds: {}", baseDomainPath, seeds);
                     CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN, crawlListener);
                     job.start();
                     //this needs to go
                     seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
-                }, "Error while starting crawl for: " + baseDomainPath));
+                }, "Error while starting crawl for: " + baseDomainPath))
+        );
 
     }
 
