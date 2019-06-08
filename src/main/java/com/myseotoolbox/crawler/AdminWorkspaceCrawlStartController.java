@@ -8,6 +8,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
+import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +41,10 @@ public class AdminWorkspaceCrawlStartController {
     public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) {
         URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
-        CrawlJob job = factory.build(origin, seedsAsUri, numConnections, WorkspaceCrawler.MAX_URL_PER_DOMAIN, pageCrawlListener);
+
+        CrawlConfiguration build = CrawlConfiguration.newConfiguration(origin).withSeeds(seedsAsUri).withConcurrentConnections(numConnections).build();
+
+        CrawlJob job = factory.build(build, pageCrawlListener);
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -49,7 +53,11 @@ public class AdminWorkspaceCrawlStartController {
     public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) throws EntityNotFoundException {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
-        CrawlJob job = factory.build(origin, Collections.singletonList(origin), numConnections, WorkspaceCrawler.MAX_URL_PER_DOMAIN, pageCrawlListener);
+
+        CrawlConfiguration conf = CrawlConfiguration.newConfiguration(origin).withSeeds(Collections.singletonList(origin)).withConcurrentConnections(numConnections).build();
+
+        CrawlJob job = factory.build(conf, pageCrawlListener);
+
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
     }

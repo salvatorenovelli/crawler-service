@@ -5,15 +5,17 @@ import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
+import io.vavr.Tuple;
+import io.vavr.Tuple2;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.Spy;
-import org.mockito.internal.hamcrest.HamcrestArgumentMatcher;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
@@ -22,11 +24,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import static com.myseotoolbox.crawler.spider.WorkspaceCrawler.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
+import static com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
 import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static java.util.stream.Collectors.toList;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -38,7 +40,7 @@ public class WorkspaceCrawlerTest {
     private static final int TWO_DAYS_AGO = -2;
     public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
     public static final int MAX_CRAWLS = 100;
-    private final List<CrawlJob> mockJobs = new ArrayList<>();
+    private final List<Tuple2<CrawlConfiguration, CrawlJob>> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
     private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
 
@@ -54,10 +56,11 @@ public class WorkspaceCrawlerTest {
     public void setUp() {
         sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository, pageCrawlListener, executor);
 
-        when(crawlFactory.build(any(URI.class), anyList(), anyInt(), anyInt(), any())).thenAnswer(
+        when(crawlFactory.build(any(), any())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
-                    mockJobs.add(mock);
+                    CrawlConfiguration configuration = invocation.getArgument(0);
+                    mockJobs.add(Tuple.of(configuration, mock));
                     return mock;
                 }
         );
@@ -176,8 +179,7 @@ public class WorkspaceCrawlerTest {
         givenAWorkspace().withWebsiteUrl(originWithException).build();
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
-
-        when(crawlFactory.build(eq(create(originWithException)), anyList(), anyInt(), anyInt(), any())).thenThrow(new RuntimeException("Testing exceptions"));
+        when(crawlFactory.build(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))), any())).thenThrow(new RuntimeException("Testing exceptions"));
 
         sut.crawlAllWorkspaces();
 
@@ -273,7 +275,7 @@ public class WorkspaceCrawlerTest {
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
-        verify(crawlFactory).build(any(URI.class), anyList(), eq(numConnections), anyInt(), any());
+        verify(crawlFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());
     }
 
     private void crawlStartedFor(String origin) {
@@ -281,14 +283,16 @@ public class WorkspaceCrawlerTest {
     }
 
     private void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
-        Object[] expectedSeeds = seeds.stream().map(this::addTrailingSlashIfMissing).map(URI::create).toArray();
+        List<URI> expectedSeeds = seeds.stream().map(this::addTrailingSlashIfMissing).map(URI::create).collect(toList());
 
         try {
-            verify(crawlFactory).build(eq(create(origin).resolve("/")),
-                    argThat(argument -> new HamcrestArgumentMatcher<>(containsInAnyOrder(expectedSeeds)).matches(argument)),
-                    anyInt(), anyInt(), any());
+            URI originRoot = create(origin).resolve("/");
 
-            mockJobs.forEach(job -> verify(job).start());
+            verify(crawlFactory).build(argThat(conf ->
+                    conf.getOrigin().equals(originRoot) &&
+                    conf.getSeeds().containsAll(expectedSeeds)), any());
+
+            mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job).start());
         } catch (Throwable e) {
             System.out.println(mockingDetails(crawlFactory).printInvocations());
             throw e;
@@ -298,7 +302,7 @@ public class WorkspaceCrawlerTest {
     private void verifyNoMoreCrawls() {
         try {
             verifyNoMoreInteractions(crawlFactory);
-            mockJobs.forEach(Mockito::verifyNoMoreInteractions);
+            mockJobs.stream().map(Tuple2::_2).forEach(Mockito::verifyNoMoreInteractions);
         } catch (Throwable e) {
             System.out.println(mockingDetails(crawlFactory).printInvocations());
             throw e;

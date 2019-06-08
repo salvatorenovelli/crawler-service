@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.SnapshotResult;
+import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
 import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
@@ -31,10 +32,8 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class CrawlJobFactoryTest {
 
-    private static final int MAX_CRAWLS = 100;
     private static final List<String> SITEMAPS_FROM_ROBOTS = Collections.singletonList("http://localhost/sitemap.xml");
     private static List<URI> ONLY_ROOT = Collections.singletonList(URI.create("http://host/"));
-    private static final int SINGLE_THREAD = 1;
     private static final URI TEST_ORIGIN = URI.create("http://host/");
     private static final URI TEST_FILTERED_LINK = TEST_ORIGIN.resolve("base-path/path");
 
@@ -51,11 +50,12 @@ public class CrawlJobFactoryTest {
         public RobotsTxt buildRobotsTxtFor(URI websiteOrigin) { return mockRobotsTxt;}
     };
 
-    CrawlJobFactory sut;
+    private CrawlJobFactory sut;
+    private CrawlConfiguration.CrawlConfigurationBuilder testConf = CrawlConfiguration.newConfiguration(TEST_ORIGIN).withSeeds(ONLY_ROOT);
+
 
     @Before
     public void setUp() throws Exception {
-//        when(filtersBuilder.build(Mockito.any(), Mockito.anyList(), any(RobotsTxt.class))).thenReturn(testFilter);
         when(reader.snapshotPage(any())).thenAnswer(this::buildSnapshotForUri);
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
 
@@ -64,7 +64,11 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldOnlyCrawlOnlyFromTheSeeds() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, seeds("/path1", "/path2"), SINGLE_THREAD, MAX_CRAWLS, listener);
+
+
+        CrawlConfiguration configuration = testConf.withSeeds(seeds("/path1", "/path2")).build();
+
+        CrawlJob job = sut.build(configuration, listener);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
@@ -74,14 +78,14 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS, listener);
+        CrawlJob job = sut.build(testConf.build(), listener);
         job.start();
         verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS, listener);
+        CrawlJob job = sut.build(testConf.build(), listener);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -94,7 +98,7 @@ public class CrawlJobFactoryTest {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
         when(sitemapReader.getSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
 
-        CrawlJob job = sut.build(TEST_ORIGIN, ONLY_ROOT, SINGLE_THREAD, MAX_CRAWLS, listener);
+        CrawlJob job = sut.build(testConf.build(), listener);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -108,7 +112,10 @@ public class CrawlJobFactoryTest {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
         when(sitemapReader.getSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
 
-        CrawlJob job = sut.build(TEST_ORIGIN, Collections.singletonList(URI.create("http://host")), SINGLE_THREAD, MAX_CRAWLS, listener);
+        CrawlConfiguration conf = testConf.withSeeds(Collections.singletonList(URI.create("http://host"))).build();
+
+
+        CrawlJob job = sut.build(conf, listener);
         job.start();
 
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);

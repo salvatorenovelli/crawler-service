@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import lombok.extern.slf4j.Slf4j;
@@ -14,21 +15,18 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
 @Component
 public class WorkspaceCrawler {
 
-    public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 5;
-    public static final int MAX_URL_PER_DOMAIN = 10000;
+
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
@@ -62,7 +60,14 @@ public class WorkspaceCrawler {
         seedsByOrigin.forEach((baseDomainPath, seeds) ->
                 executor.execute(() -> runOrLogWarning(() -> {
                     log.info("Crawling {} with seeds: {}", baseDomainPath, seeds);
-                    CrawlJob job = crawlJobFactory.build(baseDomainPath, new ArrayList<>(seeds), getNumConcurrentConnections(seeds), MAX_URL_PER_DOMAIN, crawlListener);
+
+                    CrawlConfiguration conf = CrawlConfiguration
+                            .newConfiguration(baseDomainPath)
+                            .withSeeds(new ArrayList<>(seeds))
+                            .withConcurrentConnections(seeds.size())
+                            .build();
+
+                    CrawlJob job = crawlJobFactory.build(conf, crawlListener);
                     job.start();
                     //this needs to go
                     seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
@@ -93,9 +98,6 @@ public class WorkspaceCrawler {
         }).orElse(true);
     }
 
-    private int getNumConcurrentConnections(Collection<URI> seeds) {
-        return ensureRange(seeds.size(), 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
-    }
 
     private String addTrailingSlashIfMissing(String uri) {
         return uri + (uri.endsWith("/") ? "" : "/");
