@@ -35,7 +35,7 @@ public class CrawlerPoolStatusMonitor {
                     e.printStackTrace();
                 }
             }
-        });
+        }, "poolmonitor-" + name);
 
         thread.setDaemon(true);
     }
