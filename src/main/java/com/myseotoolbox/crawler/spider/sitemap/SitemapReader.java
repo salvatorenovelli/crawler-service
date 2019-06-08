@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 public class SitemapReader {
     public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrl, List<String> allowedPaths) {
         log.info("Fetching {} sitemap for {} with allowed paths: {}", sitemapsUrl.size(), origin, allowedPaths);
-        List<URI> sitemapSeeds = new SiteMap(sitemapsUrl, allowedPaths).getUris()
+        List<URI> sitemapSeeds = new SiteMap(origin, sitemapsUrl, allowedPaths).fetchUris()
                 .stream()
                 .map(this::toValidUri)
                 .filter(Optional::isPresent)

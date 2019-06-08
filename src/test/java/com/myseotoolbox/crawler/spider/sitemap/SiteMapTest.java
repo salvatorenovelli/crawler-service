@@ -20,6 +20,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
 
@@ -29,10 +30,15 @@ public class SiteMapTest {
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private TestWebsite testWebsite;
 
+    private URI origin;
+    SiteMap siteMap;
+
     @Before
     public void setUp() throws Exception {
         LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
         testWebsite = testWebsiteBuilder.run();
+        origin = testUri("/");
+        siteMap = new SiteMap(origin, uri("/sitemap.xml"));
     }
 
     @After
@@ -47,8 +53,7 @@ public class SiteMapTest {
                 .havingUrls("/location1", "/location2")
                 .build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        List<String> urls = siteMap.getUris();
+        List<String> urls = siteMap.fetchUris();
 
 
         assertThat(urls, hasItems(uri("/location1"), uri("/location2")));
@@ -61,8 +66,7 @@ public class SiteMapTest {
                 .havingUrls("/location1", "/location2", "/location2")
                 .build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        List<String> urls = siteMap.getUris();
+        List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
         assertThat(urls, hasItems(uri("/location1"), uri("/location2")));
@@ -80,8 +84,7 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        List<String> urls = siteMap.getUris();
+        List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasItems(uri("/it/1"), uri("/it/2"), uri("/uk/1"), uri("/uk/2")));
     }
@@ -100,8 +103,8 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(uris("/sitemap.xml"), Collections.singletonList("/it"));
-        List<String> urls = siteMap.getUris();
+        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it"));
+        List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
         assertThat(urls, hasItems(uri("/it/1"), uri("/it/2")));
@@ -121,8 +124,8 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(uris("/sitemap.xml"), Collections.singletonList("/it/"));
-        List<String> urls = siteMap.getUris();
+        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it/"));
+        List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
         assertThat(urls, hasItems(uri("/it/1"), uri("/it/2")));
@@ -140,8 +143,8 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(uris("/sitemap.xml"), Collections.singletonList("/it"));
-        siteMap.getUris();
+        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it"));
+        siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());
         assertThat(requestsReceived, hasSize(2));
@@ -155,8 +158,7 @@ public class SiteMapTest {
                 .havingUrls("/location1", "/location2", "https://differentdomain/location2")
                 .build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        List<String> uris = siteMap.getUris();
+        List<String> uris = siteMap.fetchUris();
 
         assertThat(uris, hasSize(2));
         assertThat(uris, hasItems(uri("/location1"), uri("/location2")));
@@ -178,8 +180,7 @@ public class SiteMapTest {
                 .havingUrls("/it/1", "/it/2").build();
 
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        siteMap.getUris();
+        siteMap.fetchUris();
 
         assertThat(differentDomainWebsite.getRequestsReceived(), hasSize(0));
     }
@@ -194,8 +195,8 @@ public class SiteMapTest {
                 .withSitemapOn("/two/")
                 .havingUrls("/two/1", "/two/2").build();
 
-        SiteMap siteMap = new SiteMap(uris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
-        List<String> uris = siteMap.getUris();
+        SiteMap siteMap = new SiteMap(origin, uris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
+        List<String> uris = siteMap.fetchUris();
 
 
         assertThat(uris, hasSize(4));
@@ -212,8 +213,8 @@ public class SiteMapTest {
                 .withSitemapOn("/sitemap_two.xml")
                 .havingUrls("/1", "/3").build();
 
-        SiteMap siteMap = new SiteMap(uris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
-        List<String> uris = siteMap.getUris();
+        SiteMap siteMap = new SiteMap(origin, uris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
+        List<String> uris = siteMap.fetchUris();
 
 
         assertThat(uris, hasSize(3));
@@ -230,8 +231,7 @@ public class SiteMapTest {
                 .havingUrls("/valid-url/1", "/valid-url/2")
                 .build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        List<String> uris = siteMap.getUris();
+        List<String> uris = siteMap.fetchUris();
 
 
         assertThat(uris, hasSize(2));
@@ -245,11 +245,47 @@ public class SiteMapTest {
                 .havingUrls("/valid-url1", "/valid-url2", "/invalid url")
                 .build();
 
-        SiteMap siteMap = new SiteMap(uri("/sitemap.xml"));
-        List<String> uris = siteMap.getUris();
+        List<String> uris = siteMap.fetchUris();
 
 
         assertTrue(uris.size() >= 2);
+    }
+
+
+    @Test
+    public void shouldNotFetchSitemapOutsideOrigin() throws Exception {
+        givenAWebsite().withSitemapOn("/").havingUrls("/correct-domain-url").build();
+
+        TestWebsiteBuilder wrongWebsiteBuilder = TestWebsiteBuilder.build();
+        TestWebsite wrongWebsite = wrongWebsiteBuilder.withSitemapOn("/").havingUrls("/wrong-domain-url").build().run();
+
+
+        SiteMap sut = new SiteMap(testUri("/"), Collections.singletonList(wrongWebsiteBuilder.buildTestUri("/sitemap.xml").toString()), Collections.singletonList("/"));
+        List<String> uris = sut.fetchUris();
+
+
+        assertThat(wrongWebsite.getRequestsReceived().size(), is(0));
+        assertThat(uris, hasSize(0));
+    }
+
+
+    @Test
+    public void shouldNotFetchSitemapOutsideOriginWhenLinkedFromSitemapIndex() throws Exception {
+
+        TestWebsiteBuilder wrongWebsiteBuilder = TestWebsiteBuilder.build();
+        TestWebsite wrongWebsite = wrongWebsiteBuilder.withSitemapOn("/").havingUrls("/wrong-domain-url").build().run();
+
+        givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/correct/", wrongWebsiteBuilder.buildTestUri("/wrong-sitemap.xml").toString()).and()
+                .withSitemapOn("/correct/sitemap.xml").havingUrls("/correct/correct-domain-url").build();
+
+
+        SiteMap sut = new SiteMap(testUri("/"), Collections.singletonList(testUri("/sitemap.xml").toString()), Collections.singletonList("/"));
+        List<String> uris = sut.fetchUris();
+
+        assertThat(wrongWebsite.getRequestsReceived().size(), is(0));
+        assertThat(uris, hasItems(testUri("/correct/correct-domain-url").toString()));
     }
 
     private String uri(String s) {

@@ -22,28 +22,30 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 @Slf4j
 public class SiteMap {
 
+    private final URI origin;
     private final PathFilter pathFilter;
     private final List<URL> siteMapsUrls;
 
     private SiteMapParser siteMapParser = new SiteMapParser();
 
-    public SiteMap(String url) {
-        this(Collections.singletonList(url), Collections.singletonList("/"));
+    SiteMap(URI origin, String sitemapUrl) {
+        this(origin, Collections.singletonList(sitemapUrl), Collections.singletonList("/"));
     }
 
-    public SiteMap(List<String> sitemaps, List<String> allowedPaths) {
+    public SiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
+        this.origin = origin;
         this.siteMapsUrls = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
         this.pathFilter = new PathFilter(allowedPaths);
     }
 
-    public List<String> getUris() {
-        return this.siteMapsUrls.stream().flatMap(url -> extractUrls(url).stream()).distinct().collect(Collectors.toList());
+    public List<String> fetchUris() {
+        return this.siteMapsUrls.stream().flatMap(url -> fetch(url).stream()).distinct().collect(Collectors.toList());
     }
 
     /**
      * Recursively scan Sitemap Index (the type of sitemap that has links to other sitemaps) and collect urls
      */
-    private List<String> extractUrls(URL url) {
+    private List<String> fetch(URL url) {
 
         if (!shouldFetch(url)) {
             return Collections.emptyList();
@@ -54,7 +56,7 @@ public class SiteMap {
             AbstractSiteMap asm = siteMapParser.parseSiteMap(url);
             if (asm instanceof SiteMapIndex) {
                 SiteMapIndex smi = (SiteMapIndex) asm;
-                return smi.getSitemaps().stream().flatMap(sm -> extractUrls(sm.getUrl()).stream()).distinct().collect(Collectors.toList());
+                return smi.getSitemaps().stream().flatMap(sm -> fetch(sm.getUrl()).stream()).distinct().collect(Collectors.toList());
             } else {
                 crawlercommons.sitemaps.SiteMap sm = (crawlercommons.sitemaps.SiteMap) asm;
                 return sm.getSiteMapUrls().stream().map(siteMapURL -> siteMapURL.getUrl().toString()).distinct().collect(Collectors.toList());
@@ -77,7 +79,7 @@ public class SiteMap {
     }
 
     private boolean isSameDomain(URL url) {
-        return isHostMatching(URI.create(url.toString()), URI.create(this.siteMapsUrls.get(0).toString()));
+        return isHostMatching(URI.create(url.toString()), origin);
     }
 
     private URL mapToUrlOrLogWarning(String s) {
