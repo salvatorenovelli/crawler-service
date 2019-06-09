@@ -140,7 +140,7 @@ public class CrawlJobFactoryTest {
 
     private WebPageReaderFactory mockWebPageReaderFactory() {
 
-        return new WebPageReaderFactory() {
+        return new WebPageReaderFactory(null) {
             @Override
             public WebPageReader build(UriFilter uriFilter) {
                 return reader;

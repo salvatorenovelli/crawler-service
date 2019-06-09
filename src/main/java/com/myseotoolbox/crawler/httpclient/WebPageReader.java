@@ -19,9 +19,11 @@ public class WebPageReader {
     private final HtmlParser parser = new HtmlParser();
     private final CalendarService calendarService = new CalendarService();
     private final UriFilter uriFilter;
+    private final HttpRequestFactory httpRequestFactory;
 
-    public WebPageReader(UriFilter uriFilter) {
+    public WebPageReader(UriFilter uriFilter, HttpRequestFactory httpRequestFactory) {
         this.uriFilter = uriFilter;
+        this.httpRequestFactory = httpRequestFactory;
     }
 
     public SnapshotResult snapshotPage(URI uri) throws SnapshotException {
@@ -68,7 +70,7 @@ public class WebPageReader {
 
     private boolean scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
 
-        HttpResponse response = new HttpGetRequest(currentURI).execute();
+        HttpResponse response = httpRequestFactory.buildGetFor(currentURI).execute();
 
         int httpStatus = response.getHttpStatus();
         URI location = response.getLocation();

@@ -1,6 +1,8 @@
 package com.myseotoolbox.crawler.spider;
 
 
+import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
+import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,6 +11,9 @@ import org.springframework.context.annotation.Configuration;
 public class SpiderConfig {
 
 
+    private HttpURLConnectionFactory connectionFactory = new HttpURLConnectionFactory();
+    private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(connectionFactory);
+
     @Bean
     public CrawlExecutorFactory getExecutorBuilder() {
         return new CrawlExecutorFactory();
@@ -16,6 +21,6 @@ public class SpiderConfig {
 
     @Bean
     public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, RobotsTxtFactory robotstxtFactory, SitemapReader sitemapReader) {
-        return new CrawlJobFactory(new WebPageReaderFactory(), new WebsiteUriFilterFactory(), crawlExecutorFactory, robotstxtFactory, sitemapReader);
+        return new CrawlJobFactory(new WebPageReaderFactory(httpRequestFactory), new WebsiteUriFilterFactory(), crawlExecutorFactory, robotstxtFactory, sitemapReader);
     }
 }

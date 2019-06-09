@@ -1,5 +1,7 @@
 package com.myseotoolbox.crawler;
 
+import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
+import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
@@ -37,10 +39,11 @@ public class WebPageReaderTest {
 
     private WebPageReader sut;
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
+    private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(new HttpURLConnectionFactory());
 
     @Before
     public void setUp() {
-        sut = new WebPageReader(ALLOW_ALL_URI);
+        sut = new WebPageReader(ALLOW_ALL_URI, httpRequestFactory);
     }
 
     @After
@@ -291,7 +294,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldReturnBlockedSnapshotIfUrlIsDisallowed() throws Exception {
 
-        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"));
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
 
         givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
@@ -314,7 +317,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldNotFetchDisallowedUri() throws Exception {
 
-        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"));
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
 
         TestWebsite website = givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()

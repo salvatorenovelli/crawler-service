@@ -27,15 +27,17 @@ public class HttpGetRequest {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpGetRequest.class);
     private final URI uri;
+    private final HttpURLConnectionFactory connectionFactory;
 
-    public HttpGetRequest(URI uri) {
+    public HttpGetRequest(URI uri, HttpURLConnectionFactory connectionFactory) {
         this.uri = uri;
+        this.connectionFactory = connectionFactory;
     }
 
 
     public HttpResponse execute() throws IOException, URISyntaxException {
 
-        HttpURLConnection connection = createConnection(new URI(uri.toASCIIString()));
+        HttpURLConnection connection = connectionFactory.createConnection(new URI(uri.toASCIIString()));
 
         connection.setRequestMethod("GET");
         connection.setInstanceFollowRedirects(false);
@@ -62,9 +64,7 @@ public class HttpGetRequest {
             throw new UnsupportedMimeTypeException("Unhandled content type. Must be text/*, application/xml, or application/xhtml+xml", contentType, connection.getURL().toString());
     }
 
-    private HttpURLConnection createConnection(URI uri) throws IOException {
-        return (HttpURLConnection) uri.toURL().openConnection();
-    }
+
 
 
     private URI extractDestinationUri(HttpURLConnection connection, URI initialLocation) throws URISyntaxException {
