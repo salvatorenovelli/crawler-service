@@ -1,8 +1,15 @@
 User-agent: *
 
-Disallow: /*order
-Disallow: /*blocked-by-robots
+Disallow: /order
+Disallow: /blocked-by-robots
 
 
 User-agent: Mozilla/4.0 (compatible; BullsEye; Windows 95)
 Disallow: /
+
+
+
+User-agent: MySeoToolboxSpider
+Disallow: /disallowed-for-seobot
+Disallow: /order
+Disallow: /blocked-by-robots

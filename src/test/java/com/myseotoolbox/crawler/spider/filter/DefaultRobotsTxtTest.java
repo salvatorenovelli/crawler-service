@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider.filter;
 
 import com.myseotoolbox.crawler.spider.robotstxt.DefaultRobotsTxt;
-import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.junit.After;
 import org.junit.Before;
@@ -15,7 +14,7 @@ import static org.junit.Assert.assertTrue;
 
 public class DefaultRobotsTxtTest {
 
-    private RobotsTxt sut;
+    private DefaultRobotsTxt sut;
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private InputStream stream = getClass().getResourceAsStream("/robots.txt");
@@ -46,6 +45,11 @@ public class DefaultRobotsTxtTest {
     @Test
     public void shouldAllow() {
         assertTrue(sut.shouldCrawl(null, URI.create("http://domain/product")));
+    }
+
+    @Test
+    public void shouldUseSpecificValues() {
+        assertFalse(sut.shouldCrawl(null,URI.create("http://domain/disallowed-for-seobot")));
     }
 
     private URI testUri(String url) {

@@ -3,8 +3,8 @@ package com.myseotoolbox.crawler;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.UriFilter;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
@@ -19,6 +19,8 @@ import org.junit.Test;
 import java.net.URI;
 import java.util.List;
 
+import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_NAME;
+import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_VERSION;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -215,7 +217,7 @@ public class WebPageReaderTest {
 
         List<ReceivedRequest> requests = website.getRequestsReceived();
 
-        assertThat(requests.get(0).getUserAgent(), is("Mozilla/5.0 (compatible; SeoBot/1.0)"));
+        assertThat(requests.get(0).getUserAgent(), is("Mozilla/5.0 (compatible; " + BOT_NAME + "/" + BOT_VERSION + ")"));
 
     }
 

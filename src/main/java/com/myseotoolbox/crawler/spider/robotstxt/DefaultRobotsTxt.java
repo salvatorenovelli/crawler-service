@@ -15,6 +15,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_NAME;
+
 @Slf4j
 public class DefaultRobotsTxt implements RobotsTxt {
 
@@ -29,7 +31,7 @@ public class DefaultRobotsTxt implements RobotsTxt {
             CloseableHttpResponse response = httpclient.execute(httpget);
             final HttpEntity entity = response.getEntity();
             SimpleRobotRulesParser parser = new SimpleRobotRulesParser();
-            this.robotRules = parser.parseContent(websiteOrigin.toString(), IOUtils.toByteArray(entity.getContent()), null, "");
+            this.robotRules = parser.parseContent(websiteOrigin.toString(), IOUtils.toByteArray(entity.getContent()), null, BOT_NAME);
             if (robotRules.getRobotRules().size() < 1) log.warn("robots.txt was empty for {}", websiteOrigin);
 
         }

@@ -20,7 +20,9 @@ public class HttpGetRequest {
     private static final Pattern xmlContentTypeRxp = Pattern.compile("(application|text)/\\w*\\+?xml.*");
 
 
-    public static final String USER_AGENT = "Mozilla/5.0 (compatible; SeoBot/1.0)";
+    public static final String BOT_NAME = "MySeoToolboxSpider";
+    public static final String BOT_VERSION = "1.0";
+    public static final String USER_AGENT = "Mozilla/5.0 (compatible; " + BOT_NAME + "/" + BOT_VERSION + ")";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
 
     private static final Logger logger = LoggerFactory.getLogger(HttpGetRequest.class);
