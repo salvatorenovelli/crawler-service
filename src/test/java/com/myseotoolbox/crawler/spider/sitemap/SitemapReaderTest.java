@@ -39,7 +39,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/outside/shouldnotaddthis")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -51,7 +51,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/should not add this")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(URI.create("someuri"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }

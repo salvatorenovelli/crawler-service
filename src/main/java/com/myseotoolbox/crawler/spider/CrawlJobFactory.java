@@ -43,7 +43,7 @@ public class CrawlJobFactory {
         Collection<URI> seeds = configuration.getSeeds();
         List<String> allowedPaths = configuration.getAllowedPaths();
 
-        RobotsTxt robotsTxt = robotsTxtFactory.buildRobotsTxtFor(origin);
+        RobotsTxt robotsTxt = robotsTxtFactory.buildRobotsTxtFor(configuration.getRobotsTxtConfiguration());
 
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths, robotsTxt);
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);

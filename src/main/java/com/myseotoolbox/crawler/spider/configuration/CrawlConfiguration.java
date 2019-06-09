@@ -24,16 +24,18 @@ public class CrawlConfiguration {
     private final Collection<URI> seeds;
     private final int maxConcurrentConnections;
     private final int crawledPageLimit;
+    private final RobotsTxtConfiguration robotsTxtConfiguration;
 
-    private CrawlConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, int crawledPageLimit) {
+    private CrawlConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, int crawledPageLimit, RobotsTxtConfiguration robotsTxtConfiguration) {
         this.origin = origin;
         this.seeds = seeds;
         this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
         this.crawledPageLimit = crawledPageLimit;
+        this.robotsTxtConfiguration = robotsTxtConfiguration;
     }
 
-    public static CrawlConfigurationBuilder newConfiguration(URI origin) {
-        return new CrawlConfigurationBuilder(origin);
+    public static Builder newConfiguration(URI origin) {
+        return new Builder(origin);
     }
 
     public URI getOrigin() {
@@ -62,30 +64,32 @@ public class CrawlConfiguration {
         return StringUtils.isEmpty(input) ? "/" : input;
     }
 
-    public static class CrawlConfigurationBuilder {
+    public static class Builder {
 
 
         private Collection<URI> seeds = Collections.emptyList();
         private final URI origin;
         private int crawledPageLimit = DEFAULT_MAX_URL_PER_CRAWL;
         private int maxConcurrentConnections = DEFAULT_CONCURRENT_CONNECTIONS;
+        private RobotsTxtConfiguration robotsTxtConfiguration;
 
-        public CrawlConfigurationBuilder(URI origin) {
+        public Builder(URI origin) {
             this.origin = origin;
+            robotsTxtConfiguration = new RobotsTxtConfiguration(origin);
         }
 
-        public CrawlConfigurationBuilder withSeeds(Collection<URI> seeds) {
+        public Builder withSeeds(Collection<URI> seeds) {
             this.seeds = Collections.unmodifiableCollection(seeds);
             return this;
         }
 
-        public CrawlConfigurationBuilder withConcurrentConnections(int maxConcurrentConnections) {
+        public Builder withConcurrentConnections(int maxConcurrentConnections) {
             this.maxConcurrentConnections = maxConcurrentConnections;
             return this;
         }
 
         public CrawlConfiguration build() {
-            return new CrawlConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit);
+            return new CrawlConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit, robotsTxtConfiguration);
         }
     }
 
