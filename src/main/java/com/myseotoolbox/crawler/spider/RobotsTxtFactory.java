@@ -1,9 +1,9 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtConfiguration;
-import com.myseotoolbox.crawler.spider.robotstxt.DefaultRobotsTxt;
-import com.myseotoolbox.crawler.spider.robotstxt.EmptyRobotsTxt;
-import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

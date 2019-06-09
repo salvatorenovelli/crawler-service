@@ -3,7 +3,7 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.spider.filter.BasicUriFilter;
 import com.myseotoolbox.crawler.spider.filter.FilterAggregator;
 import com.myseotoolbox.crawler.spider.filter.PathFilter;
-import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;

@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler;
 
 
-import com.myseotoolbox.crawler.config.PageCrawlListener;
 import com.myseotoolbox.crawler.model.EntityNotFoundException;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -38,7 +37,7 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     @GetMapping("/scan-origin")
-    public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) {
+    public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) {
         URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
@@ -50,7 +49,7 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     @GetMapping("/scan-workspace")
-    public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "3") int numConnections) throws EntityNotFoundException {
+    public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws EntityNotFoundException {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 

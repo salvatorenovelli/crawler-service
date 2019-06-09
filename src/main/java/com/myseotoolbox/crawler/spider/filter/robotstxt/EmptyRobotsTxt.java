@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.spider.robotstxt;
+package com.myseotoolbox.crawler.spider.filter.robotstxt;
 
 import java.net.URI;
 import java.util.Collections;

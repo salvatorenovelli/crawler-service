@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.config;
 
+import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;

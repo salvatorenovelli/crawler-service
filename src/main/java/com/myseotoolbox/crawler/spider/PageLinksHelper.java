@@ -50,7 +50,7 @@ public class PageLinksHelper {
 
             return Optional.ofNullable(uri);
         } catch (URISyntaxException e) {
-            log.debug("Invalid link: {}", str);
+            log.trace("Invalid link: {}. {}", str, e.toString());
             return Optional.empty();
         }
 

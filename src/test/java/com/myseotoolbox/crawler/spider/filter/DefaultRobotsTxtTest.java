@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.spider.filter;
 
-import com.myseotoolbox.crawler.spider.robotstxt.DefaultRobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.junit.After;
 import org.junit.Before;

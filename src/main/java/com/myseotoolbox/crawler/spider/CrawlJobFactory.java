@@ -1,9 +1,9 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.config.PageCrawlListener;
+import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
-import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import lombok.extern.slf4j.Slf4j;
 

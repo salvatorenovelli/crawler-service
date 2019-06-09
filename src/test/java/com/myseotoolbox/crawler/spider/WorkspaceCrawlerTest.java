@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.config.PageCrawlListener;
+import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;

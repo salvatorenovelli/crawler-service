@@ -1,13 +1,13 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.config.PageCrawlListener;
+import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtConfiguration;
-import com.myseotoolbox.crawler.spider.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;

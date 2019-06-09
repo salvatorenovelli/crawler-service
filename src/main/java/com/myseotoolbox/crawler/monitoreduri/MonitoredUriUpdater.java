@@ -3,6 +3,7 @@ package com.myseotoolbox.crawler.monitoreduri;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -19,6 +20,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
 
 
 @Component
+@Slf4j
 public class MonitoredUriUpdater {
     public static final boolean DONT_MATCH_SCHEMA = false;
     private final MongoOperations mongoOperations;
@@ -32,7 +34,10 @@ public class MonitoredUriUpdater {
     public void updateCurrentValue(PageSnapshot snapshot) {
 
         //this is canonicalized to a different URL. No need to re-persist it. We'll crawl the canonical version and persist that separately
-        if (isCanonicalized(snapshot)) return;
+        if (isCanonicalized(snapshot)) {
+            log.debug("Skipping persistence of {} as it's canonicalized to {}", snapshot.getUri(), snapshot.getCanonicals());
+            return;
+        }
 
         sanitize(snapshot);
 

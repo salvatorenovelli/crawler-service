@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.spider.robotstxt;
+package com.myseotoolbox.crawler.spider.filter.robotstxt;
 
 import crawlercommons.robots.SimpleRobotRules;
 import crawlercommons.robots.SimpleRobotRulesParser;
