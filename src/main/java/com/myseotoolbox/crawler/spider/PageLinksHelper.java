@@ -31,7 +31,7 @@ public class PageLinksHelper {
         return filtered;
     }
 
-    public <T> Stream<T> stream(Optional<T> opt) {
+    private <T> Stream<T> stream(Optional<T> opt) {
         return opt.map(Stream::of).orElseGet(Stream::empty);
     }
 
