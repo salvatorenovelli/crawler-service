@@ -15,12 +15,17 @@ public class SpiderConfig {
     private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(connectionFactory);
 
     @Bean
+    public HttpRequestFactory getHttpRequestFactory() {
+        return httpRequestFactory;
+    }
+
+    @Bean
     public CrawlExecutorFactory getExecutorBuilder() {
         return new CrawlExecutorFactory();
     }
 
     @Bean
-    public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, RobotsTxtFactory robotstxtFactory, SitemapReader sitemapReader) {
-        return new CrawlJobFactory(new WebPageReaderFactory(httpRequestFactory), new WebsiteUriFilterFactory(), crawlExecutorFactory, robotstxtFactory, sitemapReader);
+    public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, SitemapReader sitemapReader) {
+        return new CrawlJobFactory(new WebPageReaderFactory(httpRequestFactory), new WebsiteUriFilterFactory(), crawlExecutorFactory, sitemapReader);
     }
 }

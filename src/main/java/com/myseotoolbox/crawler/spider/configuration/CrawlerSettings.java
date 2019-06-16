@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.model;
+package com.myseotoolbox.crawler.spider.configuration;
 
 import lombok.Getter;
 
@@ -15,10 +15,12 @@ public class CrawlerSettings {
     private final int maxConcurrentConnections;
     private final boolean crawlEnabled;
     private final int crawlIntervalDays;
+    private final FilterConfiguration filterConfiguration;
 
-    public CrawlerSettings(Integer maxConcurrentConnections, boolean crawlEnabled, Integer crawlIntervalDays) {
+    public CrawlerSettings(Integer maxConcurrentConnections, boolean crawlEnabled, Integer crawlIntervalDays, FilterConfiguration filterConfiguration) {
         this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, MIN_CONCURRENT_CONNECTIONS, MAX_CONCURRENT_CONNECTIONS);
         this.crawlEnabled = crawlEnabled;
         this.crawlIntervalDays = ensureRange(crawlIntervalDays, MIN_CRAWL_INTERVAL, MAX_CRAWL_INTERVAL);
+        this.filterConfiguration = filterConfiguration;
     }
 }

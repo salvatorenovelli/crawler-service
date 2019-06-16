@@ -1,12 +1,13 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
-import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
-import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
+import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
+import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -19,12 +20,11 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import static com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
+import static com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
 import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -40,32 +40,46 @@ public class WorkspaceCrawlerTest {
     private static final int TWO_DAYS_AGO = -2;
     public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
     public static final int MAX_CRAWLS = 100;
-    private final List<Tuple2<CrawlConfiguration, CrawlJob>> mockJobs = new ArrayList<>();
+    private final List<Tuple2<CrawlJobConfiguration, CrawlJob>> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
-    private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
 
-    @Mock private CrawlJobFactory crawlFactory;
+    @Mock private CrawlJobFactory crawlJobFactory;
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
     @Mock private PageCrawlListener pageCrawlListener;
+    @Mock private RobotsTxtAggregation robotsAggregation;
 
     WorkspaceCrawler sut;
     @Spy private Executor executor = new CurrentThreadTestExecutorService();
 
     @Before
     public void setUp() {
-        sut = new WorkspaceCrawler(workspaceRepository, crawlFactory, websiteCrawlLogRepository, pageCrawlListener, executor);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, pageCrawlListener, robotsAggregation, executor);
 
-        when(crawlFactory.build(any(), any())).thenAnswer(
+        when(crawlJobFactory.build(any(), any())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
-                    CrawlConfiguration configuration = invocation.getArgument(0);
+                    CrawlJobConfiguration configuration = invocation.getArgument(0);
                     mockJobs.add(Tuple.of(configuration, mock));
                     return mock;
                 }
         );
 
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
+    }
+
+    @Test
+    public void shouldBuildRobotsTxtBasedOnAggregationAndUseItToConfigureCrawlJob() {
+        RobotsTxt returnedValue = Mockito.mock(RobotsTxt.class);
+        when(robotsAggregation.aggregate(any())).thenReturn(returnedValue);
+
+        givenAWorkspace().withWebsiteUrl("http://host1/1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/2").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/3").build();
+
+        sut.crawlAllWorkspaces();
+        verify(robotsAggregation).aggregate(argThat(workspaces -> workspaces.size() == 3));
+        verify(crawlJobFactory).build(argThat(argument -> argument.getRobotsTxt() == returnedValue), any());
     }
 
     @Test
@@ -179,7 +193,7 @@ public class WorkspaceCrawlerTest {
         givenAWorkspace().withWebsiteUrl(originWithException).build();
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
-        when(crawlFactory.build(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))), any())).thenThrow(new RuntimeException("Testing exceptions"));
+        when(crawlJobFactory.build(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))), any())).thenThrow(new RuntimeException("Testing exceptions"));
 
         sut.crawlAllWorkspaces();
 
@@ -275,7 +289,7 @@ public class WorkspaceCrawlerTest {
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
-        verify(crawlFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());
+        verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());
     }
 
     private void crawlStartedFor(String origin) {
@@ -288,76 +302,29 @@ public class WorkspaceCrawlerTest {
         try {
             URI originRoot = create(origin).resolve("/");
 
-            verify(crawlFactory).build(argThat(conf ->
+            verify(crawlJobFactory).build(argThat(conf ->
                     conf.getOrigin().equals(originRoot) &&
-                    conf.getSeeds().containsAll(expectedSeeds)), any());
+                            conf.getSeeds().containsAll(expectedSeeds)), any());
 
             mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job).start());
         } catch (Throwable e) {
-            System.out.println(mockingDetails(crawlFactory).printInvocations());
+            System.out.println(mockingDetails(crawlJobFactory).printInvocations());
             throw e;
         }
     }
 
     private void verifyNoMoreCrawls() {
         try {
-            verifyNoMoreInteractions(crawlFactory);
+            verifyNoMoreInteractions(crawlJobFactory);
             mockJobs.stream().map(Tuple2::_2).forEach(Mockito::verifyNoMoreInteractions);
         } catch (Throwable e) {
-            System.out.println(mockingDetails(crawlFactory).printInvocations());
+            System.out.println(mockingDetails(crawlJobFactory).printInvocations());
             throw e;
         }
     }
 
-    private WorkspaceBuilder givenAWorkspace() {
-        return new WorkspaceBuilder();
-    }
-
-    private class WorkspaceBuilder {
-
-
-        private final Workspace curWorkspace;
-
-        private WorkspaceBuilder() {
-            curWorkspace = new Workspace();
-            curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true, 1));
-        }
-
-        public WorkspaceBuilder withWebsiteUrl(String s) {
-            curWorkspace.setWebsiteUrl(s);
-            return this;
-        }
-
-        public void build() {
-            allWorkspaces.add(curWorkspace);
-            when(websiteCrawlLogRepository
-                    .findTopByOriginOrderByDateDesc(curWorkspace.getWebsiteUrl()))
-                    .thenAnswer(invocation -> crawlLogs.stream()
-                            .filter(websiteCrawlLog -> websiteCrawlLog.getOrigin().equals(invocation.getArgument(0)))
-                            .findFirst());
-        }
-
-        public WorkspaceBuilder withCrawlingDisabled() {
-            CrawlerSettings s = curWorkspace.getCrawlerSettings();
-            curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), false, s.getCrawlIntervalDays()));
-            return this;
-        }
-
-        public WorkspaceBuilder withCrawlingIntervalOf(int days) {
-            CrawlerSettings s = curWorkspace.getCrawlerSettings();
-            curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), s.isCrawlEnabled(), days));
-            return this;
-        }
-
-        public WorkspaceBuilder withLastCrawlHappened(int dayOffset) {
-            crawlLogs.add(new WebsiteCrawlLog(curWorkspace.getWebsiteUrl(), LocalDate.now().plusDays(dayOffset)));
-            return this;
-        }
-
-        public WorkspaceBuilder withCrawlerSettings(CrawlerSettings settings) {
-            curWorkspace.setCrawlerSettings(settings);
-            return this;
-        }
+    private TestWorkspaceBuilder givenAWorkspace() {
+        return new TestWorkspaceBuilder(allWorkspaces, websiteCrawlLogRepository);
     }
 
     private String addTrailingSlashIfMissing(String uri) {

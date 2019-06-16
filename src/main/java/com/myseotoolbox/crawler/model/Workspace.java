@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.model;
 
 
+import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;

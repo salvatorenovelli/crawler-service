@@ -1,29 +1,27 @@
 package com.myseotoolbox.crawler.spider.filter;
 
+import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.net.URI;
 
+import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_NAME;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class DefaultRobotsTxtTest {
 
-    private DefaultRobotsTxt sut;
+    private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
-    TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
-    private InputStream stream = getClass().getResourceAsStream("/robots.txt");
 
     @Before
     public void setUp() throws Exception {
-        givenAWebsite().withRobotsTxt(stream).withRobotTxtHavingRedirect();
         testWebsiteBuilder.run();
-        sut = new DefaultRobotsTxt(testUri("/"));
     }
 
     @After
@@ -33,23 +31,49 @@ public class DefaultRobotsTxtTest {
 
 
     @Test
-    public void shouldGrabRobotsTxtWithRedirect() {
-        assertFalse(sut.shouldCrawl(null, URI.create("http://domain/order")));
+    public void shouldDisallow() throws IOException {
+        givenAWebsite()
+                .withRobotsTxt().userAgent("*").disallow("/order").build()
+                .withRobotTxtHavingRedirect();
+
+        DefaultRobotsTxt sut = buildSut();
+
+        assertFalse(sut.shouldCrawl(null, testUri("/order")));
     }
 
     @Test
-    public void shouldDisallow() {
-        assertFalse(sut.shouldCrawl(null, URI.create("http://domain/order")));
+    public void shouldAllow() throws IOException {
+
+        givenAWebsite()
+                .withRobotsTxt().userAgent("*").disallow("/order").build()
+                .withRobotTxtHavingRedirect();
+
+        DefaultRobotsTxt sut = buildSut();
+
+        assertTrue(sut.shouldCrawl(null, URI.create("/product")));
     }
 
     @Test
-    public void shouldAllow() {
-        assertTrue(sut.shouldCrawl(null, URI.create("http://domain/product")));
+    public void shouldUseSpecificValues() throws IOException {
+
+        givenAWebsite()
+                .withRobotsTxt().userAgent("*").disallow("/order").build()
+                .withRobotsTxt().userAgent(BOT_NAME).disallow("/disallowed-for-seobot").build()
+                .withRobotTxtHavingRedirect();
+
+        DefaultRobotsTxt sut = buildSut();
+
+        assertFalse(sut.shouldCrawl(null, testUri("/disallowed-for-seobot")));
     }
 
     @Test
-    public void shouldUseSpecificValues() {
-        assertFalse(sut.shouldCrawl(null,URI.create("http://domain/disallowed-for-seobot")));
+    public void shouldGrabRobotsTxtWithRedirect() throws IOException {
+        givenAWebsite()
+                .withRobotsTxt().userAgent("*").disallow("/order").build()
+                .withRobotTxtHavingRedirect();
+
+        DefaultRobotsTxt sut = buildSut();
+        assertFalse(sut.shouldCrawl(null, testUri("/order")));
     }
 
     private URI testUri(String url) {
@@ -58,5 +82,12 @@ public class DefaultRobotsTxtTest {
 
     private TestWebsiteBuilder givenAWebsite() {
         return testWebsiteBuilder;
+    }
+
+    private DefaultRobotsTxt buildSut() throws IOException {
+        URI origin = testUri("/").resolve("/robots.txt");
+        HTTPClient httpClient = new HTTPClient();
+        byte[] content = httpClient.get(origin).getBytes();
+        return new DefaultRobotsTxt(origin.toString(), content);
     }
 }

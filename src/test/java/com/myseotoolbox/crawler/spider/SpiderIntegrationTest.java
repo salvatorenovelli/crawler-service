@@ -1,8 +1,12 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
+import com.myseotoolbox.crawler.model.Workspace;
+import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
+import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
@@ -15,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -28,7 +31,8 @@ import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * NOTE!!! PLEASE READ
@@ -40,14 +44,11 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class SpiderIntegrationTest {
 
-    public static final int MAX_CRAWLS = 100;
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
-    private InputStream robotsTxt = getClass().getResourceAsStream("/robots.txt");
 
     @Mock private PageCrawlListener listener;
     @Mock private SitemapReader sitemapReader;
 
-    private RobotsTxtFactory robotstxtFactory = new RobotsTxtFactory();
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
@@ -139,7 +140,7 @@ public class SpiderIntegrationTest {
     @Test
     public void shouldNotVisitBlockedUriInRedirectChain() {
         TestWebsite save = givenAWebsite()
-                .withRobotsTxt(robotsTxt)
+                .withRobotsTxt().userAgent("*").disallow("/blocked-by-robots").build()
                 .havingRootPage().redirectingTo(301, "/blocked-by-robots").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
@@ -154,7 +155,7 @@ public class SpiderIntegrationTest {
     @Test
     public void shouldNotNotifyListenersWhenChainIsBlocked() {
         givenAWebsite()
-                .withRobotsTxt(robotsTxt)
+                .withRobotsTxt().userAgent("*").disallow("/blocked-by-robots").build()
                 .havingRootPage().withLinksTo("/dst1", "dst2").and()
                 .havingPage("/dst2").redirectingTo(301, "/blocked-by-robots").save();
 
@@ -190,7 +191,19 @@ public class SpiderIntegrationTest {
 
         verify(listener).accept(uri("/"));
         verify(listener).accept(uri("/dst1"));
-        System.out.println(mockingDetails(listener).printInvocations());
+        verifyNoMoreInteractions(listener);
+    }
+
+    @Test
+    public void integrateWithRobotsTxt() {
+        givenAWebsite()
+                .withRobotsTxt().userAgent("*").disallow("/disallowed").build()
+                .havingRootPage().withLinksTo("/disallowed").save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(listener).accept(uri("/"));
         verifyNoMoreInteractions(listener);
     }
 
@@ -206,11 +219,25 @@ public class SpiderIntegrationTest {
         SpiderConfig spiderConfig = new SpiderConfig();
 
         CrawlJobFactory crawlJobFactory = spiderConfig
-                .getCrawlJobFactory(testExecutorBuilder, robotstxtFactory, sitemapReader);
+                .getCrawlJobFactory(testExecutorBuilder, sitemapReader);
 
-        CrawlJob job = crawlJobFactory.build(CrawlConfiguration.newConfiguration(origin).withSeeds(seeds).build(), listener);
+        RobotsTxtAggregation robotsTxtAggregation = new RobotsTxtAggregation(new HTTPClient());
 
-        return job;
+        RobotsTxt merged = robotsTxtAggregation.aggregate(seeds.stream().map(uri -> {
+            Workspace workspace = new Workspace();
+            workspace.setWebsiteUrl(uri.toString());
+            return workspace;
+        }).collect(Collectors.toList()));
+
+        CrawlJobConfiguration conf = CrawlJobConfiguration
+                .newConfiguration(origin)
+                .withSeeds(seeds)
+                .withConcurrentConnections(seeds.size())
+                .withRobotsTxt(merged)
+                .build();
+
+
+        return crawlJobFactory.build(conf, listener);
     }
 
     private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {

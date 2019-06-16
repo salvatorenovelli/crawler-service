@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawler.repository;
 
-import com.myseotoolbox.crawler.model.CrawlerSettings;
 import com.myseotoolbox.crawler.model.Workspace;
+import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,7 +14,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 
-import static com.myseotoolbox.crawler.model.CrawlerSettings.*;
+import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.*;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -53,7 +53,7 @@ public class WorkspaceRepositoryTest {
     @Test
     public void shouldSanitizeCrawlerSettingsMins() {
         Workspace workspace = new Workspace();
-        CrawlerSettings crawlerSettings = new CrawlerSettings(-100, true, -10);
+        CrawlerSettings crawlerSettings = new CrawlerSettings(-100, true, -10, null);
         workspace.setCrawlerSettings(crawlerSettings);
 
 
@@ -67,7 +67,7 @@ public class WorkspaceRepositoryTest {
     @Test
     public void shouldSanitizeCrawlerSettingsMaxs() {
         Workspace workspace = new Workspace();
-        CrawlerSettings crawlerSettings = new CrawlerSettings(559849351, true, 578749);
+        CrawlerSettings crawlerSettings = new CrawlerSettings(559849351, true, 578749, null);
         workspace.setCrawlerSettings(crawlerSettings);
 
 

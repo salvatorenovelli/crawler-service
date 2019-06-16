@@ -2,7 +2,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
-import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
+import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import lombok.extern.slf4j.Slf4j;
@@ -20,30 +20,27 @@ public class CrawlJobFactory {
     private final WebPageReaderFactory webPageReaderFactory;
     private final WebsiteUriFilterFactory uriFilterFactory;
     private final CrawlExecutorFactory crawlExecutorFactory;
-    private final RobotsTxtFactory robotsTxtFactory;
     private final SitemapReader sitemapReader;
 
     public CrawlJobFactory(WebPageReaderFactory webPageReaderFactory,
                            WebsiteUriFilterFactory uriFilterFactory,
                            CrawlExecutorFactory crawlExecutorFactory,
-                           RobotsTxtFactory robotsTxtFactory,
                            SitemapReader sitemapReader) {
         this.webPageReaderFactory = webPageReaderFactory;
         this.uriFilterFactory = uriFilterFactory;
         this.crawlExecutorFactory = crawlExecutorFactory;
-        this.robotsTxtFactory = robotsTxtFactory;
         this.sitemapReader = sitemapReader;
     }
 
 
-    public CrawlJob build(CrawlConfiguration configuration, PageCrawlListener onPageCrawled) {
+    public CrawlJob build(CrawlJobConfiguration configuration, PageCrawlListener onPageCrawled) {
 
         URI origin = configuration.getOrigin();
 
         Collection<URI> seeds = configuration.getSeeds();
         List<String> allowedPaths = configuration.getAllowedPaths();
 
-        RobotsTxt robotsTxt = robotsTxtFactory.buildRobotsTxtFor(configuration.getRobotsTxtConfiguration());
+        RobotsTxt robotsTxt = configuration.getRobotsTxt();
 
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths, robotsTxt);
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);

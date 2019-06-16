@@ -7,7 +7,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
-import com.myseotoolbox.crawler.spider.configuration.CrawlConfiguration;
+import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,7 +41,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
-        CrawlConfiguration build = CrawlConfiguration.newConfiguration(origin).withSeeds(seedsAsUri).withConcurrentConnections(numConnections).build();
+        CrawlJobConfiguration build = CrawlJobConfiguration.newConfiguration(origin).withSeeds(seedsAsUri).withConcurrentConnections(numConnections).build();
 
         CrawlJob job = factory.build(build, pageCrawlListener);
         job.start();
@@ -53,7 +53,7 @@ public class AdminWorkspaceCrawlStartController {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
-        CrawlConfiguration conf = CrawlConfiguration.newConfiguration(origin).withSeeds(Collections.singletonList(origin)).withConcurrentConnections(numConnections).build();
+        CrawlJobConfiguration conf = CrawlJobConfiguration.newConfiguration(origin).withSeeds(Collections.singletonList(origin)).withConcurrentConnections(numConnections).build();
 
         CrawlJob job = factory.build(conf, pageCrawlListener);
 

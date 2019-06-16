@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 
@@ -13,7 +14,7 @@ import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 
 @Getter
-public class CrawlConfiguration {
+public class CrawlJobConfiguration {
 
 
     public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 5;
@@ -24,14 +25,14 @@ public class CrawlConfiguration {
     private final Collection<URI> seeds;
     private final int maxConcurrentConnections;
     private final int crawledPageLimit;
-    private final RobotsTxtConfiguration robotsTxtConfiguration;
+    private final RobotsTxt robotsTxt;
 
-    private CrawlConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, int crawledPageLimit, RobotsTxtConfiguration robotsTxtConfiguration) {
+    private CrawlJobConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, int crawledPageLimit, RobotsTxt robotsTxt) {
         this.origin = origin;
         this.seeds = seeds;
         this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
         this.crawledPageLimit = crawledPageLimit;
-        this.robotsTxtConfiguration = robotsTxtConfiguration;
+        this.robotsTxt = robotsTxt;
     }
 
     public static Builder newConfiguration(URI origin) {
@@ -64,6 +65,10 @@ public class CrawlConfiguration {
         return StringUtils.isEmpty(input) ? "/" : input;
     }
 
+    public RobotsTxt getRobotsTxt() {
+        return robotsTxt;
+    }
+
     public static class Builder {
 
 
@@ -71,11 +76,10 @@ public class CrawlConfiguration {
         private final URI origin;
         private int crawledPageLimit = DEFAULT_MAX_URL_PER_CRAWL;
         private int maxConcurrentConnections = DEFAULT_CONCURRENT_CONNECTIONS;
-        private RobotsTxtConfiguration robotsTxtConfiguration;
+        private RobotsTxt robotsTxt;
 
         public Builder(URI origin) {
             this.origin = origin;
-            robotsTxtConfiguration = new RobotsTxtConfiguration(origin);
         }
 
         public Builder withSeeds(Collection<URI> seeds) {
@@ -88,8 +92,13 @@ public class CrawlConfiguration {
             return this;
         }
 
-        public CrawlConfiguration build() {
-            return new CrawlConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit, robotsTxtConfiguration);
+        public Builder withRobotsTxt(RobotsTxt robotsTxt) {
+            this.robotsTxt = robotsTxt;
+            return this;
+        }
+
+        public CrawlJobConfiguration build() {
+            return new CrawlJobConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit, robotsTxt);
         }
     }
 

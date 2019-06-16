@@ -137,6 +137,10 @@ public class TestWebsiteBuilder {
         return this;
     }
 
+    public RobotsTxtBuilder withRobotsTxt() {
+        return new RobotsTxtBuilder(this);
+    }
+
     public TestWebsiteBuilder withRobotsTxt(InputStream stream) {
         this.robotsTxtStream = stream;
         return this;
@@ -203,10 +207,6 @@ public class TestWebsiteBuilder {
         public TestSiteMap(boolean isSiteMapIndex, List<String> urls) {
             this.isSiteMapIndex = isSiteMapIndex;
             this.urls = urls;
-        }
-
-        public void addAll(List<String> urls) {
-            this.urls.addAll(urls);
         }
     }
 }
