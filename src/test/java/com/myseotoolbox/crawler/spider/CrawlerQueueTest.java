@@ -261,7 +261,7 @@ public class CrawlerQueueTest {
 
     @Test
     public void canHandleInvalidLink() {
-        whenCrawling("http://host1").discover("not a valid link", "/dst1");
+        whenCrawling("http://host1").discover("not +[a valid link", "/dst1");
 
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
@@ -324,17 +324,6 @@ public class CrawlerQueueTest {
     }
 
     @Test
-    public void shouldBeAbleToHandleURIWithSpaces() {
-        whenCrawling("http://host1").discover("/this destination contains spaces");
-        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
-        sut.start();
-
-        verify(pool).accept(taskForUri("http://host1"));
-        verify(pool).shutDown();
-        verifyNoMoreInteractions(pool);
-    }
-
-    @Test
     public void shouldBeAbleToHandleURIWithEncodedSpaces() {
         whenCrawling("http://host1").discover("/this%20destination%20contains%20spaces");
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
@@ -365,6 +354,9 @@ public class CrawlerQueueTest {
 
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
+
+
+        System.out.println(mockingDetails(pool).printInvocations());
 
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/link%20with%20spaces"));

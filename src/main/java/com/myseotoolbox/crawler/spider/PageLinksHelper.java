@@ -1,7 +1,5 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.google.common.escape.Escaper;
-import com.google.common.net.UrlEscapers;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
@@ -18,8 +16,6 @@ import java.util.stream.Stream;
 
 @Slf4j
 public class PageLinksHelper {
-
-    private static final Escaper escaper = UrlEscapers.urlFragmentEscaper();
 
     public List<URI> filterValidLinks(List<String> links) {
         List<URI> filtered = new ArrayList<>();
@@ -48,7 +44,7 @@ public class PageLinksHelper {
         str = str.trim();
 
         try {
-            String escaped = escaper.escape(str);
+            String escaped = str.replaceAll("\\s", "%20");
             URI uri = new URI(escaped);
             uri = removeFragment(uri);
             if (isEmptyLink(uri)) return Optional.empty();
