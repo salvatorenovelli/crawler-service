@@ -9,7 +9,9 @@ import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
+import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -62,14 +64,20 @@ public class AdminWorkspaceCrawlStartController {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
-        CrawlJobConfiguration conf = CrawlJobConfiguration
-                .newConfiguration(origin)
-                .withSeeds(Collections.singletonList(origin))
-                .withDefaultRobotsTxt(client)
-                .withConcurrentConnections(numConnections)
-                .build();
 
-        CrawlJob job = factory.build(conf, pageCrawlListener);
+        CrawlJobConfiguration.Builder builder = CrawlJobConfiguration
+                .newConfiguration(origin)
+                .withConcurrentConnections(numConnections)
+                .withSeeds(Collections.singletonList(origin));
+
+        if (shouldIgnoreRobotsTxt(ws)) {
+            builder.withRobotsTxt(EmptyRobotsTxt.instance());
+        } else {
+            builder.withDefaultRobotsTxt(client);
+        }
+
+
+        CrawlJob job = factory.build(builder.build(), pageCrawlListener);
 
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
@@ -82,4 +90,9 @@ public class AdminWorkspaceCrawlStartController {
     }
 
 
+    private boolean shouldIgnoreRobotsTxt(Workspace ws) {
+        CrawlerSettings crawlerSettings = ws.getCrawlerSettings();
+        return crawlerSettings != null && crawlerSettings.getFilterConfiguration() != null &&
+                crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
+    }
 }

@@ -1,5 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
@@ -16,6 +18,8 @@ import java.util.stream.Stream;
 
 @Slf4j
 public class PageLinksHelper {
+
+    private static final Escaper escaper = UrlEscapers.urlFragmentEscaper();
 
     public List<URI> filterValidLinks(List<String> links) {
         List<URI> filtered = new ArrayList<>();
@@ -44,13 +48,14 @@ public class PageLinksHelper {
         str = str.trim();
 
         try {
-            URI uri = new URI(str);
+            String escaped = escaper.escape(str);
+            URI uri = new URI(escaped);
             uri = removeFragment(uri);
             if (isEmptyLink(uri)) return Optional.empty();
 
             return Optional.ofNullable(uri);
         } catch (URISyntaxException e) {
-            log.trace("Invalid link: {}. {}", str, e.toString());
+            log.warn("Invalid link: '{}'. {}", str, e.getMessage());
             return Optional.empty();
         }
 

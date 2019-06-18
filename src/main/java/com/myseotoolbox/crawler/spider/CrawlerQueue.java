@@ -87,7 +87,6 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
                 .distinct()
                 .collect(Collectors.toList());
 
-
         submitTasks(newLinks);
 
     }

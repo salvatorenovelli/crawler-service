@@ -360,6 +360,19 @@ public class CrawlerQueueTest {
     }
 
     @Test
+    public void shouldBeTolerantWithLinksContainingSpacesInTheMiddle() {
+        whenCrawling("http://host1").discover("/link with spaces");
+
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).accept(taskForUri("http://host1/link%20with%20spaces"));
+        verify(pool).shutDown();
+        verifyNoMoreInteractions(pool);
+    }
+
+    @Test
     public void shouldEnqueueCanonicalLinkIfDifferentFromUri() {
 
         String baseUri = "http://host1/base?t=12345";
