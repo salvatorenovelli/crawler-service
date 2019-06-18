@@ -7,6 +7,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import io.vavr.Tuple;
@@ -66,6 +67,7 @@ public class WorkspaceCrawlerTest {
         );
 
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
+        when(robotsAggregation.aggregate(any())).thenReturn(EmptyRobotsTxt.instance());
     }
 
     @Test
