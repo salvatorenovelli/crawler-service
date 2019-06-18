@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler;
 
 
+import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.EntityNotFoundException;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Date;
@@ -28,20 +30,27 @@ public class AdminWorkspaceCrawlStartController {
     private final WorkspaceRepository repository;
     private final WorkspaceCrawler workspaceCrawler;
     private final PageCrawlListener pageCrawlListener;
+    private final HTTPClient client;
 
-    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, PageCrawlListener pageCrawlListener) {
+    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, PageCrawlListener pageCrawlListener, HTTPClient client) {
         this.factory = factory;
         this.repository = repository;
         this.workspaceCrawler = workspaceCrawler;
         this.pageCrawlListener = pageCrawlListener;
+        this.client = client;
     }
 
     @GetMapping("/scan-origin")
-    public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) {
+    public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws IOException {
         URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
-        CrawlJobConfiguration build = CrawlJobConfiguration.newConfiguration(origin).withSeeds(seedsAsUri).withConcurrentConnections(numConnections).build();
+        CrawlJobConfiguration build = CrawlJobConfiguration
+                .newConfiguration(origin)
+                .withSeeds(seedsAsUri)
+                .withDefaultRobotsTxt(client)
+                .withConcurrentConnections(numConnections)
+                .build();
 
         CrawlJob job = factory.build(build, pageCrawlListener);
         job.start();
@@ -49,11 +58,16 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     @GetMapping("/scan-workspace")
-    public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws EntityNotFoundException {
+    public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws EntityNotFoundException, IOException {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
-        CrawlJobConfiguration conf = CrawlJobConfiguration.newConfiguration(origin).withSeeds(Collections.singletonList(origin)).withConcurrentConnections(numConnections).build();
+        CrawlJobConfiguration conf = CrawlJobConfiguration
+                .newConfiguration(origin)
+                .withSeeds(Collections.singletonList(origin))
+                .withDefaultRobotsTxt(client)
+                .withConcurrentConnections(numConnections)
+                .build();
 
         CrawlJob job = factory.build(conf, pageCrawlListener);
 

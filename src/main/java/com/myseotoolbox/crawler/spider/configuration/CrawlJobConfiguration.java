@@ -1,9 +1,13 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
+import com.myseotoolbox.crawler.httpclient.HTTPClient;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
@@ -98,7 +102,16 @@ public class CrawlJobConfiguration {
         }
 
         public CrawlJobConfiguration build() {
+            Validate.notNull(robotsTxt, "robots.txt configuration missing. Please use defaultRobotsTxt() or configure it with withRobotsTxt(...)");
             return new CrawlJobConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit, robotsTxt);
+        }
+
+        public Builder withDefaultRobotsTxt(HTTPClient httpClient) throws IOException {
+
+            String s = httpClient.get(origin.resolve("robots.txt"));
+            this.robotsTxt = new DefaultRobotsTxt(origin.toString(), s.getBytes());
+
+            return this;
         }
     }
 

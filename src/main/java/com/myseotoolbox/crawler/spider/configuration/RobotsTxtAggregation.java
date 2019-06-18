@@ -30,10 +30,7 @@ public class RobotsTxtAggregation {
         try {
             Workspace workspace0 = new ArrayList<>(workspaces).get(0);
 
-            if (workspaces.stream()
-                    .map(Workspace::getCrawlerSettings).filter(Objects::nonNull)
-                    .map(CrawlerSettings::getFilterConfiguration).filter(Objects::nonNull)
-                    .anyMatch(FilterConfiguration::shouldIgnoreRobotsTxt))
+            if (anyWorkspaceDisableRobots(workspaces))
                 return EmptyRobotsTxt.instance();
 
 
@@ -44,5 +41,12 @@ public class RobotsTxtAggregation {
             log.warn("Unable to build RobotsTxt for {}. {}", workspaces, e.toString());
             return EmptyRobotsTxt.instance();
         }
+    }
+
+    private boolean anyWorkspaceDisableRobots(Collection<Workspace> workspaces) {
+        return workspaces.stream()
+                .map(Workspace::getCrawlerSettings).filter(Objects::nonNull)
+                .map(CrawlerSettings::getFilterConfiguration).filter(Objects::nonNull)
+                .anyMatch(FilterConfiguration::shouldIgnoreRobotsTxt);
     }
 }
