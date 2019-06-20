@@ -276,7 +276,6 @@ public class MonitoredUriUpdaterTest {
         assertThat(monitoredUriRepo.findAll(), hasSize(1));
         assertThat(monitoredUriRepo.findAll().get(0).getUri(), is("http://host1/page1"));
 
-
     }
 
     @Test

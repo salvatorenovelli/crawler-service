@@ -16,7 +16,7 @@ import java.net.URISyntaxException;
 
 import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isChildOf;
-import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
+import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 
 @Component
@@ -34,7 +34,7 @@ public class MonitoredUriUpdater {
     public void updateCurrentValue(PageSnapshot snapshot) {
 
         //this is canonicalized to a different URL. No need to re-persist it. We'll crawl the canonical version and persist that separately
-        if (isCanonicalized(snapshot)) {
+        if (isCanonicalizedToDifferentUri(snapshot)) {
             log.debug("Skipping persistence of {} as it's canonicalized to {}", snapshot.getUri(), snapshot.getCanonicals());
             return;
         }

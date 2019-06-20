@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
-import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalized;
+import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 @Slf4j
 @ThreadSafe
@@ -65,7 +65,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
     private List<URI> discoverLinks(PageSnapshot snapshot) {
         List<URI> links = helper.filterValidLinks(snapshot.getLinks());
 
-        if (isCanonicalized(snapshot))
+        if (isCanonicalizedToDifferentUri(snapshot))
             links.addAll(helper.filterValidLinks(snapshot.getCanonicals()));
         return links;
     }

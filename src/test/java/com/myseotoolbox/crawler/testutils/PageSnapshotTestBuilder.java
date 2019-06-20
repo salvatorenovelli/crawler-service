@@ -19,6 +19,7 @@ public class PageSnapshotTestBuilder {
 
     public PageSnapshotTestBuilder(String uri) {
         cur.setUri(uri);
+        cur.setRedirectChainElements(buildRedirectChainElementsFor(uri,200));
         cur.setCreateDate(new Date());
     }
 
@@ -79,4 +80,13 @@ public class PageSnapshotTestBuilder {
         return cur;
     }
 
+    public PageSnapshotTestBuilder withNullRedirectChain() {
+        cur.setRedirectChainElements(null);
+        return this;
+    }
+
+    public PageSnapshotTestBuilder withRedirectChainElements(RedirectChainElement ...elements) {
+        cur.setRedirectChainElements(Arrays.asList(elements));
+        return this;
+    }
 }
