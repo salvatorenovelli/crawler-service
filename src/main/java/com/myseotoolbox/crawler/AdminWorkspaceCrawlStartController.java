@@ -47,14 +47,11 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
-        CrawlJobConfiguration build = CrawlJobConfiguration
-                .newConfiguration(origin)
-                .withSeeds(seedsAsUri)
-                .withDefaultRobotsTxt(client)
-                .withConcurrentConnections(numConnections)
-                .build();
 
-        CrawlJob job = factory.build(build, pageCrawlListener);
+        CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true);
+
+
+        CrawlJob job = factory.build(configuration, pageCrawlListener);
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -64,23 +61,26 @@ public class AdminWorkspaceCrawlStartController {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
+        CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws));
+        CrawlJob job = factory.build(conf, pageCrawlListener);
 
+        job.start();
+        return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
+    }
+
+    private CrawlJobConfiguration getConfiguration(URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots) throws IOException {
         CrawlJobConfiguration.Builder builder = CrawlJobConfiguration
                 .newConfiguration(origin)
                 .withConcurrentConnections(numConnections)
-                .withSeeds(Collections.singletonList(origin));
+                .withSeeds(seeds);
 
-        if (shouldIgnoreRobotsTxt(ws)) {
+        if (ignoreRobots) {
             builder.withRobotsTxt(EmptyRobotsTxt.instance());
         } else {
             builder.withDefaultRobotsTxt(client);
         }
 
-
-        CrawlJob job = factory.build(builder.build(), pageCrawlListener);
-
-        job.start();
-        return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
+        return builder.build();
     }
 
     @GetMapping("/scan-all-workspaces")
