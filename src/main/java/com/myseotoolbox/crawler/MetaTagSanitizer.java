@@ -2,13 +2,12 @@ package com.myseotoolbox.crawler;
 
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import org.apache.commons.lang.StringEscapeUtils;
-
+import org.jsoup.Jsoup;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class MetaTagSanitizer {
-
 
     public static void sanitize(PageSnapshot source) {
         if (source != null) {
@@ -29,6 +28,7 @@ public class MetaTagSanitizer {
     private static String sanitize(String s) {
         if (s == null) return null;
 
+        s = html2text(s);
         s = StringEscapeUtils.unescapeHtml(s);
         s = StringEscapeUtils.unescapeJava(s);
         s = normalizeNewLines(s);
@@ -36,6 +36,10 @@ public class MetaTagSanitizer {
         s = s.trim();
 
         return s;
+    }
+
+    private static String html2text(String html) {
+        return Jsoup.parse(html).text();
     }
 
     private static String normalizeNewLines(String s) {

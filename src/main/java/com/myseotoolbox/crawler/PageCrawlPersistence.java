@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 
@@ -33,8 +32,6 @@ public class PageCrawlPersistence {
     }
 
     private void persistPageCrawl(@Nullable PageSnapshot prevValue, PageSnapshot curValue) {
-
-        sanitize(curValue);
 
         Optional<PageCrawl> lastCrawl = pageCrawlRepository.findTopByUriOrderByCreateDateDesc(curValue.getUri());
         PageCrawl build = builder.build(prevValue, curValue, lastCrawl.orElse(null));

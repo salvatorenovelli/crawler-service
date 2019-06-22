@@ -243,24 +243,6 @@ public class MonitoredUriUpdaterTest {
     }
 
     @Test
-    public void shouldSanitizeTags() {
-
-        givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withWebsiteUrl("http://host/").save();
-
-        PageSnapshot snapshot = aTestPageSnapshotForUri("http://host/page1")
-                .withTitle("This title contains dirty &nbsp; characters")
-                .build();
-
-        sut.updateCurrentValue(snapshot);
-
-        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
-        MonitoredUri monitoredUri = monitoredUris.get(0);
-        assertThat(monitoredUri.getCurrentValue().getTitle(), is("This title contains dirty characters"));
-
-    }
-
-
-    @Test
     public void itShouldNotPersistCanonicalizedPagesTwice() {
 
         givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withWebsiteUrl("http://host1/").save();

@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.httpclient;
 
+import com.myseotoolbox.crawler.MetaTagSanitizer;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import org.jsoup.Jsoup;
@@ -14,6 +15,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class HtmlParser {
     public PageSnapshot parse(String baseUri, List<RedirectChainElement> elements, InputStream is) throws IOException {
         Document document = Jsoup.parse(is, UTF_8.name(), baseUri);
-        return PageSnapshotBuilder.build(baseUri, elements, document);
+        PageSnapshot snapshot = PageSnapshotBuilder.build(baseUri, elements, document);
+        MetaTagSanitizer.sanitize(snapshot);
+        return snapshot;
     }
 }

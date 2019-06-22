@@ -2,11 +2,9 @@ package com.myseotoolbox.crawler;
 
 import com.myseotoolbox.crawler.model.PageCrawl;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.ResolvableField;
 import com.myseotoolbox.crawler.repository.PageCrawlRepository;
 import com.myseotoolbox.crawler.testutils.CrawlHistoryTest;
 import com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder;
-import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -15,14 +13,11 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Optional;
 
-import static com.myseotoolbox.crawler.StandardMetaTagValues.STANDARD_DATE;
 import static com.myseotoolbox.crawler.StandardMetaTagValues.STANDARD_URI;
 import static com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder.a404PageSnapshot;
-import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.referenceTo;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRedirectChainElementsFor;
-import static java.util.Collections.singletonList;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -95,63 +90,6 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
             assertThat(crawl.getTitle(), valueType(curVal.getTitle()));
-            return true;
-        }));
-
-    }
-
-    @Test
-    public void sanitizedDifferencesAreIgnored() {
-
-        //Prev values are sanitized before being persisted PageSnapshotSanitizer.
-        //If we don't sanitize current value we are going  to see differences in values that are not really persisted, AND ignored on the frontend
-
-        givenCrawlHistory()
-                .withCrawl().havingStandardValueValues().withTitle("Multiple spaces is sanitized").and()
-                .withCurrentValue().havingStandardValueValues().withTitle("Multiple      spaces is \nsanitized")
-                .build();
-
-        sut.persistPageCrawl(curVal);
-
-
-        verify(repo).save(argThat(crawl -> {
-            assertThat(crawl.getTitle(), referenceTo(ResolvableField.forReference(new ObjectId(STANDARD_DATE, 0))));
-            return true;
-        }));
-
-    }
-
-    @Test
-    public void sanitizedDifferencesAreIgnoredInLists() {
-
-        //Prev values are sanitized before being persisted PageSnapshotSanitizer.
-        //If we don't sanitize current value we are going  to see differences in values that are not really persisted, AND ignored on the frontend
-
-        givenCrawlHistory()
-                .withCrawl().havingStandardValueValues().withH1s("HTML character like '<' are sanitized").and()
-                .withCurrentValue().havingStandardValueValues().withH1s("HTML character like '&lt;' are sanitized")
-                .build();
-
-        sut.persistPageCrawl(curVal);
-
-
-        verify(repo).save(argThat(crawl -> {
-            assertThat(crawl.getH1s(), referenceTo(ResolvableField.forReference(new ObjectId(STANDARD_DATE, 0))));
-            return true;
-        }));
-
-    }
-
-    @Test
-    public void itShouldPersistSanitizedTags() {
-        givenCrawlHistory()
-                .withCurrentValue().havingStandardValueValues().withH1s("HTML character like '&lt;' are sanitized")
-                .build();
-
-        sut.persistPageCrawl(curVal);
-
-        verify(repo).save(argThat(crawl -> {
-            assertThat(crawl.getH1s(), valueType(singletonList("HTML character like '<' are sanitized")));
             return true;
         }));
 

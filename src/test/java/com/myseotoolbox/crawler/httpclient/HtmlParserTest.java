@@ -21,4 +21,19 @@ public class HtmlParserTest {
         PageSnapshot parse = sut.parse("http://somehost", Collections.emptyList(), is);
         assertThat(parse.getTitle(), is("This is the title"));
     }
+
+    @Test
+    public void shouldSanitizeTags() throws IOException {
+        InputStream is = toInputStream("<HTML>" +
+                "<BODY>" +
+                "<h1><p>this contains a paragraph</p></h1>" +
+                "<h2>this contains a <b>bold</b></h1>" +
+                "</BODY></HTML>", StandardCharsets.UTF_8);
+
+
+        HtmlParser sut = new HtmlParser();
+        PageSnapshot parse = sut.parse("http://somehost", Collections.emptyList(), is);
+        assertThat(parse.getH1s().get(0), is("this contains a paragraph"));
+        assertThat(parse.getH2s().get(0), is("this contains a bold"));
+    }
 }

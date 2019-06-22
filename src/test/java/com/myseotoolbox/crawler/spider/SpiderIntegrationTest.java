@@ -170,7 +170,7 @@ public class SpiderIntegrationTest {
 
     @Test
     public void shouldSanitizeTags() {
-        givenAWebsite().havingRootPage().withTitle("This has leading spaces    ").save();
+        givenAWebsite().havingRootPage().withTitle("This <b>has</b> leading spaces    ").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();

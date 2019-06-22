@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import static com.myseotoolbox.crawler.MetaTagSanitizer.sanitize;
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isChildOf;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
@@ -38,8 +37,6 @@ public class MonitoredUriUpdater {
             log.debug("Skipping persistence of {} as it's canonicalized to {}", snapshot.getUri(), snapshot.getCanonicals());
             return;
         }
-
-        sanitize(snapshot);
 
         workspaceRepository.findAll()
                 .stream()
