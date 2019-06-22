@@ -39,12 +39,12 @@ public class HttpGetRequestTest {
 
         givenAWebsite()
                 .havingPage(basePath)
-                .redirectingTo(301, "/teg/Ñ\u0083Ñ\u0085Ð¾Ð´-Ð·Ð°-Ð¾Ð´ÐµÐ¶Ð´Ð¾Ð¹").save();
+                .redirectingTo(301, "/teg/Ñ\u0083Ñ\u0085Ð¾Ð´").save();
 
 
         HttpResponse execute = new HttpGetRequest(testUri(basePath), connectionFactory).execute();
         assertThat(execute.getHttpStatus(), is(SC_MOVED_PERMANENTLY));
-        assertThat(execute.getLocation(), is(testUri("/teg/%D1%83%D1%85%D0%BE%D0%B4-%D0%B7%D0%B0-%D0%BE%D0%B4%D0%B5%D0%B6%D0%B4%D0%BE%D0%B9")));
+        assertThat(execute.getLocation(), is(testUri("/teg/%C3%91%C2%83%C3%91%C2%85%C3%90%C2%BE%C3%90%C2%B4")));
     }
 
     @Test
@@ -133,7 +133,7 @@ public class HttpGetRequestTest {
                 .havingPage("/source").redirectingTo(301, LOCATION_WITH_UNICODE_CHARACTERS).save();
 
         HttpResponse request = new HttpGetRequest(testUri("/source"), connectionFactory).execute();
-        assertThat(request.getLocation(), is(testUri("/fam%edlia")));
+        assertThat(request.getLocation(), is(testUri("/fam%C3%ADlia")));
 
     }
 
@@ -145,7 +145,7 @@ public class HttpGetRequestTest {
                 .save();
 
         HttpResponse request = new HttpGetRequest(testUri("/source"), connectionFactory).execute();
-        assertThat(request.getLocation(), is(testUri("/fam%edlia")));
+        assertThat(request.getLocation(), is(testUri("/fam%C3%ADlia")));
 
     }
 

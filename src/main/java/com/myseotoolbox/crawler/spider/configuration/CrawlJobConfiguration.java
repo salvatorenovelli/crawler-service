@@ -4,7 +4,6 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import java.io.IOException;
@@ -12,8 +11,8 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
+import static com.myseotoolbox.crawler.spider.configuration.AllowedPathFromSeeds.extractAllowedPathFromSeeds;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 
@@ -53,20 +52,6 @@ public class CrawlJobConfiguration {
 
     public List<String> getAllowedPaths() {
         return Collections.unmodifiableList(extractAllowedPathFromSeeds(seeds));
-    }
-
-    /**
-     * Hack.
-     * <p>
-     * Instead of interpreting seeds as filters, we should ask the user for filters.      *
-     * Or should we? The user might not care or know. This is how it works in most of the crawlers.
-     */
-    private List<String> extractAllowedPathFromSeeds(Collection<URI> seeds) {
-        return seeds.stream().map(URI::getPath).map(this::normalize).collect(Collectors.toList());
-    }
-
-    private String normalize(String input) {
-        return StringUtils.isEmpty(input) ? "/" : input;
     }
 
     public RobotsTxt getRobotsTxt() {

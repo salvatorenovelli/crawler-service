@@ -83,7 +83,8 @@ public class SpiderIntegrationTest {
     @Test
     public void shouldOnlyFilterFromSpecifiedPaths() {
         givenAWebsite()
-                .havingPage("/base").withLinksTo("/base/abc", "/base/cde", "/outside/fgh")
+                .havingPage("/base").withLinksTo("/base/abc", "/base/cde", "/outside/fgh").and()
+                .havingPage("/outside/fgh").withLinksTo("/outside/1234")
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/base"));
@@ -93,6 +94,7 @@ public class SpiderIntegrationTest {
         verify(listener).accept(uri("/base"));
         verify(listener).accept(uri("/base/abc"));
         verify(listener).accept(uri("/base/cde"));
+        verify(listener).accept(uri("/outside/fgh"));
 
         verifyNoMoreInteractions(listener);
 
@@ -103,7 +105,8 @@ public class SpiderIntegrationTest {
 
 
         givenAWebsite()
-                .havingPage("/base").withLinksTo("/base/abc", "/base/cde", "/base2/fgh", "/outside/a")
+                .havingPage("/base").withLinksTo("/base/abc", "/base/cde", "/base2/fgh", "/outside/a").and()
+                .havingPage("/outside/a").withLinksTo("/outside/b")
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
@@ -114,6 +117,7 @@ public class SpiderIntegrationTest {
         verify(listener).accept(uri("/base/abc"));
         verify(listener).accept(uri("/base/cde"));
         verify(listener).accept(uri("/base2/fgh"));
+        verify(listener).accept(uri("/outside/a"));
 
         verifyNoMoreInteractions(listener);
 

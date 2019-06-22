@@ -195,7 +195,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
-        verify(pool).accept(taskForUri("http://host1" + "/fam%EDlia"));
+        verify(pool).accept(taskForUri("http://host1" + "/fam%C3%ADlia"));
 
 
     }

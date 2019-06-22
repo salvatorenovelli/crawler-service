@@ -105,6 +105,13 @@ public class WorkspaceCrawlerIntegrationTest {
         verifyNoMoreInteractions(listener);
     }
 
+
+    @Test
+    public void crawlOutsidePath() {
+        //now we are crawling outside path, how do we persist?
+//        fail();
+    }
+
     private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
         @Override
         public ThreadPoolExecutor buildExecutor(String namePostfix, int concurrentConnections) {

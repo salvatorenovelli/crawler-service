@@ -6,7 +6,6 @@ import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
@@ -23,7 +22,7 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
 
     @Override
     public void accept(SnapshotTask task) {
-        log.trace("Task submitted: {}", task.getUri());
+        log.debug("Task submitted: {}", task.getUri());
         executor.submit(() -> {
             try {
                 try {

@@ -132,18 +132,18 @@ public class SiteMapTest {
     }
 
     @Test
-    public void shouldNotFetchUnnecessarySitemaps() throws MalformedURLException {
+    public void shouldNotFetchUnnecessarySitemaps() {
         givenAWebsite()
                 .withSitemapIndexOn("/")
                 .havingChildSitemaps("/it/", "/uk/")
                 .and()
                 .withSitemapOn("/it/")
-                .havingUrls("/it/1", "/it/2")
+                .havingUrls("/it/1", "/it/2", "/uk/")
                 .and()
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it"));
+        SiteMap siteMap = new SiteMap(origin.resolve("/it/"), uris("/sitemap.xml"), Collections.singletonList("/it"));
         siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());

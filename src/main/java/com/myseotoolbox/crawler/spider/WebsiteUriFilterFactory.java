@@ -18,7 +18,7 @@ public class WebsiteUriFilterFactory {
     private FilterAggregator buildUriFilter(URI websiteOrigin, List<String> allowedPaths, RobotsTxt robotsTxt) {
         PathFilter pathFilter = new PathFilter(allowedPaths);
         BasicUriFilter basicFilter = getBasicUriFilter(websiteOrigin);
-        return new FilterAggregator(robotsTxt, basicFilter, (ignored, discoveredLink) -> pathFilter.shouldCrawl(discoveredLink.getPath()));
+        return new FilterAggregator(robotsTxt, basicFilter, pathFilter);
     }
 
     private BasicUriFilter getBasicUriFilter(URI websiteOrigin) {

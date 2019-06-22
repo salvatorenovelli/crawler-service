@@ -71,7 +71,7 @@ public class SiteMap {
 
     private boolean shouldFetch(URL url) {
         try {
-            return isSameDomain(url) && (this.siteMapsUrls.contains(url) || pathFilter.shouldCrawl(url.getPath()));
+            return isSameDomain(url) && (this.siteMapsUrls.contains(url) || pathFilter.shouldCrawl(URI.create(url.toString()), URI.create(url.toString())));
         } catch (IllegalArgumentException e) {
             log.warn("Unable to fetch sitemap on {}. {}", url, e.toString());
             return false;
