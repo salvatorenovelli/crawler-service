@@ -39,7 +39,7 @@ public class CrawlerQueueTest {
 
     private CrawlerQueue sut;
     @Mock private CrawlersPool pool;
-    @Mock private Consumer<PageSnapshot> mockListener;
+    @Mock private Consumer<CrawlResult> mockListener;
 
     @Before
     public void setUp() {

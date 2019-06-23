@@ -2,7 +2,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
-import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
@@ -180,7 +180,7 @@ public class SpiderIntegrationTest {
         job.start();
 
         verify(listener).accept(argThat(snapshot -> {
-            assertThat(snapshot.getTitle(), is("This has leading spaces"));
+            assertThat(snapshot.getPageSnapshot().getTitle(), is("This has leading spaces"));
             return true;
         }));
     }
@@ -211,8 +211,8 @@ public class SpiderIntegrationTest {
         verifyNoMoreInteractions(listener);
     }
 
-    private PageSnapshot uri(String uri) {
-        return argThat(argument -> argument.getUri().equals(testUri(uri).toString()));
+    private CrawlResult uri(String uri) {
+        return argThat(argument -> argument.getPageSnapshot().getUri().equals(testUri(uri).toString()));
     }
 
     private CrawlJob buildForSeeds(List<URI> seeds) {

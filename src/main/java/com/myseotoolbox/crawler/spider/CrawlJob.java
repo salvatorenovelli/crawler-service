@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
-import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +29,7 @@ public class CrawlJob {
         new CrawlerPoolStatusMonitor(name, executor).start();
     }
 
-    public void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {
+    public void subscribeToPageCrawled(Consumer<CrawlResult> subscriber) {
         this.crawlerQueue.subscribeToPageCrawled(subscriber);
     }
 

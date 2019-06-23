@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.config;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
 import com.myseotoolbox.crawler.PageCrawlPersistence;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
@@ -21,6 +22,7 @@ public class PageCrawlListenerTest {
 
 
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
+    public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
     @Mock private PageCrawlPersistence crawlPersistence;
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
 
@@ -33,7 +35,7 @@ public class PageCrawlListenerTest {
 
     @Test
     public void shouldNotify() {
-        sut.accept(TEST_PAGE_SNAPSHOT);
+        sut.accept(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
     }
@@ -41,14 +43,14 @@ public class PageCrawlListenerTest {
     @Test
     public void exceptionsInMonitoredUriUpdaterDoesNotPreventPersistenceOfCrawl() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
-        sut.accept(TEST_PAGE_SNAPSHOT);
+        sut.accept(TEST_CRAWL_RESULT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
     }
 
     @Test
     public void exceptionsInpageCrawlPersistenceDoesNotPreventMonitoredUriUpdate() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
-        sut.accept(TEST_PAGE_SNAPSHOT);
+        sut.accept(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
     }
 }

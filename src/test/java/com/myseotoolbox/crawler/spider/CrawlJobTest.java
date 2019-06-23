@@ -4,7 +4,6 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
-import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import org.junit.Before;
@@ -34,8 +33,8 @@ public class CrawlJobTest {
     public static final URI TEST_ORIGIN = URI.create("http://domain1");
     public static final int MAX_CRAWLS = 1000;
     @Mock private WebPageReader pageReader;
-    @Mock private Consumer<PageSnapshot> subscriber;
-    @Mock private Consumer<PageSnapshot> exceptionSubscriber;
+    @Mock private Consumer<CrawlResult> subscriber;
+    @Mock private Consumer<CrawlResult> exceptionSubscriber;
 
 
     @Before

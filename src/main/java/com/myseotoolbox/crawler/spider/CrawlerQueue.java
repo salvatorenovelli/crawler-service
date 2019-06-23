@@ -27,7 +27,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
-    private final List<Consumer<PageSnapshot>> onSnapshotListeners = new ArrayList<>();
+    private final List<Consumer<CrawlResult>> onSnapshotListeners = new ArrayList<>();
     private final PageLinksHelper helper = new PageLinksHelper();
 
     private final int maxCrawls;
@@ -41,7 +41,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         this.seeds.addAll(seeds.stream().distinct().collect(Collectors.toList()));
     }
 
-    public synchronized void subscribeToPageCrawled(Consumer<PageSnapshot> subscriber) {
+    public synchronized void subscribeToPageCrawled(Consumer<CrawlResult> subscriber) {
         onSnapshotListeners.add(subscriber);
     }
 
@@ -57,7 +57,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         log.debug("Scanned: {} links:{}", sourceUri, links.size());
 
         if (!result.isBlockedChain()) {
-            notifyListeners(result.getPageSnapshot());
+            notifyListeners(result);
         }
         onScanCompleted(URI.create(sourceUri), links);
     }
@@ -151,8 +151,8 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         if (!uri.isAbsolute()) throw new IllegalStateException("URI should be absolute or we risk to visit it twice.");
     }
 
-    private void notifyListeners(PageSnapshot snapshot) {
-        onSnapshotListeners.forEach(listener -> runOrLogWarning(() -> listener.accept(snapshot), "Unable to notify listener"));
+    private void notifyListeners(CrawlResult crawlResult) {
+        onSnapshotListeners.forEach(listener -> runOrLogWarning(() -> listener.accept(crawlResult), "Unable to notify listener"));
     }
 }
 
