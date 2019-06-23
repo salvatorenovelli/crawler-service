@@ -4,9 +4,9 @@ import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
 import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
-import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.UriFilter;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
@@ -302,12 +302,12 @@ public class WebPageReaderTest {
                 .havingPage("/disallowed").withTitle("Whoa! You are not supposed to be here!")
                 .run();
 
-        SnapshotResult snapshotResult = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        CrawlResult crawlResult = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
 
-        assertTrue(snapshotResult.isBlockedChain());
-        assertNull(snapshotResult.getPageSnapshot());
+        assertTrue(crawlResult.isBlockedChain());
+        assertNull(crawlResult.getPageSnapshot());
 
-        List<RedirectChainElement> chainElements = snapshotResult.getChain().getElements();
+        List<RedirectChainElement> chainElements = crawlResult.getChain().getElements();
         assertThat(chainElements, hasSize(2));
         assertThat(chainElements.get(0).getDestinationURI(), is(testUri("/allowed").toString()));
         assertThat(chainElements.get(1).getDestinationURI(), is(testUri("/disallowed").toString()));

@@ -26,7 +26,7 @@ public class WebPageReader {
         this.httpRequestFactory = httpRequestFactory;
     }
 
-    public SnapshotResult snapshotPage(URI uri) throws SnapshotException {
+    public CrawlResult snapshotPage(URI uri) throws SnapshotException {
 
         String startURI = uri.toString();
         RedirectChain chain = new RedirectChain();
@@ -38,10 +38,10 @@ public class WebPageReader {
             if (scanRedirectChain(chain, baseUri)) {
                 PageSnapshot snapshot = parser.parse(startURI, chain.getElements(), chain.getInputStream());
                 snapshot.setCreateDate(calendarService.now());
-                return SnapshotResult.forSnapshot(snapshot);
+                return CrawlResult.forSnapshot(snapshot);
             }
 
-            return SnapshotResult.forBlockedChain(chain);
+            return CrawlResult.forBlockedChain(chain);
 
 
         } catch (Exception e) {

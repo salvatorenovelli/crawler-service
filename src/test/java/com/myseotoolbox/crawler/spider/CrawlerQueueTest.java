@@ -1,9 +1,9 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChain;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
-import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class CrawlerQueueTest {
     public void setUp() {
         doAnswer(invocation -> {
             SnapshotTask task = invocation.getArgument(0);
-            task.getTaskRequester().accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(task.getUri().toString())));
+            task.getTaskRequester().accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(task.getUri().toString())));
             return null;
         }).when(pool).accept(any());
     }
@@ -129,7 +129,7 @@ public class CrawlerQueueTest {
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/dst"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         try {
-            sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri("/dst")));
+            sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri("/dst")));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("URI should be absolute"));
@@ -145,7 +145,7 @@ public class CrawlerQueueTest {
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/dst"), pool, NO_URI_FILTER, MAX_CRAWLS);
 
         try {
-            sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
+            sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("never submitted"));
@@ -162,7 +162,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         try {
-            sut.accept(SnapshotResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1"))));
+            sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1"))));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("already completed"));
@@ -276,7 +276,7 @@ public class CrawlerQueueTest {
             SnapshotTask task = invocation.getArgument(0);
             PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
             t.setLinks(null);
-            task.getTaskRequester().accept(SnapshotResult.forSnapshot(t));
+            task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
             return null;
         }).when(pool).accept(taskForUri("http://host1"));
 
@@ -498,7 +498,7 @@ public class CrawlerQueueTest {
             PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
             t.setCanonicals(Collections.singletonList(canonicalPath));
 
-            SnapshotResult result = SnapshotResult.forSnapshot(t);
+            CrawlResult result = CrawlResult.forSnapshot(t);
             task.getTaskRequester().accept(result);
             return null;
         }).when(pool).accept(taskForUri(baseUri));
@@ -517,7 +517,7 @@ public class CrawlerQueueTest {
                 SnapshotTask task = invocation.getArgument(0);
                 PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
                 t.setLinks(Arrays.asList(discoveredUris));
-                task.getTaskRequester().accept(SnapshotResult.forSnapshot(t));
+                task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
@@ -527,7 +527,7 @@ public class CrawlerQueueTest {
                 SnapshotTask task = invocation.getArgument(0);
                 RedirectChain chain = new RedirectChain();
                 chain.addElement(new RedirectChainElement(baseUri, 301, redirectDestination));
-                task.getTaskRequester().accept(SnapshotResult.forBlockedChain(chain));
+                task.getTaskRequester().accept(CrawlResult.forBlockedChain(chain));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }

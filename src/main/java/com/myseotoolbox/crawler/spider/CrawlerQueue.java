@@ -1,8 +1,8 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import com.myseotoolbox.crawler.utils.LoggingUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -19,7 +19,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 
 @Slf4j
 @ThreadSafe
-class CrawlerQueue implements Consumer<SnapshotResult> {
+class CrawlerQueue implements Consumer<CrawlResult> {
 
     private final Set<URI> visited = new HashSet<>();
     private final Set<URI> inProgress = new HashSet<>();
@@ -50,7 +50,7 @@ class CrawlerQueue implements Consumer<SnapshotResult> {
     }
 
     @Override
-    public void accept(SnapshotResult result) {
+    public void accept(CrawlResult result) {
         String sourceUri = result.getUri();
         List<URI> links = result.isBlockedChain() ? Collections.emptyList() : discoverLinks(result.getPageSnapshot());
 

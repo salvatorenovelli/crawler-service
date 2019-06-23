@@ -5,8 +5,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.SnapshotResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,12 +30,12 @@ public class CrawlersPoolTest {
 
     public static final PageSnapshot FAILURE_TEST_SNAPSHOT = new PageSnapshot();
 
-    private static final SnapshotResult TEST_SNAPSHOT_RESULT = SnapshotResult.forSnapshot(new PageSnapshot());
+    private static final CrawlResult TEST_SNAPSHOT_RESULT = CrawlResult.forSnapshot(new PageSnapshot());
     private static final URI SUCCESS_TEST_LINK = URI.create("http://host1");
     private static final URI FAILURE_TEST_LINK = URI.create("http://verybadhost");
     @Mock private Appender<ILoggingEvent> mockAppender;
     @Mock private WebPageReader reader;
-    @Mock private Consumer<SnapshotResult> listener;
+    @Mock private Consumer<CrawlResult> listener;
     @Mock private ThreadPoolExecutor executor;
     private CrawlersPool sut;
 
