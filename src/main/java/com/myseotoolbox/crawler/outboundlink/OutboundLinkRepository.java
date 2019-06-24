@@ -4,6 +4,6 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.Optional;
 
-public interface OutboundLinkRepository extends MongoRepository<OutboundLink, String> {
-    Optional<OutboundLink> findByCrawlIdAndUrl(String crawlId, String url);
+public interface OutboundLinkRepository extends MongoRepository<OutboundLinks, String> {
+    Optional<OutboundLinks> findByCrawlIdAndUrl(String crawlId, String url);
 }

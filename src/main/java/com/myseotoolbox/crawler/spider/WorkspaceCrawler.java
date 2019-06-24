@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.PageCrawlListenerFactory;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -18,6 +19,7 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -31,20 +33,20 @@ public class WorkspaceCrawler {
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    private final PageCrawlListener crawlListener;
+    private final PageCrawlListenerFactory pageCrawlListenerFactory;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
 
     public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
                             CrawlJobFactory crawlJobFactory,
                             WebsiteCrawlLogRepository websiteCrawlLogRepository,
-                            PageCrawlListener crawlListener,
+                            PageCrawlListenerFactory pageCrawlListenerFactory,
                             RobotsTxtAggregation robotsTxtAggregation,
                             @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
-        this.crawlListener = crawlListener;
+        this.pageCrawlListenerFactory = pageCrawlListenerFactory;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
     }
@@ -73,6 +75,8 @@ public class WorkspaceCrawler {
                             .withConcurrentConnections(seeds.size())
                             .withRobotsTxt(merged)
                             .build();
+
+                    PageCrawlListener crawlListener = pageCrawlListenerFactory.getPageCrawlListener(UUID.randomUUID().toString());
 
                     CrawlJob job = crawlJobFactory.build(conf, crawlListener);
                     job.start();

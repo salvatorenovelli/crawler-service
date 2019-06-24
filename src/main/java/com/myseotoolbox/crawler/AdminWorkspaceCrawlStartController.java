@@ -31,14 +31,14 @@ public class AdminWorkspaceCrawlStartController {
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
     private final WorkspaceCrawler workspaceCrawler;
-    private final PageCrawlListener pageCrawlListener;
+    private final PageCrawlListenerFactory pageCrawlListenerFactory;
     private final HTTPClient client;
 
-    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, PageCrawlListener pageCrawlListener, HTTPClient client) {
+    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, PageCrawlListenerFactory pageCrawlListenerFactory, HTTPClient client) {
         this.factory = factory;
         this.repository = repository;
         this.workspaceCrawler = workspaceCrawler;
-        this.pageCrawlListener = pageCrawlListener;
+        this.pageCrawlListenerFactory = pageCrawlListenerFactory;
         this.client = client;
     }
 
@@ -51,7 +51,7 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true);
 
 
-        CrawlJob job = factory.build(configuration, pageCrawlListener);
+        CrawlJob job = factory.build(configuration, getPageCrawlListener());
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -62,7 +62,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws));
-        CrawlJob job = factory.build(conf, pageCrawlListener);
+        CrawlJob job = factory.build(conf, getPageCrawlListener());
 
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
@@ -94,5 +94,9 @@ public class AdminWorkspaceCrawlStartController {
         CrawlerSettings crawlerSettings = ws.getCrawlerSettings();
         return crawlerSettings != null && crawlerSettings.getFilterConfiguration() != null &&
                 crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
+    }
+
+    private PageCrawlListener getPageCrawlListener() {
+        return pageCrawlListenerFactory.getPageCrawlListener("manual" + new Date());
     }
 }

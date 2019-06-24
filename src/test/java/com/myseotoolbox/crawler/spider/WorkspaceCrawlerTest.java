@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.PageCrawlListenerFactory;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -40,7 +41,6 @@ public class WorkspaceCrawlerTest {
     private static final int YESTERDAY = -1;
     private static final int TWO_DAYS_AGO = -2;
     public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
-    public static final int MAX_CRAWLS = 100;
     private final List<Tuple2<CrawlJobConfiguration, CrawlJob>> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();
 
@@ -49,13 +49,17 @@ public class WorkspaceCrawlerTest {
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
     @Mock private PageCrawlListener pageCrawlListener;
     @Mock private RobotsTxtAggregation robotsAggregation;
+    @Mock private PageCrawlListenerFactory crawlListenerFactory;
 
     WorkspaceCrawler sut;
     @Spy private Executor executor = new CurrentThreadTestExecutorService();
 
     @Before
     public void setUp() {
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, pageCrawlListener, robotsAggregation, executor);
+        when(crawlListenerFactory.getPageCrawlListener(any())).thenReturn(pageCrawlListener);
+
+
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, crawlListenerFactory, robotsAggregation, executor);
 
         when(crawlJobFactory.build(any(), any())).thenAnswer(
                 invocation -> {

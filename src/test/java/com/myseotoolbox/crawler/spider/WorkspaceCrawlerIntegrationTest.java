@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.PageCrawlListenerFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
 import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
@@ -44,6 +45,7 @@ public class WorkspaceCrawlerIntegrationTest {
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
     @Mock private PageCrawlListener listener;
+    @Mock private PageCrawlListenerFactory listenerProvider;
 
     private List<Workspace> allWorkspaces = new ArrayList<>();
     private CrawlJobFactory crawlJobFactory;
@@ -52,9 +54,10 @@ public class WorkspaceCrawlerIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
+        when(listenerProvider.getPageCrawlListener(any())).thenReturn(listener);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
         crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listener, robotsAggregation, executor);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
         testWebsiteBuilder.run();
         givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
     }
@@ -105,12 +108,6 @@ public class WorkspaceCrawlerIntegrationTest {
         verifyNoMoreInteractions(listener);
     }
 
-
-    @Test
-    public void crawlOutsidePath() {
-        //now we are crawling outside path, how do we persist?
-//        fail();
-    }
 
     private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
         @Override

@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.outboundlink;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentMatchers;
@@ -18,27 +19,53 @@ import static org.junit.Assert.assertThat;
 public class OutboundLinksListenerTest {
 
     @Mock OutboundLinkRepository repository;
+    public static final String TEST_CRAWL_ID = "32o4572348cf";
+    private OutboundLinksListener sut;
 
+    @Before
+    public void setUp() {
+        sut = new OutboundLinksListener(TEST_CRAWL_ID, repository);
+    }
 
     @Test
     public void shouldSaveDiscoveredLinks() {
-        String crawlId = "32o4572348cf";
-        OutboundLinksListener sut = new OutboundLinksListener(crawlId, repository);
-
         CrawlResult crawlResult = CrawlResult.forSnapshot(
                 aTestPageSnapshotForUri("http://testuri").withLinks("/relativeLink", "http://absoluteLink/hello").build());
 
         sut.accept(crawlResult);
 
         Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
-            assertThat(argument.getCrawlId(), equalTo(crawlId));
+            assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
             assertThat(argument.getUrl(), equalTo("http://testuri"));
-            assertThat(argument.getLinks(), containsInAnyOrder(ahref("/relativeLink"), ahref("http://absoluteLink/hello")));
+            assertThat(argument.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
             return true;
         }));
     }
 
-    private Link ahref(String uri) {
-        return new Link(Link.Type.AHREF, uri);
+    @Test
+    public void shouldOnlyPersistSelfCanonicalized() {
+        CrawlResult crawlResult = CrawlResult.forSnapshot(
+                aTestPageSnapshotForUri("http://testuri?someWeirdDinamicUrl=2b234rb9b")
+                        .withCanonicals("http://testuri")
+                        .withLinks("/relativeLink", "http://absoluteLink/hello").build());
+
+        sut.accept(crawlResult);
+
+        Mockito.verifyNoMoreInteractions(repository);
+    }
+
+    @Test
+    public void shouldNotPersistDuplicateLinks() {
+        CrawlResult crawlResult = CrawlResult.forSnapshot(
+                aTestPageSnapshotForUri("http://testuri").withLinks("/relativeLink", "/relativeLink", "http://absoluteLink/hello", "http://absoluteLink/hello").build());
+
+        sut.accept(crawlResult);
+
+        Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
+            assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(argument.getUrl(), equalTo("http://testuri"));
+            assertThat(argument.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
+            return true;
+        }));
     }
 }

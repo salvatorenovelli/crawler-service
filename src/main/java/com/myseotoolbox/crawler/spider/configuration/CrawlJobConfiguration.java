@@ -93,7 +93,7 @@ public class CrawlJobConfiguration {
 
         public Builder withDefaultRobotsTxt(HTTPClient httpClient) throws IOException {
 
-            String s = httpClient.get(origin.resolve("robots.txt"));
+            String s = httpClient.get(origin.resolve("/robots.txt"));
             this.robotsTxt = new DefaultRobotsTxt(origin.toString(), s.getBytes());
 
             return this;
