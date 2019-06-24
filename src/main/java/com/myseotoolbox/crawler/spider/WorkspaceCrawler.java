@@ -17,9 +17,10 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
@@ -76,7 +77,7 @@ public class WorkspaceCrawler {
                             .withRobotsTxt(merged)
                             .build();
 
-                    PageCrawlListener crawlListener = pageCrawlListenerFactory.getPageCrawlListener(UUID.randomUUID().toString());
+                    PageCrawlListener crawlListener = pageCrawlListenerFactory.getPageCrawlListener(getCrawlId());
 
                     CrawlJob job = crawlJobFactory.build(conf, crawlListener);
                     job.start();
@@ -86,6 +87,10 @@ public class WorkspaceCrawler {
         );
 
 
+    }
+
+    private String getCrawlId() {
+        return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE);
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {

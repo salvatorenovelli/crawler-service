@@ -16,7 +16,7 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'com.myseotoolbox'
-version = '1.4.1'
+version = '1.4.2'
 sourceCompatibility = 1.8
 
 repositories {
