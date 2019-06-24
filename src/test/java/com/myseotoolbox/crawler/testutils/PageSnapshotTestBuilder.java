@@ -85,8 +85,18 @@ public class PageSnapshotTestBuilder {
         return this;
     }
 
-    public PageSnapshotTestBuilder withRedirectChainElements(RedirectChainElement ...elements) {
+    public PageSnapshotTestBuilder withRedirectChainElements(int... statusCodes) {
+        cur.setRedirectChainElements(buildRedirectChainElementsFor(cur.getUri(), statusCodes));
+        return this;
+    }
+
+    public PageSnapshotTestBuilder withRedirectChainElements(RedirectChainElement... elements) {
         cur.setRedirectChainElements(Arrays.asList(elements));
+        return this;
+    }
+
+    public PageSnapshotTestBuilder withLinks(String ...links) {
+        cur.setLinks(Arrays.asList(links));
         return this;
     }
 }

@@ -140,7 +140,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
             try {
                 return sourceUri.resolve(path);
             } catch (IllegalArgumentException e) {
-                log.warn("Error while converting to absolute '{}' (source: '{}'). {}", uri, sourceUri,e.getMessage());
+                log.warn("Error while converting to absolute '{}' (source: '{}'). {}", uri, sourceUri, e.getMessage());
                 return null;
             }
         }

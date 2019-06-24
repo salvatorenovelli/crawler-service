@@ -58,13 +58,13 @@ public class CrawlersPoolTest {
 
     @Test
     public void shouldSubmitSnapshotWhenSuccessful() {
-        sut.accept(new SnapshotTask(SUCCESS_TEST_LINK, listener));
+        acceptTaskFor(SUCCESS_TEST_LINK);
         verify(listener).accept(TEST_SNAPSHOT_RESULT);
     }
 
     @Test
     public void shouldSubmitPartialValueWhenExceptionOccur() {
-        sut.accept(new SnapshotTask(FAILURE_TEST_LINK, listener));
+        acceptTaskFor(FAILURE_TEST_LINK);
         verify(listener).accept(argThat(argument -> argument.getPageSnapshot() == FAILURE_TEST_SNAPSHOT));
     }
 
@@ -73,7 +73,7 @@ public class CrawlersPoolTest {
 
         doThrow(new RuntimeException("This happened while submitting result")).when(listener).accept(any());
 
-        sut.accept(new SnapshotTask(SUCCESS_TEST_LINK, listener));
+        acceptTaskFor(SUCCESS_TEST_LINK);
 
         verify(mockAppender).doAppend(argThat(argument -> {
             assertThat(argument.getLevel(), is(Level.ERROR));
@@ -81,5 +81,9 @@ public class CrawlersPoolTest {
             return true;
         }));
 
+    }
+
+    private void acceptTaskFor(URI uri) {
+        sut.accept(new SnapshotTask(uri, listener));
     }
 }
