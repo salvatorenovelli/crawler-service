@@ -9,6 +9,7 @@ import com.myseotoolbox.crawler.outboundlink.OutboundLinksListener;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,6 +35,7 @@ public class CrawlEventListenerTest {
 
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
     public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
+    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     @Mock private PageCrawlPersistence crawlPersistence;
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
     @Mock private OutboundLinksListener linksListener;
@@ -43,7 +45,7 @@ public class CrawlEventListenerTest {
 
     @Before
     public void setUp() {
-        sut = new CrawlEventListener(monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository);
+        sut = new CrawlEventListener(TEST_CRAWL_ID, monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository);
     }
 
     @Test
@@ -58,6 +60,7 @@ public class CrawlEventListenerTest {
     public void shouldNotifyCrawlStartedListeners() {
         sut.onCrawlStart(CRAWL_STARTED_EVENT);
         verify(websiteCrawlRepository).save(argThat(event -> {
+            assertThat(event.getId(), is(TEST_CRAWL_ID));
             assertThat(event.getOrigin(), is(TEST_ORIGIN));
             assertThat(event.getSeeds(), containsInAnyOrder("/one", "/two"));
             return true;

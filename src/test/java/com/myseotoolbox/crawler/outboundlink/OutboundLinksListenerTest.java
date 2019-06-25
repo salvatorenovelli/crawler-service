@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.outboundlink;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,7 +19,7 @@ import static org.junit.Assert.assertThat;
 public class OutboundLinksListenerTest {
 
     @Mock OutboundLinkRepository repository;
-    public static final String TEST_CRAWL_ID = "32o4572348cf";
+    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     private OutboundLinksListener sut;
 
     @Before

@@ -8,17 +8,20 @@ import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
 public class CrawlEventListener {
+    private final ObjectId crawlId;
     private final MonitoredUriUpdater monitoredUriUpdater;
     private final PageCrawlPersistence crawlPersistence;
     private final OutboundLinksListener linksListener;
     private final WebsiteCrawlRepository websiteCrawlRepository;
 
-    public CrawlEventListener(MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence, OutboundLinksListener linksListener, WebsiteCrawlRepository websiteCrawlRepository) {
+    public CrawlEventListener(ObjectId crawlId, MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence, OutboundLinksListener linksListener, WebsiteCrawlRepository websiteCrawlRepository) {
+        this.crawlId = crawlId;
         this.monitoredUriUpdater = monitoredUriUpdater;
         this.crawlPersistence = crawlPersistence;
         this.linksListener = linksListener;
@@ -34,6 +37,6 @@ public class CrawlEventListener {
     }
 
     public void onCrawlStart(CrawlStartedEvent event) {
-        runOrLogWarning(() -> websiteCrawlRepository.save(WebsiteCrawl.fromCrawlStartedEvent(event)), "Error while persisting CrawlStartedEvent: " + event);
+        runOrLogWarning(() -> websiteCrawlRepository.save(WebsiteCrawl.fromCrawlStartedEvent(crawlId, event)), "Error while persisting CrawlStartedEvent: " + event);
     }
 }

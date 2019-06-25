@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.outboundlink;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
+import org.bson.types.ObjectId;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -12,10 +13,10 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 
 
 public class OutboundLinksListener implements Consumer<CrawlResult> {
-    private final String crawlId;
+    private final ObjectId crawlId;
     private final OutboundLinkRepository repository;
 
-    public OutboundLinksListener(String crawlId, OutboundLinkRepository repository) {
+    public OutboundLinksListener(ObjectId crawlId, OutboundLinkRepository repository) {
         this.crawlId = crawlId;
         this.repository = repository;
     }

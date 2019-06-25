@@ -12,6 +12,7 @@ import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
+import org.bson.types.ObjectId;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -97,6 +98,6 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     private CrawlEventListener getCrawlEventsListener() {
-        return crawlEventsListenerFactory.getPageCrawlListener("manual" + new Date());
+        return crawlEventsListenerFactory.getPageCrawlListener(new ObjectId());
     }
 }

@@ -12,13 +12,12 @@ import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -79,7 +78,7 @@ public class WorkspaceCrawler {
                             .withRobotsTxt(merged)
                             .build();
 
-                    CrawlEventListener listener = crawlEventsListenerFactory.getPageCrawlListener(getCrawlId(baseDomainPath));
+                    CrawlEventListener listener = crawlEventsListenerFactory.getPageCrawlListener(generateCrawlId());
 
                     CrawlJob job = crawlJobFactory.build(conf, listener);
                     job.start();
@@ -91,8 +90,12 @@ public class WorkspaceCrawler {
 
     }
 
-    private String getCrawlId(URI baseDomainPath) {
-        return baseDomainPath.toString() + "-" + LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+    private ObjectId generateCrawlId() {
+        return new ObjectId();
+    }
+
+    public static void main(String[] args) {
+        System.out.println();
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {
