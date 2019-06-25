@@ -58,7 +58,6 @@ public class WorkspaceCrawlerTest {
     public void setUp() {
         when(crawlListenerFactory.getPageCrawlListener(any())).thenReturn(crawlEventListener);
 
-
         sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, crawlListenerFactory, robotsAggregation, executor);
 
         when(crawlJobFactory.build(any(), any())).thenAnswer(

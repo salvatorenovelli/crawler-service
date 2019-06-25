@@ -17,8 +17,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.net.URI.create;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -85,5 +89,19 @@ public class CrawlJobTest {
         sut.start();
         verify(pageReader).snapshotPage(create("http://domain1"));
         verifyNoMoreInteractions(pageReader);
+    }
+
+    @Test
+    public void shouldNotifyForCrawlStarted() {
+        List<URI> seeds = Arrays.asList(create("http://domain1/a"), create("http://domain1/b"));
+        CrawlJob sut = new CrawlJob(TEST_ORIGIN, seeds, pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService(), MAX_CRAWLS);
+        sut.subscribeToCrawlEvents(subscriber);
+        sut.start();
+
+        verify(subscriber).onCrawlStart(argThat(conf -> {
+            assertThat(conf.getOrigin(), is(TEST_ORIGIN.toString()));
+            assertThat(conf.getSeeds(), is(seeds.stream().map(URI::toString).collect(Collectors.toList())));
+            return true;
+        }));
     }
 }
