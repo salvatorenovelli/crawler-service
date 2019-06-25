@@ -30,9 +30,10 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 /**
  * NOTE!!! PLEASE READ
@@ -76,7 +77,7 @@ public class SpiderIntegrationTest {
         verify(listener).onPageCrawled(uri("/abc"));
         verify(listener).onPageCrawled(uri("/cde"));
 
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(3)).onPageCrawled(any());
 
     }
 
@@ -96,7 +97,7 @@ public class SpiderIntegrationTest {
         verify(listener).onPageCrawled(uri("/base/cde"));
         verify(listener).onPageCrawled(uri("/outside/fgh"));
 
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(4)).onPageCrawled(any());
 
     }
 
@@ -119,7 +120,7 @@ public class SpiderIntegrationTest {
         verify(listener).onPageCrawled(uri("/base2/fgh"));
         verify(listener).onPageCrawled(uri("/outside/a"));
 
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(6)).onPageCrawled(any());
 
 
     }
@@ -138,7 +139,7 @@ public class SpiderIntegrationTest {
         verify(listener).onPageCrawled(uri("/base2"));
         verify(listener).onPageCrawled(uri("/base/abc"));
 
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(3)).onPageCrawled(any());
     }
 
     @Test
@@ -168,7 +169,7 @@ public class SpiderIntegrationTest {
 
         verify(listener).onPageCrawled(uri("/"));
         verify(listener).onPageCrawled(uri("/dst1"));
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(2)).onPageCrawled(any());
     }
 
 
@@ -195,7 +196,7 @@ public class SpiderIntegrationTest {
 
         verify(listener).onPageCrawled(uri("/"));
         verify(listener).onPageCrawled(uri("/dst1"));
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(2)).onPageCrawled(any());
     }
 
     @Test
@@ -208,7 +209,7 @@ public class SpiderIntegrationTest {
         job.start();
 
         verify(listener).onPageCrawled(uri("/"));
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(1)).onPageCrawled(any());
     }
 
     private CrawlResult uri(String uri) {

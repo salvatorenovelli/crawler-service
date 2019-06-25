@@ -70,7 +70,8 @@ public class CrawlJobTest {
         sut.start();
         Mockito.verify(subscriber).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path1")));
         Mockito.verify(subscriber).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path2")));
-        verifyNoMoreInteractions(subscriber);
+        verify(subscriber, atMost(2)).onPageCrawled(any());
+
     }
 
     @Test

@@ -54,7 +54,7 @@ public class CrawlJob {
 
     private void notifyCrawlStart() {
         listeners.forEach(listener -> {
-            List<String> collect = seeds.subList(0, 20).stream().map(URI::toString).collect(Collectors.toList());
+            List<String> collect = seeds.subList(0, Math.min(seeds.size(),20)).stream().map(URI::toString).collect(Collectors.toList());
             listener.onCrawlStart(new CrawlStartedEvent(origin.toString(), collect));
         });
     }

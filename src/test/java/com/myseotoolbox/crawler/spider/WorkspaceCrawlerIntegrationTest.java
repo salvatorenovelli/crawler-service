@@ -72,7 +72,7 @@ public class WorkspaceCrawlerIntegrationTest {
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(3)).onPageCrawled(any());
 
     }
 
@@ -86,7 +86,7 @@ public class WorkspaceCrawlerIntegrationTest {
 
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(2)).onPageCrawled(any());
     }
 
 
@@ -105,7 +105,8 @@ public class WorkspaceCrawlerIntegrationTest {
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
         verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
-        verifyNoMoreInteractions(listener);
+        verify(listener, atMost(3)).onPageCrawled(any());
+
     }
 
 
