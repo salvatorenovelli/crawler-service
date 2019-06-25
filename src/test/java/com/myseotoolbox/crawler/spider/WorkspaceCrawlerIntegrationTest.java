@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.PageCrawlListener;
-import com.myseotoolbox.crawler.PageCrawlListenerFactory;
+import com.myseotoolbox.crawler.CrawlEventListener;
+import com.myseotoolbox.crawler.CrawlEventsListenerFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
 import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
@@ -44,8 +44,8 @@ public class WorkspaceCrawlerIntegrationTest {
 
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    @Mock private PageCrawlListener listener;
-    @Mock private PageCrawlListenerFactory listenerProvider;
+    @Mock private CrawlEventListener listener;
+    @Mock private CrawlEventsListenerFactory listenerProvider;
 
     private List<Workspace> allWorkspaces = new ArrayList<>();
     private CrawlJobFactory crawlJobFactory;
@@ -69,9 +69,9 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
         verifyNoMoreInteractions(listener);
 
     }
@@ -84,8 +84,8 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
         verifyNoMoreInteractions(listener);
     }
 
@@ -102,9 +102,9 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
         verifyNoMoreInteractions(listener);
     }
 

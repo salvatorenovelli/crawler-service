@@ -99,4 +99,9 @@ public class PageSnapshotTestBuilder {
         cur.setLinks(Arrays.asList(links));
         return this;
     }
+
+    public PageSnapshotTestBuilder withNullLinks() {
+        cur.setLinks(null);
+        return this;
+    }
 }

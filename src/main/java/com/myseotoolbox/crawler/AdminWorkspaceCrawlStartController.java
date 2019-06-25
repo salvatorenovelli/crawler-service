@@ -31,14 +31,14 @@ public class AdminWorkspaceCrawlStartController {
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
     private final WorkspaceCrawler workspaceCrawler;
-    private final PageCrawlListenerFactory pageCrawlListenerFactory;
+    private final CrawlEventsListenerFactory crawlEventsListenerFactory;
     private final HTTPClient client;
 
-    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, PageCrawlListenerFactory pageCrawlListenerFactory, HTTPClient client) {
+    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, CrawlEventsListenerFactory crawlEventsListenerFactory, HTTPClient client) {
         this.factory = factory;
         this.repository = repository;
         this.workspaceCrawler = workspaceCrawler;
-        this.pageCrawlListenerFactory = pageCrawlListenerFactory;
+        this.crawlEventsListenerFactory = crawlEventsListenerFactory;
         this.client = client;
     }
 
@@ -51,7 +51,7 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true);
 
 
-        CrawlJob job = factory.build(configuration, getPageCrawlListener());
+        CrawlJob job = factory.build(configuration, getCrawlEventsListener());
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -62,7 +62,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws));
-        CrawlJob job = factory.build(conf, getPageCrawlListener());
+        CrawlJob job = factory.build(conf, getCrawlEventsListener());
 
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
@@ -96,7 +96,7 @@ public class AdminWorkspaceCrawlStartController {
                 crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
     }
 
-    private PageCrawlListener getPageCrawlListener() {
-        return pageCrawlListenerFactory.getPageCrawlListener("manual" + new Date());
+    private CrawlEventListener getCrawlEventsListener() {
+        return crawlEventsListenerFactory.getPageCrawlListener("manual" + new Date());
     }
 }

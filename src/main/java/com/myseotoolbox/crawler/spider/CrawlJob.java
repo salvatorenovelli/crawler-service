@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
-import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -9,7 +9,6 @@ import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -29,8 +28,8 @@ public class CrawlJob {
         new CrawlerPoolStatusMonitor(name, executor).start();
     }
 
-    public void subscribeToPageCrawled(Consumer<CrawlResult> subscriber) {
-        this.crawlerQueue.subscribeToPageCrawled(subscriber);
+    public void subscribeToCrawlEvents(CrawlEventListener subscriber) {
+        this.crawlerQueue.subscribeToCrawlEvents(subscriber);
     }
 
     public void start() {

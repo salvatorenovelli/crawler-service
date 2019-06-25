@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
@@ -40,7 +40,7 @@ public class CrawlJobFactoryTest {
     @Mock private WebPageReader reader;
     @Spy private WebsiteUriFilterFactory filtersFactory = new WebsiteUriFilterFactory();
     @Mock private RobotsTxt mockRobotsTxt;
-    @Mock private PageCrawlListener listener;
+    @Mock private CrawlEventListener listener;
     @Mock private SitemapReader sitemapReader;
 
     private CrawlExecutorFactory crawlExecutorFactory = new CurrentThreadCrawlExecutorFactory();
@@ -76,7 +76,7 @@ public class CrawlJobFactoryTest {
     public void shouldNotifyMonitoredUriUpdater() {
         CrawlJob job = sut.build(testConf.build(), listener);
         job.start();
-        verify(listener).accept(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
+        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test

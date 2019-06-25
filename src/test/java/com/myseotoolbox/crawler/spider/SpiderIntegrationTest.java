@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
@@ -46,7 +46,7 @@ public class SpiderIntegrationTest {
 
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
-    @Mock private PageCrawlListener listener;
+    @Mock private CrawlEventListener listener;
     @Mock private SitemapReader sitemapReader;
 
 
@@ -72,9 +72,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(listener).accept(uri("/"));
-        verify(listener).accept(uri("/abc"));
-        verify(listener).accept(uri("/cde"));
+        verify(listener).onPageCrawled(uri("/"));
+        verify(listener).onPageCrawled(uri("/abc"));
+        verify(listener).onPageCrawled(uri("/cde"));
 
         verifyNoMoreInteractions(listener);
 
@@ -91,10 +91,10 @@ public class SpiderIntegrationTest {
         job.start();
 
 
-        verify(listener).accept(uri("/base"));
-        verify(listener).accept(uri("/base/abc"));
-        verify(listener).accept(uri("/base/cde"));
-        verify(listener).accept(uri("/outside/fgh"));
+        verify(listener).onPageCrawled(uri("/base"));
+        verify(listener).onPageCrawled(uri("/base/abc"));
+        verify(listener).onPageCrawled(uri("/base/cde"));
+        verify(listener).onPageCrawled(uri("/outside/fgh"));
 
         verifyNoMoreInteractions(listener);
 
@@ -112,12 +112,12 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
         job.start();
 
-        verify(listener).accept(uri("/base"));
-        verify(listener).accept(uri("/base2"));
-        verify(listener).accept(uri("/base/abc"));
-        verify(listener).accept(uri("/base/cde"));
-        verify(listener).accept(uri("/base2/fgh"));
-        verify(listener).accept(uri("/outside/a"));
+        verify(listener).onPageCrawled(uri("/base"));
+        verify(listener).onPageCrawled(uri("/base2"));
+        verify(listener).onPageCrawled(uri("/base/abc"));
+        verify(listener).onPageCrawled(uri("/base/cde"));
+        verify(listener).onPageCrawled(uri("/base2/fgh"));
+        verify(listener).onPageCrawled(uri("/outside/a"));
 
         verifyNoMoreInteractions(listener);
 
@@ -134,9 +134,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
         job.start();
 
-        verify(listener).accept(uri("/base"));
-        verify(listener).accept(uri("/base2"));
-        verify(listener).accept(uri("/base/abc"));
+        verify(listener).onPageCrawled(uri("/base"));
+        verify(listener).onPageCrawled(uri("/base2"));
+        verify(listener).onPageCrawled(uri("/base/abc"));
 
         verifyNoMoreInteractions(listener);
     }
@@ -166,8 +166,8 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(listener).accept(uri("/"));
-        verify(listener).accept(uri("/dst1"));
+        verify(listener).onPageCrawled(uri("/"));
+        verify(listener).onPageCrawled(uri("/dst1"));
         verifyNoMoreInteractions(listener);
     }
 
@@ -179,7 +179,7 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(listener).accept(argThat(snapshot -> {
+        verify(listener).onPageCrawled(argThat(snapshot -> {
             assertThat(snapshot.getPageSnapshot().getTitle(), is("This has leading spaces"));
             return true;
         }));
@@ -193,8 +193,8 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(listener).accept(uri("/"));
-        verify(listener).accept(uri("/dst1"));
+        verify(listener).onPageCrawled(uri("/"));
+        verify(listener).onPageCrawled(uri("/dst1"));
         verifyNoMoreInteractions(listener);
     }
 
@@ -207,7 +207,7 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(listener).accept(uri("/"));
+        verify(listener).onPageCrawled(uri("/"));
         verifyNoMoreInteractions(listener);
     }
 

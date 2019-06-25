@@ -10,8 +10,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
 
 
@@ -65,6 +64,21 @@ public class OutboundLinksListenerTest {
             assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
             assertThat(argument.getUrl(), equalTo("http://testuri"));
             assertThat(argument.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
+            return true;
+        }));
+    }
+
+    @Test
+    public void shouldBeFineWithNullLinks() {
+        CrawlResult crawlResult = CrawlResult.forSnapshot(
+                aTestPageSnapshotForUri("http://testuri").withNullLinks().build());
+
+        sut.accept(crawlResult);
+
+        Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
+            assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(argument.getUrl(), equalTo("http://testuri"));
+            assertThat(argument.getLinksByType().get(LinkType.AHREF), hasSize(0));
             return true;
         }));
     }

@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.config;
 
-import com.myseotoolbox.crawler.PageCrawlListener;
+import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
@@ -19,7 +19,7 @@ import static org.mockito.Mockito.verify;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class PageCrawlListenerTest {
+public class CrawlEventListenerTest {
 
 
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
@@ -28,16 +28,16 @@ public class PageCrawlListenerTest {
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
     @Mock private OutboundLinksListener linksListener;
 
-    PageCrawlListener sut;
+    CrawlEventListener sut;
 
     @Before
     public void setUp() {
-        sut = new PageCrawlListener(monitoredUriUpdater, crawlPersistence, linksListener);
+        sut = new CrawlEventListener(monitoredUriUpdater, crawlPersistence, linksListener);
     }
 
     @Test
     public void shouldNotifyAllListeners() {
-        sut.accept(TEST_CRAWL_RESULT);
+        sut.onPageCrawled(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
@@ -47,7 +47,7 @@ public class PageCrawlListenerTest {
     public void exceptionsInMonitoredUriUpdaterDoesNotPreventPersistenceOfCrawl() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
-        sut.accept(TEST_CRAWL_RESULT);
+        sut.onPageCrawled(TEST_CRAWL_RESULT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
     }
 
@@ -55,7 +55,7 @@ public class PageCrawlListenerTest {
     public void exceptionsInpageCrawlPersistenceDoesNotPreventMonitoredUriUpdate() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
-        sut.accept(TEST_CRAWL_RESULT);
+        sut.onPageCrawled(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
     }
 
@@ -63,7 +63,7 @@ public class PageCrawlListenerTest {
     public void exceptionsInLinksListenerDoesNotPreventMonitoredUriUpdate() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
-        sut.accept(TEST_CRAWL_RESULT);
+        sut.onPageCrawled(TEST_CRAWL_RESULT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
     }
 }

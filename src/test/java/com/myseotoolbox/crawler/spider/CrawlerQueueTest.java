@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChain;
@@ -16,7 +17,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,7 +39,7 @@ public class CrawlerQueueTest {
 
     private CrawlerQueue sut;
     @Mock private CrawlersPool pool;
-    @Mock private Consumer<CrawlResult> mockListener;
+    @Mock private CrawlEventListener mockListener;
 
     @Before
     public void setUp() {
@@ -75,10 +75,10 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").discover("http://host1/dst");
 
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
-        sut.subscribeToPageCrawled(mockListener);
+        sut.subscribeToCrawlEvents(mockListener);
         sut.start();
 
-        verify(mockListener).accept(argThat(argument -> argument.getUri().equals("http://host1")));
+        verify(mockListener).onPageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
     }
 
     @Test

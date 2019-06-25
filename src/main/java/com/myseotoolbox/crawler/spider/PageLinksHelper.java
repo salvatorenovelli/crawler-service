@@ -51,7 +51,7 @@ public class PageLinksHelper {
 
             return Optional.ofNullable(uri);
         } catch (URISyntaxException e) {
-            log.warn("Invalid link: '{}'. {}", str, e.getMessage());
+            log.debug("Invalid link: '{}'. {}", str, e.getMessage());
             return Optional.empty();
         }
 

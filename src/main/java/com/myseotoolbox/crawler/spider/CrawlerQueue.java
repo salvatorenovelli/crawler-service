@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
@@ -27,7 +28,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
-    private final List<Consumer<CrawlResult>> onSnapshotListeners = new ArrayList<>();
+    private final List<CrawlEventListener> crawlEventListeners = new ArrayList<>();
     private final PageLinksHelper helper = new PageLinksHelper();
 
     private final int maxCrawls;
@@ -41,8 +42,8 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         this.seeds.addAll(seeds.stream().distinct().collect(Collectors.toList()));
     }
 
-    public synchronized void subscribeToPageCrawled(Consumer<CrawlResult> subscriber) {
-        onSnapshotListeners.add(subscriber);
+    public synchronized void subscribeToCrawlEvents(CrawlEventListener subscriber) {
+        crawlEventListeners.add(subscriber);
     }
 
     public synchronized void start() {
@@ -57,8 +58,9 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         log.debug("Scanned: {} links:{}", sourceUri, links.size());
 
         if (!result.isBlockedChain()) {
-            notifyListeners(result);
+            notifyPageCrawled(result);
         }
+
         onScanCompleted(URI.create(sourceUri), links);
     }
 
@@ -151,8 +153,8 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         if (!uri.isAbsolute()) throw new IllegalStateException("URI should be absolute or we risk to visit it twice.");
     }
 
-    private void notifyListeners(CrawlResult crawlResult) {
-        onSnapshotListeners.forEach(listener -> runOrLogWarning(() -> listener.accept(crawlResult), "Unable to notify listener"));
+    private void notifyPageCrawled(CrawlResult crawlResult) {
+        crawlEventListeners.forEach(listener -> runOrLogWarning(() -> listener.onPageCrawled(crawlResult), "Unable to notify listener"));
     }
 }
 

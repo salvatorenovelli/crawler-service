@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.PageCrawlListener;
-import com.myseotoolbox.crawler.PageCrawlListenerFactory;
+import com.myseotoolbox.crawler.CrawlEventListener;
+import com.myseotoolbox.crawler.CrawlEventsListenerFactory;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -34,20 +34,20 @@ public class WorkspaceCrawler {
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    private final PageCrawlListenerFactory pageCrawlListenerFactory;
+    private final CrawlEventsListenerFactory crawlEventsListenerFactory;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
 
     public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
                             CrawlJobFactory crawlJobFactory,
                             WebsiteCrawlLogRepository websiteCrawlLogRepository,
-                            PageCrawlListenerFactory pageCrawlListenerFactory,
+                            CrawlEventsListenerFactory crawlEventsListenerFactory,
                             RobotsTxtAggregation robotsTxtAggregation,
                             @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
-        this.pageCrawlListenerFactory = pageCrawlListenerFactory;
+        this.crawlEventsListenerFactory = crawlEventsListenerFactory;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
     }
@@ -67,7 +67,9 @@ public class WorkspaceCrawler {
                 executor.execute(() -> runOrLogWarning(() -> {
 
                     Set<URI> seeds = extractSeeds(workspaces);
-                    log.info("Crawling {} with seeds: {}", baseDomainPath, seeds);
+
+                    log.info("Starting crawl for {} with seeds: {}", baseDomainPath, seeds);
+
                     RobotsTxt merged = robotsTxtAggregation.aggregate(workspaces);
 
                     CrawlJobConfiguration conf = CrawlJobConfiguration
@@ -77,9 +79,9 @@ public class WorkspaceCrawler {
                             .withRobotsTxt(merged)
                             .build();
 
-                    PageCrawlListener crawlListener = pageCrawlListenerFactory.getPageCrawlListener(getCrawlId());
+                    CrawlEventListener listener = crawlEventsListenerFactory.getPageCrawlListener(getCrawlId(baseDomainPath));
 
-                    CrawlJob job = crawlJobFactory.build(conf, crawlListener);
+                    CrawlJob job = crawlJobFactory.build(conf, listener);
                     job.start();
                     //this needs to go
                     seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
@@ -89,8 +91,8 @@ public class WorkspaceCrawler {
 
     }
 
-    private String getCrawlId() {
-        return LocalDateTime.now().format(DateTimeFormatter.ISO_DATE);
+    private String getCrawlId(URI baseDomainPath) {
+        return baseDomainPath.toString() + "-" + LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {
