@@ -355,9 +355,6 @@ public class CrawlerQueueTest {
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
 
-
-        System.out.println(mockingDetails(pool).printInvocations());
-
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/link%20with%20spaces"));
         verify(pool).shutDown();
@@ -447,8 +444,6 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1/3"));
         verify(pool).shutDown();
 
-        System.out.println(mockingDetails(pool).printInvocations());
-
         verifyNoMoreInteractions(pool);
     }
 
@@ -464,8 +459,6 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1/2"));
         verify(pool).accept(taskForUri("http://host1/3"));
         verify(pool).shutDown();
-
-        System.out.println(mockingDetails(pool).printInvocations());
 
         verifyNoMoreInteractions(pool);
     }

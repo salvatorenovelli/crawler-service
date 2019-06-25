@@ -159,7 +159,6 @@ public class MetaTagSanitizerTest {
 
     @Test
     public void htmlCharacterReferencesAreUnescaped() {
-        System.out.println("H2 &lt; is ok");
 
         PageSnapshot e = PageSnapshotTestBuilder
                 .aTestPageSnapshotForUri("http://someuri")
@@ -178,7 +177,6 @@ public class MetaTagSanitizerTest {
 
     @Test
     public void unicodeEscapedCharacterAreUnescaped() {
-        System.out.println("H2 &lt; is ok");
 
         PageSnapshot e = PageSnapshotTestBuilder
                 .aTestPageSnapshotForUri("http://someuri")
@@ -191,15 +189,12 @@ public class MetaTagSanitizerTest {
 
     @Test
     public void slashEscapedCharactersAreCharacterAreUnescaped() {
-        System.out.println("H2 &lt; is ok");
 
         PageSnapshot e = PageSnapshotTestBuilder
                 .aTestPageSnapshotForUri("http://someuri")
                 .withTitle("Title is ok: \\'\\\"").build();
 
         MetaTagSanitizer.sanitize(e);
-
-        System.out.println("This is how it look like normally: \"");
 
         assertThat(e.getTitle(), Matchers.is("Title is ok: '\""));
     }

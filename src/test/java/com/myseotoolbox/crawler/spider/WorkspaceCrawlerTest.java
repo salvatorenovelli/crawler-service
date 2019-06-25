@@ -279,8 +279,6 @@ public class WorkspaceCrawlerTest {
         givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
         sut.crawlAllWorkspaces();
 
-        System.out.println(mockingDetails(websiteCrawlLogRepository).printInvocations());
-
         verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
     }
 
