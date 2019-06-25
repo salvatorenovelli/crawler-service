@@ -5,7 +5,7 @@ import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
-import com.myseotoolbox.crawler.outboundlink.OutboundLinksListener;
+import com.myseotoolbox.crawler.pagelinks.OutboundLinksListener;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;

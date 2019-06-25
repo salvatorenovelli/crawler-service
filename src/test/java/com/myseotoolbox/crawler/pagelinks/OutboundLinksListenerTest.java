@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.outboundlink;
+package com.myseotoolbox.crawler.pagelinks;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
 import org.bson.types.ObjectId;

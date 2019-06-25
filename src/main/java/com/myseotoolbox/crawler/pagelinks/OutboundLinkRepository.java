@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.outboundlink;
+package com.myseotoolbox.crawler.pagelinks;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 

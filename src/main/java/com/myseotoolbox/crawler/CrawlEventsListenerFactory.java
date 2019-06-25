@@ -1,8 +1,8 @@
 package com.myseotoolbox.crawler;
 
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
-import com.myseotoolbox.crawler.outboundlink.OutboundLinkRepository;
-import com.myseotoolbox.crawler.outboundlink.OutboundLinksListener;
+import com.myseotoolbox.crawler.pagelinks.OutboundLinkRepository;
+import com.myseotoolbox.crawler.pagelinks.OutboundLinksListener;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;

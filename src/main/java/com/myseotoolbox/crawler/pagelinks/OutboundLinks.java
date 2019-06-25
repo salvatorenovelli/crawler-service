@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.outboundlink;
+package com.myseotoolbox.crawler.pagelinks;
 
 import lombok.Data;
 import org.bson.types.ObjectId;
