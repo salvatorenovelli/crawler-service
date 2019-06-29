@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 
@@ -213,6 +214,18 @@ public class OutboundLinksListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "/link1/"));
+        });
+    }
+
+    @Test
+    public void shouldSaveCrawlDate() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
+                "/link1/", "/link1");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertNotNull(outboundLinks.getCrawledAt());
         });
     }
 

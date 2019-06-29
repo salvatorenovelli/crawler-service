@@ -6,6 +6,7 @@ import org.bson.types.ObjectId;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -34,7 +35,7 @@ public class OutboundLinksListener implements Consumer<CrawlResult> {
         HashMap<LinkType, List<String>> linkTypeListHashMap = new HashMap<>();
         linkTypeListHashMap.put(LinkType.AHREF, getLinks(crawlResult));
 
-        repository.save(new OutboundLinks(null, crawlId, crawlResult.getUri(), URI.create(crawlResult.getUri()).getHost(), linkTypeListHashMap));
+        repository.save(new OutboundLinks(null, crawlId, crawlResult.getUri(), LocalDateTime.now(), URI.create(crawlResult.getUri()).getHost(), linkTypeListHashMap));
     }
 
     private List<String> getLinks(CrawlResult crawlResult) {
