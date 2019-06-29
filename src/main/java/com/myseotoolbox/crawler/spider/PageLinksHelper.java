@@ -13,6 +13,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.myseotoolbox.crawler.utils.UriUtils.isValidUri;
+
 
 @Slf4j
 public class PageLinksHelper {
@@ -37,7 +39,7 @@ public class PageLinksHelper {
 
     private Optional<URI> toValidUri(String str) {
 
-        if (str.startsWith("javascript:")) {
+        if (!isValidUri(str)) {
             return Optional.empty();
         }
 

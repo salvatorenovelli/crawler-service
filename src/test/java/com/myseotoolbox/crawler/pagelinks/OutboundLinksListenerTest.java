@@ -10,6 +10,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.util.function.Consumer;
+
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
@@ -29,17 +31,15 @@ public class OutboundLinksListenerTest {
 
     @Test
     public void shouldSaveDiscoveredLinks() {
-        CrawlResult crawlResult = CrawlResult.forSnapshot(
-                aTestPageSnapshotForUri("http://testuri").withLinks("/relativeLink", "http://absoluteLink/hello").build());
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("/relativeLink", "http://absoluteLink/hello");
 
         sut.accept(crawlResult);
 
-        Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
-            assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
-            assertThat(argument.getUrl(), equalTo("http://testuri"));
-            assertThat(argument.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
-            return true;
-        }));
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(outboundLinks.getUrl(), equalTo("http://testuri"));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
+        });
     }
 
     @Test
@@ -56,17 +56,15 @@ public class OutboundLinksListenerTest {
 
     @Test
     public void shouldNotPersistDuplicateLinks() {
-        CrawlResult crawlResult = CrawlResult.forSnapshot(
-                aTestPageSnapshotForUri("http://testuri").withLinks("/relativeLink", "/relativeLink", "http://absoluteLink/hello", "http://absoluteLink/hello").build());
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("/relativeLink", "/relativeLink", "http://absoluteLink/hello", "http://absoluteLink/hello");
 
         sut.accept(crawlResult);
 
-        Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
-            assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
-            assertThat(argument.getUrl(), equalTo("http://testuri"));
-            assertThat(argument.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
-            return true;
-        }));
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(outboundLinks.getUrl(), equalTo("http://testuri"));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
+        });
     }
 
     @Test
@@ -76,11 +74,124 @@ public class OutboundLinksListenerTest {
 
         sut.accept(crawlResult);
 
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(outboundLinks.getUrl(), equalTo("http://testuri"));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), hasSize(0));
+        });
+    }
+
+    @Test
+    public void shouldNotPersistFragments() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("#this-is-a-fragment", "http://absoluteLink/hello#fragment");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://absoluteLink/hello"));
+        });
+    }
+
+    @Test
+    public void shouldDedupPagesWithFragments() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://host/hello", "http://host/hello#fragment");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://host/hello"));
+        });
+    }
+
+    @Test
+    public void shouldAlwaysPersistRelativeIfIsSameDomain() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
+                "/link1",
+                "http://domain/link2",
+                "http://domain/some/path/link3",
+                "http://anotherdomain/link1");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "/link2", "/some/path/link3", "http://anotherdomain/link1"));
+        });
+    }
+
+
+    @Test
+    public void differentSchemaIsConsideredDifferentHost() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
+                "/link1",
+                "https://domain/link2");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "https://domain/link2"));
+        });
+    }
+
+    @Test
+    public void linksWithNoSlashAtTheBeginningShouldBeResolvedProperly() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/subpath/page", "link1");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/subpath/link1"));
+        });
+    }
+
+    @Test
+    public void invalidUrlShouldBePersistedAsTheyAre() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
+                "/link1__(this is invalid)__",
+                "https://domain/link2");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1__(this is invalid)__", "https://domain/link2"));
+        });
+    }
+
+    @Test
+    public void shouldPersistDomain() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://something.domain/some/path", "/link1");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getDomain(), is("something.domain"));
+        });
+    }
+
+    @Test
+    public void shouldNotPersistJavascriptLinks() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
+                "/link1",
+                "javascript:void(0)");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1"));
+        });
+    }
+
+    private void verifySavedLinks(Consumer<OutboundLinks> linksVerify) {
         Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
-            assertThat(argument.getCrawlId(), equalTo(TEST_CRAWL_ID));
-            assertThat(argument.getUrl(), equalTo("http://testuri"));
-            assertThat(argument.getLinksByType().get(LinkType.AHREF), hasSize(0));
+            linksVerify.accept(argument);
             return true;
         }));
+    }
+
+    private CrawlResult givenCrawlResultForPageWithLinks(String... links) {
+        return givenCrawlResultForUrlWithPageWithLinks("http://testuri", links);
+    }
+
+    private CrawlResult givenCrawlResultForUrlWithPageWithLinks(String url, String... links) {
+        return CrawlResult.forSnapshot(aTestPageSnapshotForUri(url).withLinks(links).build());
     }
 }

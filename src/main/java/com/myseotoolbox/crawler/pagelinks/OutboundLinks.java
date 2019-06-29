@@ -15,5 +15,6 @@ public class OutboundLinks {
     @Id private final String id;
     @Indexed private final ObjectId crawlId;
     @Indexed private final String url;
+    private final String domain;
     private final Map<LinkType, List<String>> linksByType;
 }
