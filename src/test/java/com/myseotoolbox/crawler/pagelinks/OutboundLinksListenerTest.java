@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.pagelinks;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
 import org.bson.types.ObjectId;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -104,6 +105,17 @@ public class OutboundLinksListenerTest {
     }
 
     @Test
+    public void canHandleEmptyFragments() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("#", "http://host/page#");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://host/page"));
+        });
+    }
+
+    @Test
     public void shouldAlwaysPersistRelativeIfIsSameDomain() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
                 "/link1",
@@ -177,6 +189,30 @@ public class OutboundLinksListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1"));
+        });
+    }
+
+    @Test
+    public void linksShouldBeSorted() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
+                "/c", "/d", "/c", "/b", "http://domain/a", "http://anotherdomain/b", "http://anotherdomain/a");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), Matchers.contains("/a", "/b", "/c", "/d", "http://anotherdomain/a", "http://anotherdomain/b"));
+        });
+    }
+
+    @Test
+    public void shouldMaintainTrailingSlashIfPresent() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
+                "/link1/", "/link1");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "/link1/"));
         });
     }
 

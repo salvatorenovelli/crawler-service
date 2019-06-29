@@ -44,7 +44,9 @@ public class OutboundLinksListener implements Consumer<CrawlResult> {
                 .map(this::removeFragment)
                 .filter(this::isValidUrl)
                 .map(link -> relativize(crawlResult.getUri(), link))
-                .distinct().collect(Collectors.toList());
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
     }
 
     private String relativize(String pageUrl, String link) {
@@ -74,6 +76,7 @@ public class OutboundLinksListener implements Consumer<CrawlResult> {
     }
 
     private String removeFragment(String url) {
+        if (url.equals("#")) return "";
         if (!url.contains("#")) return url;
         return url.split("#")[0];
     }
