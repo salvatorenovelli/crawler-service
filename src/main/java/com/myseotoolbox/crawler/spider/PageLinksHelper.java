@@ -19,6 +19,8 @@ import static com.myseotoolbox.crawler.utils.UriUtils.isValidUri;
 @Slf4j
 public class PageLinksHelper {
 
+    public static final int MAX_URL_LEN = 1000;
+
     public List<URI> filterValidLinks(List<String> links) {
         List<URI> filtered = new ArrayList<>();
 
@@ -39,7 +41,7 @@ public class PageLinksHelper {
 
     private Optional<URI> toValidUri(String str) {
 
-        if (!isValidUri(str)) {
+        if (!isValidUri(str) || str.length() > MAX_URL_LEN) {
             return Optional.empty();
         }
 

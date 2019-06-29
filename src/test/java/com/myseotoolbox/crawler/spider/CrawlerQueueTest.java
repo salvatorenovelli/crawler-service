@@ -18,8 +18,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -469,6 +471,25 @@ public class CrawlerQueueTest {
         sut.start();
         verify(pool).accept(taskForUri("http://host1/"));
         verify(pool).shutDown();
+        verifyNoMoreInteractions(pool);
+    }
+
+
+    @Test
+    public void shouldRemoveUrlLongerThan1KB() {
+
+        String verylonglink = "/" + IntStream.range(0, MAX_URL_LEN + 100).mapToObj(sdi -> "0").collect(Collectors.joining());
+
+        whenCrawling("http://host1/").discover("http://host1/1", verylonglink);
+
+        sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/"), pool, NO_URI_FILTER, MAX_CRAWLS);
+        sut.start();
+
+        verify(pool).accept(taskForUri("http://host1/"));
+        verify(pool).accept(taskForUri("http://host1/1"));
+
+        verify(pool).shutDown();
+
         verifyNoMoreInteractions(pool);
     }
 
