@@ -15,8 +15,8 @@ import java.util.Map;
 public class OutboundLinks {
     @Id private final String id;
     @Indexed private final ObjectId crawlId;
-    @Indexed private final String url;
+    private final String url;
     private final LocalDateTime crawledAt;
-    private final String domain;
+    @Indexed private final String domain;
     private final Map<LinkType, List<String>> linksByType;
 }

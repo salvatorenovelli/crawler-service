@@ -34,7 +34,7 @@ public class RobotsTxtAggregation {
                 return EmptyRobotsTxt.instance();
 
 
-            URI origin = WebsiteOriginUtils.extractRoot(URI.create(workspace0.getWebsiteUrl()));
+            URI origin = WebsiteOriginUtils.extractOrigin(URI.create(workspace0.getWebsiteUrl()));
             String content = httpClient.get(origin.resolve("/robots.txt"));
             return new DefaultRobotsTxt(origin.toString(), content.getBytes());
         } catch (IOException e) {

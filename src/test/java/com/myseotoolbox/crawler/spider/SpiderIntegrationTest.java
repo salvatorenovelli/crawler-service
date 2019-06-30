@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractRoot;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -220,7 +220,7 @@ public class SpiderIntegrationTest {
 
         //mimic WorkspaceCrawler
 
-        URI origin = extractRoot(seeds.get(0));
+        URI origin = extractOrigin(seeds.get(0));
         SpiderConfig spiderConfig = new SpiderConfig();
 
         CrawlJobFactory crawlJobFactory = spiderConfig

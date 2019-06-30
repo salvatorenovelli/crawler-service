@@ -45,7 +45,7 @@ public class WebsiteOriginUtils {
     }
 
 
-    public static URI extractRoot(URI source) {
+    public static URI extractOrigin(URI source) {
         return source.resolve("/");
     }
 

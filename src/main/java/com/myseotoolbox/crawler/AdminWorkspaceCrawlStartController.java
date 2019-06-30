@@ -45,7 +45,7 @@ public class AdminWorkspaceCrawlStartController {
 
     @GetMapping("/scan-origin")
     public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws IOException {
-        URI origin = WebsiteOriginUtils.extractRoot(URI.create(seeds.get(0)));
+        URI origin = WebsiteOriginUtils.extractOrigin(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
 

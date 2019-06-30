@@ -60,7 +60,7 @@ public class WorkspaceCrawler {
                 .stream()
                 .filter(this::validOrigin)
                 .filter(this::shouldCrawl)
-                .collect(Collectors.groupingBy(this::extractRoot, Collectors.toSet()));
+                .collect(Collectors.groupingBy(this::extractOrigin, Collectors.toSet()));
 
         workspacesByHost.forEach((baseDomainPath, workspaces) ->
                 executor.execute(() -> runOrLogWarning(() -> {
@@ -102,8 +102,8 @@ public class WorkspaceCrawler {
         return workspaces.stream().map(Workspace::getWebsiteUrl).map(this::addTrailingSlashIfMissing).map(URI::create).collect(Collectors.toSet());
     }
 
-    private URI extractRoot(Workspace workspace) {
-        return WebsiteOriginUtils.extractRoot(URI.create(addTrailingSlashIfMissing(workspace.getWebsiteUrl())));
+    private URI extractOrigin(Workspace workspace) {
+        return WebsiteOriginUtils.extractOrigin(URI.create(addTrailingSlashIfMissing(workspace.getWebsiteUrl())));
     }
 
     private boolean shouldCrawl(Workspace workspace) {

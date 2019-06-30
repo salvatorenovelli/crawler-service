@@ -65,7 +65,7 @@ public class WebsiteOriginUtilsTest {
 
     @Test
     public void extractOriginShouldKeepProtocol() {
-        assertThat(extractRoot(create("http://host/something")), is(URI.create("http://host/")));
+        assertThat(extractOrigin(create("http://host/something")), is(URI.create("http://host/")));
     }
 
     @Test
