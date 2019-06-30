@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
+import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
@@ -84,6 +85,8 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     private synchronized void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
         List<URI> newLinks = links.stream()
                 .map(uri -> toAbsolute(sourceUri, uri))
+                .filter(Objects::nonNull)
+                .filter(uri -> uri.toString().length() < MAX_URL_LEN)
                 .filter(uri -> uriFilter.shouldCrawl(sourceUri, uri))
                 .filter(uri -> !alreadyVisited(uri))
                 .distinct()

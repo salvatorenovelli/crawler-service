@@ -476,11 +476,11 @@ public class CrawlerQueueTest {
 
 
     @Test
-    public void shouldRemoveUrlLongerThan1KB() {
+    public void shouldRemoveUrlLongerThan1KBCountingDomain() {
 
-        String verylonglink = "/" + IntStream.range(0, MAX_URL_LEN + 100).mapToObj(sdi -> "0").collect(Collectors.joining());
+        String verylongRelativelink = "/" + IntStream.range(0, MAX_URL_LEN - 1).mapToObj(sdi -> "0").collect(Collectors.joining());
 
-        whenCrawling("http://host1/").discover("http://host1/1", verylonglink);
+        whenCrawling("http://host1/").discover("http://host1/1", verylongRelativelink);
 
         sut = new CrawlerQueue(QUEUE_NAME, uris("http://host1/"), pool, NO_URI_FILTER, MAX_CRAWLS);
         sut.start();
