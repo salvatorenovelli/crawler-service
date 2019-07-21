@@ -131,6 +131,29 @@ public class OutboundLinksListenerTest {
         });
     }
 
+    @Test
+    public void shouldBeAbleToRelativizeUrlsWithSpaces() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
+                "http://domain/link1 with spaces/salve");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1%20with%20spaces/salve"));
+        });
+    }
+
+    @Test
+    public void shouldRelativizeRelativeToCurrentUrls() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path/",
+                "salve");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/some/path/salve"));
+        });
+    }
 
     @Test
     public void differentSchemaIsConsideredDifferentHost() {
@@ -159,13 +182,13 @@ public class OutboundLinksListenerTest {
     @Test
     public void invalidUrlShouldBePersistedAsTheyAre() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
-                "/link1__(this is invalid)__",
+                "http:-/link1__(this is invalid)__",
                 "https://domain/link2");
 
         sut.accept(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
-            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1__(this is invalid)__", "https://domain/link2"));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http:-/link1__(this is invalid)__", "https://domain/link2"));
         });
     }
 

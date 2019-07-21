@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.pagelinks;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.utils.UriUtils;
+import com.myseotoolbox.crawlercommons.UriCreator;
 import org.bson.types.ObjectId;
 
 import java.net.URI;
@@ -54,11 +55,11 @@ public class OutboundLinksListener implements Consumer<CrawlResult> {
 
         try {
 
-            URI pageUrlUri = new URI(pageUrl);
-            URI linkUri = new URI(link);
+            URI linkUri = UriCreator.create(link);
+            URI pageUrlUri = UriCreator.create(pageUrl);
 
             if (!linkUri.isAbsolute() || schemeMatching(pageUrlUri, linkUri) && isHostMatching(pageUrlUri, linkUri)) {
-                return pageUrlUri.resolve(linkUri).getPath();
+                return pageUrlUri.resolve(linkUri).getRawPath();
             }
 
         } catch (URISyntaxException e) {
