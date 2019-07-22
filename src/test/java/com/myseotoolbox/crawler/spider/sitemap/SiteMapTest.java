@@ -152,7 +152,7 @@ public class SiteMapTest {
     }
 
     @Test
-    public void shouldListUrlWithDifferentDomains() {
+    public void shouldNotListUrlWithDifferentDomains() {
         givenAWebsite()
                 .withSitemapOn("/")
                 .havingUrls("/location1", "/location2", "https://differentdomain/location2")

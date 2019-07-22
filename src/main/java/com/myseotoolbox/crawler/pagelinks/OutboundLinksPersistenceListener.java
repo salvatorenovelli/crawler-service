@@ -6,7 +6,6 @@ import com.myseotoolbox.crawlercommons.UriCreator;
 import org.bson.types.ObjectId;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +61,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
                 return pageUrlUri.resolve(linkUri).getRawPath();
             }
 
-        } catch (URISyntaxException e) {
+        } catch (IllegalArgumentException e) {
             //nothing to do here, just an invalid link, will return original one.
         }
 

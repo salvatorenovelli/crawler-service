@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
 import com.myseotoolbox.crawler.spider.filter.PathFilter;
+import com.myseotoolbox.crawlercommons.UriCreator;
 import crawlercommons.sitemaps.AbstractSiteMap;
 import crawlercommons.sitemaps.SiteMapIndex;
 import crawlercommons.sitemaps.SiteMapParser;
@@ -26,7 +27,7 @@ public class SiteMap {
     private final PathFilter pathFilter;
     private final List<URL> siteMapsUrls;
 
-    private SiteMapParser siteMapParser = new SiteMapParser();
+    private SiteMapParser siteMapParser = new SiteMapParser(false);
 
     SiteMap(URI origin, String sitemapUrl) {
         this(origin, Collections.singletonList(sitemapUrl), Collections.singletonList("/"));
@@ -39,7 +40,12 @@ public class SiteMap {
     }
 
     public List<String> fetchUris() {
-        return this.siteMapsUrls.stream().flatMap(url -> fetch(url).stream()).distinct().collect(Collectors.toList());
+        return this.siteMapsUrls
+                .stream()
+                .flatMap(url -> fetch(url).stream())
+                .filter(this::isSameDomain)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     /**
@@ -78,8 +84,12 @@ public class SiteMap {
         }
     }
 
+    private boolean isSameDomain(String url) {
+        return isHostMatching(UriCreator.create(url), origin);
+    }
+
     private boolean isSameDomain(URL url) {
-        return isHostMatching(URI.create(url.toString()), origin);
+        return isSameDomain(url.toString());
     }
 
     private URL mapToUrlOrLogWarning(String s) {
