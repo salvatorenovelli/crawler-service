@@ -8,6 +8,7 @@ import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
+import org.jsoup.UnsupportedMimeTypeException;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,9 +20,6 @@ import java.net.URI;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -70,17 +68,16 @@ public class CrawlersPoolTest {
 
     @Test
     public void exceptionHappeningOutsideCrawlShouldBeHandled() {
-
         doThrow(new RuntimeException("This happened while submitting result")).when(listener).accept(any());
-
         acceptTaskFor(SUCCESS_TEST_LINK);
+        verify(mockAppender).doAppend(argThat(argument -> argument.getLevel().equals(Level.ERROR) && argument.getMessage().contains("Exception while crawling")));
+    }
 
-        verify(mockAppender).doAppend(argThat(argument -> {
-            assertThat(argument.getLevel(), is(Level.ERROR));
-            assertThat(argument.getMessage(), containsString("Exception while crawling"));
-            return true;
-        }));
-
+    @Test
+    public void mimeTypeExceptionsAreLoggedAsDebug() throws SnapshotException {
+        doThrow(new SnapshotException(new UnsupportedMimeTypeException("This is logged as debug", "pdf", ""), new PageSnapshot())).when(reader).snapshotPage(any());
+        acceptTaskFor(SUCCESS_TEST_LINK);
+        verify(mockAppender).doAppend(argThat(argument -> argument.getLevel().equals(Level.DEBUG) && argument.getMessage().contains("Unable to crawl")));
     }
 
     private void acceptTaskFor(URI uri) {

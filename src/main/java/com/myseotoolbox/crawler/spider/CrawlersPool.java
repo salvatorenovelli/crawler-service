@@ -5,7 +5,9 @@ import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.UnsupportedMimeTypeException;
 
+import java.net.URI;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
@@ -29,13 +31,21 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
                     CrawlResult result = pageReader.snapshotPage(task.getUri());
                     task.getTaskRequester().accept(result);
                 } catch (SnapshotException e) {
-                    log.warn("Unable to crawl: {}. Exception: {}", task.getUri(), e.getMessage());
+                    logException(e, task.getUri());
                     task.getTaskRequester().accept(CrawlResult.forSnapshot(e.getPartialSnapshot()));
                 }
             } catch (Exception e) {
                 log.error("Exception while crawling: " + task.getUri(), e);
             }
         });
+    }
+
+    private void logException(SnapshotException e, URI uri) {
+        if (e.getCause() instanceof UnsupportedMimeTypeException) {
+            log.debug("Unable to crawl: {}. Exception: {}", uri, e.getMessage());
+        } else {
+            log.warn("Unable to crawl: {}. Exception: {}", uri, e.getMessage());
+        }
     }
 
     public void shutDown() {
