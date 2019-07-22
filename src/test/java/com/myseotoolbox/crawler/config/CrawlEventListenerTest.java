@@ -5,7 +5,7 @@ import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
-import com.myseotoolbox.crawler.pagelinks.OutboundLinksListener;
+import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
@@ -38,7 +38,7 @@ public class CrawlEventListenerTest {
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     @Mock private PageCrawlPersistence crawlPersistence;
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
-    @Mock private OutboundLinksListener linksListener;
+    @Mock private OutboundLinksPersistenceListener linksListener;
     @Mock private WebsiteCrawlRepository websiteCrawlRepository;
 
     CrawlEventListener sut;

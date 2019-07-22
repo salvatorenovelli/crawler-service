@@ -19,11 +19,11 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 
-public class OutboundLinksListener implements Consumer<CrawlResult> {
+public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
     private final ObjectId crawlId;
     private final OutboundLinkRepository repository;
 
-    public OutboundLinksListener(ObjectId crawlId, OutboundLinkRepository repository) {
+    public OutboundLinksPersistenceListener(ObjectId crawlId, OutboundLinkRepository repository) {
         this.crawlId = crawlId;
         this.repository = repository;
     }

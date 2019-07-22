@@ -2,7 +2,7 @@ package com.myseotoolbox.crawler;
 
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinkRepository;
-import com.myseotoolbox.crawler.pagelinks.OutboundLinksListener;
+import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
 import org.bson.types.ObjectId;
 import org.springframework.stereotype.Component;
@@ -23,6 +23,6 @@ public class CrawlEventsListenerFactory {
     }
 
     public CrawlEventListener getPageCrawlListener(ObjectId crawlId) {
-        return new CrawlEventListener(crawlId, monitoredUriUpdater, crawlPersistence, new OutboundLinksListener(crawlId, outboundLinkRepository), websiteCrawlRepository);
+        return new CrawlEventListener(crawlId, monitoredUriUpdater, crawlPersistence, new OutboundLinksPersistenceListener(crawlId, outboundLinkRepository), websiteCrawlRepository);
     }
 }

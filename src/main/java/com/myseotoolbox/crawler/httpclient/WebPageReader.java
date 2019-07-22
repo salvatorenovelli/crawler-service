@@ -3,10 +3,10 @@ package com.myseotoolbox.crawler.httpclient;
 import com.myseotoolbox.crawler.CalendarService;
 import com.myseotoolbox.crawler.model.*;
 import com.myseotoolbox.crawler.spider.UriFilter;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
@@ -90,12 +90,9 @@ public class WebPageReader {
         return !uriFilter.shouldCrawl(currentURI, location);
     }
 
+    @SneakyThrows
     private String decode(URI currentURI) {
-        try {
-            return URLDecoder.decode(currentURI.toASCIIString(), "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        return URLDecoder.decode(currentURI.toASCIIString(), "UTF-8");
     }
 
     private URI buildUri(String startURI) throws URISyntaxException {

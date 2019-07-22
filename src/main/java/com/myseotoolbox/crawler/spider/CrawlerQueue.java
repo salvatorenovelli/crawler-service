@@ -60,6 +60,8 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
         if (!result.isBlockedChain()) {
             notifyPageCrawled(result);
+        } else {
+            log.debug("Skipping crawl notification for {} because result is blockedChain: {}", sourceUri, result.getChain());
         }
 
         onScanCompleted(URI.create(sourceUri), links);

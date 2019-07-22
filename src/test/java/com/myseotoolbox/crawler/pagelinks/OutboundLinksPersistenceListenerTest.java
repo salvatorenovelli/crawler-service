@@ -20,15 +20,15 @@ import static org.junit.Assert.assertThat;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class OutboundLinksListenerTest {
+public class OutboundLinksPersistenceListenerTest {
 
     @Mock OutboundLinkRepository repository;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
-    private OutboundLinksListener sut;
+    private OutboundLinksPersistenceListener sut;
 
     @Before
     public void setUp() {
-        sut = new OutboundLinksListener(TEST_CRAWL_ID, repository);
+        sut = new OutboundLinksPersistenceListener(TEST_CRAWL_ID, repository);
     }
 
     @Test
