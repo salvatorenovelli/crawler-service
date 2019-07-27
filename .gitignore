@@ -23,3 +23,5 @@ storage
 
 src/main/resources/static/
 .gradle
+
+build/

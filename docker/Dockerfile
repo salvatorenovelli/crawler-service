@@ -2,7 +2,7 @@ FROM openjdk:8-jdk-alpine
 VOLUME /tmp
 ENV DEBUG="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
 ENV PROFILE=" -Dcom.sun.management.jmxremote \
-              -Djava.rmi.server.hostname=0.0.0.0 \
+              -Djava.rmi.server.hostname=localhost \
               -Dcom.sun.management.jmxremote.port=1098 \
               -Dcom.sun.management.jmxremote.rmi.port=1098 \
               -Dcom.sun.management.jmxremote.local.only=false \
