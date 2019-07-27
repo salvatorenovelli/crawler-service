@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
@@ -16,28 +15,23 @@ import java.util.stream.Collectors;
 @Slf4j
 public class CrawlJob {
 
+    private final CrawlEventDispatch dispatch;
     private final URI origin;
     private final List<URI> seeds;
     private final CrawlerQueue crawlerQueue;
-    private final List<CrawlEventListener> listeners = new ArrayList<>();
 
-    public CrawlJob(URI origin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls) {
+    public CrawlJob(URI origin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls, CrawlEventDispatch dispatch) {
         this.origin = origin;
         this.seeds = new ArrayList<>(seeds);
         String name = origin.getHost();
         CrawlersPool pool = new CrawlersPool(pageReader, executor);
-        this.crawlerQueue = new CrawlerQueue(name, removeSeedsOutsideOrigin(origin, seeds), pool, uriFilter, maxCrawls);
+        this.crawlerQueue = new CrawlerQueue(name, removeSeedsOutsideOrigin(origin, seeds), pool, uriFilter, maxCrawls, dispatch);
         startMonitoring(name, executor);
+        this.dispatch = dispatch;
     }
-
 
     private void startMonitoring(String name, ThreadPoolExecutor executor) {
         new CrawlerPoolStatusMonitor(name, executor).start();
-    }
-
-    public void subscribeToCrawlEvents(CrawlEventListener subscriber) {
-        this.listeners.add(subscriber);
-        this.crawlerQueue.subscribeToCrawlEvents(subscriber);
     }
 
     public void start() {
@@ -53,10 +47,8 @@ public class CrawlJob {
     }
 
     private void notifyCrawlStart() {
-        listeners.forEach(listener -> {
-            List<String> collect = seeds.subList(0, Math.min(seeds.size(),20)).stream().map(URI::toString).collect(Collectors.toList());
-            listener.onCrawlStart(new CrawlStartedEvent(origin.toString(), collect));
-        });
+        List<String> collect = seeds.subList(0, Math.min(seeds.size(), 20)).stream().map(URI::toString).collect(Collectors.toList());
+        dispatch.crawlStarted(new CrawlStartedEvent(origin.toString(), collect));
     }
 
 }

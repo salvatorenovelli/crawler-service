@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
-import com.myseotoolbox.crawler.CrawlEventsListenerFactory;
+import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
 import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
@@ -44,8 +43,8 @@ public class WorkspaceCrawlerIntegrationTest {
 
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    @Mock private CrawlEventListener listener;
-    @Mock private CrawlEventsListenerFactory listenerProvider;
+    @Mock private CrawlEventDispatch dispatch;
+    @Mock private CrawlEventDispatchFactory listenerProvider;
 
     private List<Workspace> allWorkspaces = new ArrayList<>();
     private CrawlJobFactory crawlJobFactory;
@@ -54,7 +53,7 @@ public class WorkspaceCrawlerIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        when(listenerProvider.getPageCrawlListener(any())).thenReturn(listener);
+        when(listenerProvider.get(any())).thenReturn(dispatch);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
         crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
         sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
@@ -69,10 +68,10 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
-        verify(listener, atMost(3)).onPageCrawled(any());
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
+        verify(dispatch, atMost(3)).pageCrawled(any());
 
     }
 
@@ -84,9 +83,9 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(listener, atMost(2)).onPageCrawled(any());
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(dispatch, atMost(2)).pageCrawled(any());
     }
 
 
@@ -102,10 +101,10 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
-        verify(listener, atMost(3)).onPageCrawled(any());
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
+        verify(dispatch, atMost(3)).pageCrawled(any());
 
     }
 

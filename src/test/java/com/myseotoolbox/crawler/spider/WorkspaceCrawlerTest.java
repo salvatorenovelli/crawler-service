@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
-import com.myseotoolbox.crawler.CrawlEventsListenerFactory;
+import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -47,18 +46,18 @@ public class WorkspaceCrawlerTest {
     @Mock private CrawlJobFactory crawlJobFactory;
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    @Mock private CrawlEventListener crawlEventListener;
+    @Mock private CrawlEventDispatch dispatch;
     @Mock private RobotsTxtAggregation robotsAggregation;
-    @Mock private CrawlEventsListenerFactory crawlListenerFactory;
+    @Mock private CrawlEventDispatchFactory dispatchFactory;
 
     WorkspaceCrawler sut;
     @Spy private Executor executor = new CurrentThreadTestExecutorService();
 
     @Before
     public void setUp() {
-        when(crawlListenerFactory.getPageCrawlListener(any())).thenReturn(crawlEventListener);
+        when(dispatchFactory.get(any())).thenReturn(dispatch);
 
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, crawlListenerFactory, robotsAggregation, executor);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
 
         when(crawlJobFactory.build(any(), any())).thenAnswer(
                 invocation -> {

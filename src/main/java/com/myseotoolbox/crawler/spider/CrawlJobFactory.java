@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
@@ -33,7 +32,7 @@ public class CrawlJobFactory {
     }
 
 
-    public CrawlJob build(CrawlJobConfiguration configuration, CrawlEventListener listener) {
+    public CrawlJob build(CrawlJobConfiguration configuration, CrawlEventDispatch dispatch) {
 
         URI origin = configuration.getOrigin();
 
@@ -50,9 +49,7 @@ public class CrawlJobFactory {
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 
-        CrawlJob crawlJob = new CrawlJob(origin, allSeeds, webPageReader, uriFilter, executor, configuration.getCrawledPageLimit());
-        crawlJob.subscribeToCrawlEvents(listener);
-        return crawlJob;
+        return new CrawlJob(origin, allSeeds, webPageReader, uriFilter, executor, configuration.getCrawledPageLimit(),dispatch);
     }
 
     private List<URI> concat(Collection<URI> seeds, Collection<URI> seedsFromSitemap) {

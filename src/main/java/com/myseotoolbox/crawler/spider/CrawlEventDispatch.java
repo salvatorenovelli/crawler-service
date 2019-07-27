@@ -1,5 +1,6 @@
-package com.myseotoolbox.crawler;
+package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
@@ -13,14 +14,15 @@ import org.bson.types.ObjectId;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
-public class CrawlEventListener {
+public class CrawlEventDispatch {
+
     private final ObjectId crawlId;
     private final MonitoredUriUpdater monitoredUriUpdater;
     private final PageCrawlPersistence crawlPersistence;
     private final OutboundLinksPersistenceListener outLinkPersistenceListener;
     private final WebsiteCrawlRepository websiteCrawlRepository;
 
-    public CrawlEventListener(ObjectId crawlId, MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence, OutboundLinksPersistenceListener outLinkPersistenceListener, WebsiteCrawlRepository websiteCrawlRepository) {
+    public CrawlEventDispatch(ObjectId crawlId, MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence, OutboundLinksPersistenceListener outLinkPersistenceListener, WebsiteCrawlRepository websiteCrawlRepository) {
         this.crawlId = crawlId;
         this.monitoredUriUpdater = monitoredUriUpdater;
         this.crawlPersistence = crawlPersistence;
@@ -28,7 +30,7 @@ public class CrawlEventListener {
         this.websiteCrawlRepository = websiteCrawlRepository;
     }
 
-    public void onPageCrawled(CrawlResult crawlResult) {
+    public void pageCrawled(CrawlResult crawlResult) {
         PageSnapshot snapshot = crawlResult.getPageSnapshot();
         log.debug("Persisting page crawled: {}", snapshot.getUri());
         runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
@@ -36,7 +38,8 @@ public class CrawlEventListener {
         runOrLogWarning(() -> outLinkPersistenceListener.accept(crawlResult), "Error while persisting outbound links for uri: " + crawlResult.getUri());
     }
 
-    public void onCrawlStart(CrawlStartedEvent event) {
+    public void crawlStarted(CrawlStartedEvent event) {
         runOrLogWarning(() -> websiteCrawlRepository.save(WebsiteCrawl.fromCrawlStartedEvent(crawlId, event)), "Error while persisting CrawlStartedEvent: " + event);
     }
+
 }

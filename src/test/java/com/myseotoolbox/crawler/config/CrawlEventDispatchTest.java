@@ -1,11 +1,11 @@
 package com.myseotoolbox.crawler.config;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
+import com.myseotoolbox.crawler.spider.CrawlEventDispatch;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.verify;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class CrawlEventListenerTest {
+public class CrawlEventDispatchTest {
 
     public static final String TEST_ORIGIN = "http://origin";
     public static final CrawlStartedEvent CRAWL_STARTED_EVENT = new CrawlStartedEvent(TEST_ORIGIN, Arrays.asList("/one", "/two"));
@@ -41,16 +41,16 @@ public class CrawlEventListenerTest {
     @Mock private OutboundLinksPersistenceListener linksListener;
     @Mock private WebsiteCrawlRepository websiteCrawlRepository;
 
-    CrawlEventListener sut;
+    CrawlEventDispatch sut;
 
     @Before
     public void setUp() {
-        sut = new CrawlEventListener(TEST_CRAWL_ID, monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository);
+        sut = new CrawlEventDispatch(TEST_CRAWL_ID, monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository);
     }
 
     @Test
     public void shouldNotifyPageCrawlListeners() {
-        sut.onPageCrawled(TEST_CRAWL_RESULT);
+        sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
@@ -58,7 +58,7 @@ public class CrawlEventListenerTest {
 
     @Test
     public void shouldNotifyCrawlStartedListeners() {
-        sut.onCrawlStart(CRAWL_STARTED_EVENT);
+        sut.crawlStarted(CRAWL_STARTED_EVENT);
         verify(websiteCrawlRepository).save(argThat(event -> {
             assertThat(event.getId(), is(TEST_CRAWL_ID));
             assertThat(event.getOrigin(), is(TEST_ORIGIN));
@@ -71,7 +71,7 @@ public class CrawlEventListenerTest {
     public void exceptionsInMonitoredUriUpdaterDoesNotPreventPersistenceOfCrawl() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
-        sut.onPageCrawled(TEST_CRAWL_RESULT);
+        sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
     }
 
@@ -79,7 +79,7 @@ public class CrawlEventListenerTest {
     public void exceptionsInpageCrawlPersistenceDoesNotPreventMonitoredUriUpdate() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
-        sut.onPageCrawled(TEST_CRAWL_RESULT);
+        sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
     }
 
@@ -87,13 +87,13 @@ public class CrawlEventListenerTest {
     public void exceptionsInLinksListenerDoesNotPreventMonitoredUriUpdate() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
-        sut.onPageCrawled(TEST_CRAWL_RESULT);
+        sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
     }
 
     @Test
     public void exceptionsInPageCrawlStartedShouldNotPropagate() {
         doThrow(new RuntimeException("This should not propagate")).when(websiteCrawlRepository).save(any());
-        sut.onCrawlStart(CRAWL_STARTED_EVENT);
+        sut.crawlStarted(CRAWL_STARTED_EVENT);
     }
 }

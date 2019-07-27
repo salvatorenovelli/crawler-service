@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
@@ -40,7 +39,7 @@ public class CrawlJobFactoryTest {
     @Mock private WebPageReader reader;
     @Spy private WebsiteUriFilterFactory filtersFactory = new WebsiteUriFilterFactory();
     @Mock private RobotsTxt mockRobotsTxt;
-    @Mock private CrawlEventListener listener;
+    @Mock private CrawlEventDispatch dispatch;
     @Mock private SitemapReader sitemapReader;
 
     private CrawlExecutorFactory crawlExecutorFactory = new CurrentThreadCrawlExecutorFactory();
@@ -64,7 +63,7 @@ public class CrawlJobFactoryTest {
 
         CrawlJobConfiguration configuration = testConf.withSeeds(seeds("/path1", "/path2")).build();
 
-        CrawlJob job = sut.build(configuration, listener);
+        CrawlJob job = sut.build(configuration, dispatch);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
@@ -74,14 +73,14 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
-        CrawlJob job = sut.build(testConf.build(), listener);
+        CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
-        verify(listener).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
+        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
-        CrawlJob job = sut.build(testConf.build(), listener);
+        CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -94,7 +93,7 @@ public class CrawlJobFactoryTest {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
         when(sitemapReader.getSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
 
-        CrawlJob job = sut.build(testConf.build(), listener);
+        CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -111,7 +110,7 @@ public class CrawlJobFactoryTest {
         CrawlJobConfiguration conf = testConf.withSeeds(Collections.singletonList(URI.create("http://host"))).build();
 
 
-        CrawlJob job = sut.build(conf, listener);
+        CrawlJob job = sut.build(conf, dispatch);
         job.start();
 
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);

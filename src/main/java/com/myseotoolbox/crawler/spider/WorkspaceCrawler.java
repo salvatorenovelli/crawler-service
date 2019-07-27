@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
-import com.myseotoolbox.crawler.CrawlEventsListenerFactory;
+import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -33,20 +32,20 @@ public class WorkspaceCrawler {
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    private final CrawlEventsListenerFactory crawlEventsListenerFactory;
+    private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
 
     public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
                             CrawlJobFactory crawlJobFactory,
                             WebsiteCrawlLogRepository websiteCrawlLogRepository,
-                            CrawlEventsListenerFactory crawlEventsListenerFactory,
+                            CrawlEventDispatchFactory crawlEventDispatchFactory,
                             RobotsTxtAggregation robotsTxtAggregation,
                             @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
-        this.crawlEventsListenerFactory = crawlEventsListenerFactory;
+        this.crawlEventDispatchFactory = crawlEventDispatchFactory;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
     }
@@ -78,9 +77,9 @@ public class WorkspaceCrawler {
                             .withRobotsTxt(merged)
                             .build();
 
-                    CrawlEventListener listener = crawlEventsListenerFactory.getPageCrawlListener(generateCrawlId());
+                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(generateCrawlId());
 
-                    CrawlJob job = crawlJobFactory.build(conf, listener);
+                    CrawlJob job = crawlJobFactory.build(conf, dispatch);
                     job.start();
                     //this needs to go
                     seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
@@ -92,10 +91,6 @@ public class WorkspaceCrawler {
 
     private ObjectId generateCrawlId() {
         return new ObjectId();
-    }
-
-    public static void main(String[] args) {
-        System.out.println();
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {

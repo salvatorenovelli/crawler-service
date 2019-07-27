@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventListener;
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
@@ -16,7 +15,6 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
-import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 @Slf4j
@@ -29,22 +27,19 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
-    private final List<CrawlEventListener> crawlEventListeners = new ArrayList<>();
+    private final CrawlEventDispatch dispatch;
     private final PageLinksHelper helper = new PageLinksHelper();
 
     private final int maxCrawls;
     private final String queueName;
 
-    public CrawlerQueue(String queueName, Collection<URI> seeds, CrawlersPool crawlersPool, UriFilter filter, int maxCrawls) {
+    public CrawlerQueue(String queueName, Collection<URI> seeds, CrawlersPool crawlersPool, UriFilter filter, int maxCrawls, CrawlEventDispatch dispatch) {
         this.queueName = queueName;
         this.crawlersPool = crawlersPool;
         this.uriFilter = filter;
         this.maxCrawls = maxCrawls;
+        this.dispatch = dispatch;
         this.seeds.addAll(seeds.stream().distinct().collect(Collectors.toList()));
-    }
-
-    public synchronized void subscribeToCrawlEvents(CrawlEventListener subscriber) {
-        crawlEventListeners.add(subscriber);
     }
 
     public synchronized void start() {
@@ -159,7 +154,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private void notifyPageCrawled(CrawlResult crawlResult) {
-        crawlEventListeners.forEach(listener -> runOrLogWarning(() -> listener.onPageCrawled(crawlResult), "Unable to notify listener"));
+        dispatch.pageCrawled(crawlResult);
     }
 }
 

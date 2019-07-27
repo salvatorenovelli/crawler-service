@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.EntityNotFoundException;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
@@ -32,14 +33,14 @@ public class AdminWorkspaceCrawlStartController {
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
     private final WorkspaceCrawler workspaceCrawler;
-    private final CrawlEventsListenerFactory crawlEventsListenerFactory;
+    private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final HTTPClient client;
 
-    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, CrawlEventsListenerFactory crawlEventsListenerFactory, HTTPClient client) {
+    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, CrawlEventDispatchFactory crawlEventDispatchFactory, HTTPClient client) {
         this.factory = factory;
         this.repository = repository;
         this.workspaceCrawler = workspaceCrawler;
-        this.crawlEventsListenerFactory = crawlEventsListenerFactory;
+        this.crawlEventDispatchFactory = crawlEventDispatchFactory;
         this.client = client;
     }
 
@@ -97,7 +98,7 @@ public class AdminWorkspaceCrawlStartController {
                 crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
     }
 
-    private CrawlEventListener getCrawlEventsListener() {
-        return crawlEventsListenerFactory.getPageCrawlListener(new ObjectId());
+    private CrawlEventDispatch getCrawlEventsListener() {
+        return crawlEventDispatchFactory.get(new ObjectId());
     }
 }
