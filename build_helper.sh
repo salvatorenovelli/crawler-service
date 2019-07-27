@@ -10,7 +10,7 @@ export GROUP_ID=${props_array[0]}
 export ARTIFACT_ID=${props_array[1]}
 export VERSION=${props_array[2]}
 
-export IMAGE_TAG=gcr.io/${GCE_PROJECT_ID}/${ARTIFACT_ID}:${VERSION}
+export IMAGE_TAG=eu.gcr.io/${GCE_PROJECT_ID}/${ARTIFACT_ID}:${VERSION}
 
 
 echo Building version ${VERSION}
@@ -76,7 +76,7 @@ case $1 in
         docker build docker -t ${IMAGE_TAG}
     ;;
     "run" )
-        docker run --rm -it --name ${ARTIFACT_ID} -it --rm -p 8080:8080 -p 5005:5005 ${IMAGE_TAG}
+        docker run --rm -it --network="host" --name ${ARTIFACT_ID} -it --rm -p 8080:8080 -p 1098:1098 ${IMAGE_TAG}
     ;;
     "push" )
         gcloud docker -- push ${IMAGE_TAG}

@@ -16,11 +16,24 @@ apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
 
 group = 'com.myseotoolbox'
-version = '1.4.10'
+version = '1.4.11'
 sourceCompatibility = 1.8
 
 repositories {
 	mavenCentral()
+}
+
+task getProjectProperties {
+    doLast {
+        println rootProject.group + ":" + rootProject.name + ":" + rootProject.version + ":" + rootProject.name
+    }
+}
+
+
+test {
+    failFast = true
+    testLogging.showStandardStreams = true
+    testLogging.exceptionFormat = 'full'
 }
 
 
