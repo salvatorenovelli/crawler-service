@@ -71,12 +71,15 @@ case $1 in
     ;;
     "build" )
         echo "Building ${IMAGE_TAG}"
-        gradle build || exit 1
+        gradle clean build || exit 1
         cp build/libs/*.jar docker
         docker build docker -t ${IMAGE_TAG}
     ;;
     "run" )
-        docker run --rm -it --network="host" --name ${ARTIFACT_ID} -it --rm -p 8080:8080 -p 1098:1098 ${IMAGE_TAG}
+       docker run --rm -it \
+         -e GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcpcredentials.json -v /run/secrets/:/run/secrets/ \
+         -e GOOGLE_CLOUD_PROJECT=${GCE_PROJECT_ID} \
+         --network="host" ${IMAGE_TAG}
     ;;
     "push" )
         gcloud docker -- push ${IMAGE_TAG}

@@ -1,7 +1,7 @@
-FROM openjdk:8-jdk-alpine
+FROM adoptopenjdk/openjdk11-openj9:alpine-jre
 VOLUME /tmp
-ENV DEBUG="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
-ENV PROFILE=" -Dcom.sun.management.jmxremote \
+ENV DEBUGGER="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005"
+ENV PROFILER=" -Dcom.sun.management.jmxremote \
               -Djava.rmi.server.hostname=localhost \
               -Dcom.sun.management.jmxremote.port=1098 \
               -Dcom.sun.management.jmxremote.rmi.port=1098 \
@@ -10,4 +10,4 @@ ENV PROFILE=" -Dcom.sun.management.jmxremote \
               -Dcom.sun.management.jmxremote.ssl=false"
 EXPOSE 8080 5005 1098
 ADD *.jar /home/app.jar
-ENTRYPOINT [ "sh", "-c", "java $DEBUG $PROFILE -Djava.security.egd=file:/dev/./urandom -jar /home/app.jar" ]
+ENTRYPOINT [ "sh", "-c", "java $DEBUGGER $PROFILER -Djava.security.egd=file:/dev/./urandom -jar /home/app.jar" ]
