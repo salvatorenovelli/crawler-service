@@ -14,30 +14,39 @@ public class CrawlerPoolStatusMonitor {
         this.thread = new Thread(() -> {
 
             WeakReference<ThreadPoolExecutor> reference = new WeakReference<>(executor);
+            logStatus(name, executor);
             while (true) {
-                try {
-                    Thread.sleep(10000);
-                    ThreadPoolExecutor execRef = reference.get();
-                    if (execRef == null || execRef.getActiveCount() < 1) {
-                        log.info("No active threads. Terminating monitoring for Crawler: {} ({})", name, execRef);
-                        break;
-                    }
-
-                    log.info("{} - {} Pool size: {} Active Threads: {} Queued Tasks: {} Completed Tasks: {}",
-                            name,
-                            getRunState(execRef),
-                            execRef.getPoolSize(),
-                            execRef.getActiveCount(),
-                            execRef.getQueue().size(),
-                            execRef.getCompletedTaskCount());
-
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                sleep(60000);
+                ThreadPoolExecutor execRef = reference.get();
+                if (execRef == null || execRef.getActiveCount() < 1) {
+                    log.info("No active threads. Terminating monitoring for Crawler: {} ({})", name, execRef);
+                    break;
                 }
+
+                logStatus(name, execRef);
+
             }
         }, "poolmonitor-" + name);
 
         thread.setDaemon(true);
+    }
+
+    private void logStatus(String name, ThreadPoolExecutor execRef) {
+        log.info("{} - {} Pool size: {} Active Threads: {} Queued Tasks: {} Completed Tasks: {}",
+                name,
+                getRunState(execRef),
+                execRef.getPoolSize(),
+                execRef.getActiveCount(),
+                execRef.getQueue().size(),
+                execRef.getCompletedTaskCount());
+    }
+
+    private void sleep(int l) {
+        try {
+            Thread.sleep(l);
+        } catch (InterruptedException ignore) {
+            //ignore
+        }
     }
 
     private String getRunState(ThreadPoolExecutor execRef) {
