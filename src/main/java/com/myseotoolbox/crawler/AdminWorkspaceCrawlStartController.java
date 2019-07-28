@@ -13,6 +13,7 @@ import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import org.bson.types.ObjectId;
 import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -53,7 +55,7 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true);
 
 
-        CrawlJob job = factory.build(configuration, getCrawlEventsListener());
+        CrawlJob job = factory.build(configuration, getCrawlEventsListener(origin));
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -64,7 +66,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws));
-        CrawlJob job = factory.build(conf, getCrawlEventsListener());
+        CrawlJob job = factory.build(conf, getCrawlEventsListener(origin));
 
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
@@ -98,7 +100,7 @@ public class AdminWorkspaceCrawlStartController {
                 crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
     }
 
-    private CrawlEventDispatch getCrawlEventsListener() {
-        return crawlEventDispatchFactory.get(new ObjectId());
+    private CrawlEventDispatch getCrawlEventsListener(URI origin) {
+        return crawlEventDispatchFactory.get(new WebsiteCrawl(new ObjectId(), origin.toString(), LocalDateTime.now(), Collections.emptyList()));
     }
 }

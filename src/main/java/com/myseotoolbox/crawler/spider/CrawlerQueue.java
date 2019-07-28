@@ -105,6 +105,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         } else {
             if (inProgress.size() == 0) {
                 crawlersPool.shutDown();
+                dispatch.crawlEnded();
             }
         }
     }

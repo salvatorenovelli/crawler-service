@@ -8,27 +8,22 @@ import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
+@RequiredArgsConstructor
 public class CrawlEventDispatch {
 
-    private final ObjectId crawlId;
+    private final WebsiteCrawl websiteCrawl;
     private final MonitoredUriUpdater monitoredUriUpdater;
     private final PageCrawlPersistence crawlPersistence;
     private final OutboundLinksPersistenceListener outLinkPersistenceListener;
     private final WebsiteCrawlRepository websiteCrawlRepository;
+    private final PubSubEventDispatch pubSubEventDispatch;
 
-    public CrawlEventDispatch(ObjectId crawlId, MonitoredUriUpdater monitoredUriUpdater, PageCrawlPersistence crawlPersistence, OutboundLinksPersistenceListener outLinkPersistenceListener, WebsiteCrawlRepository websiteCrawlRepository) {
-        this.crawlId = crawlId;
-        this.monitoredUriUpdater = monitoredUriUpdater;
-        this.crawlPersistence = crawlPersistence;
-        this.outLinkPersistenceListener = outLinkPersistenceListener;
-        this.websiteCrawlRepository = websiteCrawlRepository;
-    }
 
     public void pageCrawled(CrawlResult crawlResult) {
         PageSnapshot snapshot = crawlResult.getPageSnapshot();
@@ -39,7 +34,10 @@ public class CrawlEventDispatch {
     }
 
     public void crawlStarted(CrawlStartedEvent event) {
-        runOrLogWarning(() -> websiteCrawlRepository.save(WebsiteCrawl.fromCrawlStartedEvent(crawlId, event)), "Error while persisting CrawlStartedEvent: " + event);
+        runOrLogWarning(() -> websiteCrawlRepository.save(WebsiteCrawl.fromCrawlStartedEvent(websiteCrawl.getId(), event)), "Error while persisting CrawlStartedEvent: " + event);
     }
 
+    public void crawlEnded() {
+        pubSubEventDispatch.crawlCompletedEvent(websiteCrawl);
+    }
 }

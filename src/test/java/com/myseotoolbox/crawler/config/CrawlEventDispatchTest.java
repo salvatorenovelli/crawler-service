@@ -6,8 +6,10 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
 import com.myseotoolbox.crawler.spider.CrawlEventDispatch;
+import com.myseotoolbox.crawler.spider.PubSubEventDispatch;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
 import org.bson.types.ObjectId;
 import org.junit.Before;
@@ -16,7 +18,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
@@ -36,16 +40,18 @@ public class CrawlEventDispatchTest {
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
     public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
+    private static final WebsiteCrawl CRAWL = new WebsiteCrawl(TEST_CRAWL_ID, TEST_ORIGIN, LocalDateTime.now(), Collections.emptyList());
     @Mock private PageCrawlPersistence crawlPersistence;
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
     @Mock private OutboundLinksPersistenceListener linksListener;
     @Mock private WebsiteCrawlRepository websiteCrawlRepository;
+    @Mock private PubSubEventDispatch dispatch;
 
     CrawlEventDispatch sut;
 
     @Before
     public void setUp() {
-        sut = new CrawlEventDispatch(TEST_CRAWL_ID, monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository);
+        sut = new CrawlEventDispatch(CRAWL, monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository, dispatch);
     }
 
     @Test
@@ -95,5 +101,11 @@ public class CrawlEventDispatchTest {
     public void exceptionsInPageCrawlStartedShouldNotPropagate() {
         doThrow(new RuntimeException("This should not propagate")).when(websiteCrawlRepository).save(any());
         sut.crawlStarted(CRAWL_STARTED_EVENT);
+    }
+
+    @Test
+    public void shouldPublishCrawlEndedOnPubSub() {
+        sut.crawlEnded();
+        verify(dispatch).crawlCompletedEvent(CRAWL);
     }
 }

@@ -8,8 +8,8 @@ import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InOrder;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
@@ -380,14 +380,16 @@ public class CrawlerQueueTest {
 
         sut.start();
 
-        Mockito.inOrder(pool);
-        verify(pool).accept(taskForUri("http://host1"));
-        verify(pool).accept(taskForUri("http://host1/path0"));
-        verify(pool).accept(taskForUri("http://host1/path1"));
-        verify(pool).accept(taskForUri("http://host1/path2"));
-        verify(pool).accept(taskForUri("http://host1/path3"));
-        verify(pool).shutDown();
+        InOrder inOrder = inOrder(pool);
+        inOrder.verify(pool, times(5)).accept(any());
+        inOrder.verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
+    }
+
+    @Test
+    public void shouldDispatchCrawlEndedWhenFinished() {
+        sut.start();
+        verify(dispatch).crawlEnded();
     }
 
     @Test

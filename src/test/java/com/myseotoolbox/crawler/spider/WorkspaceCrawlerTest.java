@@ -30,6 +30,10 @@ import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -288,6 +292,23 @@ public class WorkspaceCrawlerTest {
         sut.crawlAllWorkspaces();
 
         verify(executor, times(2)).execute(any());
+    }
+
+    @Test
+    public void interactionWithEventDispatchFactory() {
+        givenAWorkspace().withWebsiteUrl("http://host1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path2/").build();
+
+        sut.crawlAllWorkspaces();
+
+        verify(dispatchFactory).get(argThat(argument -> {
+            assertNotNull(argument.getId());
+            assertThat(argument.getOrigin(), is("http://host1/"));
+            assertThat(argument.getSeeds(), containsInAnyOrder("http://host1/", "http://host1/path1/", "http://host1/path2/"));
+            return true;
+        }));
+
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {

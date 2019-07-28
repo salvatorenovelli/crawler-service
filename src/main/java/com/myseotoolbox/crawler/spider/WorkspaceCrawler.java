@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -61,36 +64,36 @@ public class WorkspaceCrawler {
                 .filter(this::shouldCrawl)
                 .collect(Collectors.groupingBy(this::extractOrigin, Collectors.toSet()));
 
-        workspacesByHost.forEach((baseDomainPath, workspaces) ->
+        workspacesByHost.forEach((origin, workspaces) ->
                 executor.execute(() -> runOrLogWarning(() -> {
 
                     Set<URI> seeds = extractSeeds(workspaces);
 
-                    log.info("Starting crawl for {} with seeds: {}", baseDomainPath, seeds);
+                    log.info("Starting crawl for {} with seeds: {}", origin, seeds);
 
                     RobotsTxt merged = robotsTxtAggregation.aggregate(workspaces);
 
                     CrawlJobConfiguration conf = CrawlJobConfiguration
-                            .newConfiguration(baseDomainPath)
+                            .newConfiguration(origin)
                             .withSeeds(seeds)
                             .withConcurrentConnections(seeds.size())
                             .withRobotsTxt(merged)
                             .build();
 
-                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(generateCrawlId());
+                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(generateCrawl(origin.toString(), seeds));
 
                     CrawlJob job = crawlJobFactory.build(conf, dispatch);
                     job.start();
-                    //this needs to go
+                    //TODO: this needs to go
                     seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
-                }, "Error while starting crawl for: " + baseDomainPath))
+                }, "Error while starting crawl for: " + origin))
         );
 
 
     }
 
-    private ObjectId generateCrawlId() {
-        return new ObjectId();
+    private WebsiteCrawl generateCrawl(String origin, Collection<URI> seeds) {
+        return new WebsiteCrawl(new ObjectId(), origin, LocalDateTime.now(), seeds.stream().map(URI::toString).collect(Collectors.toList()));
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {
