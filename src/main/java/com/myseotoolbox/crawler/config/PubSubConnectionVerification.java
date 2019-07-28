@@ -1,10 +1,11 @@
-package com.myseotoolbox.crawler;
+package com.myseotoolbox.crawler.config;
 
 import com.google.pubsub.v1.Topic;
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.cloud.gcp.core.GcpProjectIdProvider;
 import org.springframework.cloud.gcp.pubsub.PubSubAdmin;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
@@ -21,13 +22,14 @@ import java.util.concurrent.TimeoutException;
 @RequiredArgsConstructor
 public class PubSubConnectionVerification {
 
+    private final GcpProjectIdProvider projectIdProvider;
     private final PubSubAdmin pubSubAdmin;
     private final PubSubProperties pubSubProperties;
 
     @EventListener(ApplicationStartedEvent.class)
     public void verifyPubSubConnection() {
         try {
-            log.info("Verifying pubsub connection...");
+            log.info("Verifying pubsub connection. ProjectId: {}", projectIdProvider.getProjectId());
             Topic topic = CompletableFuture.supplyAsync(() -> pubSubAdmin.getTopic(pubSubProperties.getTopicName())).get(pubSubProperties.getConnectionTimeoutSeconds(), TimeUnit.SECONDS);
             log.info("Successfully verified connection to pubsub. Topic: {}", topic.getName());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {

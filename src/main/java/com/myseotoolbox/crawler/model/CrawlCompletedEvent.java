@@ -6,8 +6,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
 public class CrawlCompletedEvent {
-   private WebsiteCrawl websiteCrawl;
+    private SimpleWebsiteCrawl websiteCrawl;
+
+    public CrawlCompletedEvent(WebsiteCrawl websiteCrawl) {
+        this.websiteCrawl = new SimpleWebsiteCrawl(websiteCrawl.getId().toHexString(), websiteCrawl.getOrigin());
+    }
+}
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+class SimpleWebsiteCrawl {
+    private String id;
+    private String origin;
 }

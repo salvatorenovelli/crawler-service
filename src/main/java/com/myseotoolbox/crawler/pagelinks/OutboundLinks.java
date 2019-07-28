@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.pagelinks;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -11,9 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 @Data
-@Document
+@Document@AllArgsConstructor
 public class OutboundLinks {
-    @Id private final String id;
+    @Id private String id;
     @Indexed private final ObjectId crawlId;
     private final String url;
     private final LocalDateTime crawledAt;
