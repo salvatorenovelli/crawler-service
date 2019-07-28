@@ -46,7 +46,7 @@ public class ArchiveServiceClientTest {
 
     @Before
     public void setUp() {
-        sut = new ArchiveServiceClient(restTemplate, "archive-api/page?uri={uri}");
+        sut = new ArchiveServiceClient(restTemplate, "","archive-api/page?uri={uri}");
         server = MockRestServiceServer.createServer(restTemplate);
     }
 

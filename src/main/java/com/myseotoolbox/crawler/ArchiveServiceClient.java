@@ -17,9 +17,9 @@ public class ArchiveServiceClient {
     private final RestTemplate restTemplate;
     private final String archiveServiceUrl;
 
-    public ArchiveServiceClient(RestTemplate restTemplate, @Value("${archive.serviceUrl}") String archiveServiceUrl) {
+    public ArchiveServiceClient(RestTemplate restTemplate, @Value("${archive.host}") String host, @Value("${archive.serviceUrl}") String url) {
         this.restTemplate = restTemplate;
-        this.archiveServiceUrl = archiveServiceUrl;
+        this.archiveServiceUrl = host + url;
     }
 
     public Optional<PageSnapshot> getLastPageSnapshot(String uri) {

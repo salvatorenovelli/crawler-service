@@ -50,6 +50,8 @@ dependencies {
     compile group: 'com.github.crawler-commons', name: 'crawler-commons', version: '1.0'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
+    compile group: 'net.jodah', name: 'failsafe', version: '2.1.0'
+
     implementation 'org.apache.httpcomponents:httpclient'
 
 

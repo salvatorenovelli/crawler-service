@@ -14,6 +14,7 @@ public class CrawlerPoolStatusMonitor {
         this.thread = new Thread(() -> {
 
             WeakReference<ThreadPoolExecutor> reference = new WeakReference<>(executor);
+            sleep(1000);
             logStatus(name, executor);
             while (true) {
                 sleep(60000);
