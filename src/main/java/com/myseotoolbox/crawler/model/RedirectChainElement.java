@@ -1,9 +1,10 @@
 package com.myseotoolbox.crawler.model;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
-@Data
+@Data@NoArgsConstructor
 public class RedirectChainElement {
 
     private int httpStatus;

@@ -48,7 +48,8 @@ dependencies {
     implementation group: 'commons-io', name: 'commons-io', version: '2.6'
     implementation('org.jsoup:jsoup:1.11.3')
     compile group: 'com.github.crawler-commons', name: 'crawler-commons', version: '1.0'
-    
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
     implementation 'org.apache.httpcomponents:httpclient'
 
 

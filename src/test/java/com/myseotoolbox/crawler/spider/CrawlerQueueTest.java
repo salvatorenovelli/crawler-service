@@ -366,7 +366,7 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").redirectToBlockedUrl("http://host1/blockedByRobots");
 
         sut.start();
-
+        verify(dispatch).crawlEnded();
         verifyNoMoreInteractions(dispatch);
     }
 
