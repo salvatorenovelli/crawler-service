@@ -17,7 +17,7 @@ public class CrawlerPoolStatusMonitor {
             sleep(1000);
             logStatus(name, executor);
             while (true) {
-                sleep(60000);
+                sleep(30000);
                 ThreadPoolExecutor execRef = reference.get();
                 if (execRef == null || execRef.getActiveCount() < 1) {
                     log.info("No active threads. Terminating monitoring for Crawler: {} ({})", name, execRef);

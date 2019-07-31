@@ -46,8 +46,8 @@ public class AdminWorkspaceCrawlStartController {
         this.client = client;
     }
 
-    @GetMapping("/scan-origin")
-    public String scanOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws IOException {
+    @GetMapping("/crawl-origin")
+    public String crawlOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws IOException {
         URI origin = WebsiteOriginUtils.extractOrigin(URI.create(seeds.get(0)));
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
@@ -60,8 +60,8 @@ public class AdminWorkspaceCrawlStartController {
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
 
-    @GetMapping("/scan-workspace")
-    public String scanWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws EntityNotFoundException, IOException {
+    @GetMapping("/crawl-workspace")
+    public String crawlWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws EntityNotFoundException, IOException {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
@@ -87,8 +87,8 @@ public class AdminWorkspaceCrawlStartController {
         return builder.build();
     }
 
-    @GetMapping("/scan-all-workspaces")
-    public String scanAllWorkspaces() {
+    @GetMapping("/crawl-all-workspaces")
+    public String crawlAllWorkspaces() {
         workspaceCrawler.crawlAllWorkspaces();
         return "Started on " + new Date();
     }
