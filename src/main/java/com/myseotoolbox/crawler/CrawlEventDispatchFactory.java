@@ -21,6 +21,7 @@ public class CrawlEventDispatchFactory {
     private final PubSubEventDispatch dispatch;
 
     public CrawlEventDispatch get(WebsiteCrawl crawl) {
-        return new CrawlEventDispatch(crawl, monitoredUriUpdater, crawlPersistence, new OutboundLinksPersistenceListener(crawl.getId(), outboundLinkRepository), websiteCrawlRepository, dispatch);
+        OutboundLinksPersistenceListener outLinkPersistenceListener = new OutboundLinksPersistenceListener(crawl.getId(), crawl.getOrigin(), outboundLinkRepository);
+        return new CrawlEventDispatch(crawl, monitoredUriUpdater, crawlPersistence, outLinkPersistenceListener, websiteCrawlRepository, dispatch);
     }
 }

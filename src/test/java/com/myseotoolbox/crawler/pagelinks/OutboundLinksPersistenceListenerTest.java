@@ -19,16 +19,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 
+@SuppressWarnings("CodeBlock2Expr")
 @RunWith(MockitoJUnitRunner.class)
 public class OutboundLinksPersistenceListenerTest {
 
+    private static final String TEST_ORIGIN = "http://domain";
     @Mock OutboundLinkRepository repository;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     private OutboundLinksPersistenceListener sut;
 
     @Before
     public void setUp() {
-        sut = new OutboundLinksPersistenceListener(TEST_CRAWL_ID, repository);
+        sut = new OutboundLinksPersistenceListener(TEST_CRAWL_ID, TEST_ORIGIN, repository);
     }
 
     @Test
@@ -39,7 +41,7 @@ public class OutboundLinksPersistenceListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
-            assertThat(outboundLinks.getUrl(), equalTo("http://testuri"));
+            assertThat(outboundLinks.getUrl(), equalTo("http://domain"));
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
         });
     }
@@ -64,7 +66,7 @@ public class OutboundLinksPersistenceListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
-            assertThat(outboundLinks.getUrl(), equalTo("http://testuri"));
+            assertThat(outboundLinks.getUrl(), equalTo("http://domain"));
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
         });
     }
@@ -140,6 +142,28 @@ public class OutboundLinksPersistenceListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1%20with%20spaces/salve"));
+        });
+    }
+
+    @Test
+    public void shouldRelativizeBasedOnOrigin() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("https://domain/some/path", "https://domain/link");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("https://domain/link"));
+        });
+    }
+
+    @Test
+    public void shouldSaveAbsoluteLinksIfNonSameDomainAsOrigin() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("https://domain/some/path", "/link");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("https://domain/link"));
         });
     }
 
@@ -271,7 +295,7 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     private CrawlResult givenCrawlResultForPageWithLinks(String... links) {
-        return givenCrawlResultForUrlWithPageWithLinks("http://testuri", links);
+        return givenCrawlResultForUrlWithPageWithLinks("http://domain", links);
     }
 
     private CrawlResult givenCrawlResultForUrlWithPageWithLinks(String url, String... links) {

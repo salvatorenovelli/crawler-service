@@ -10,6 +10,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
 
+import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -34,8 +35,8 @@ public class CrawlJobConfigurationBuilderTest {
 
     @Test
     public void shouldLimitNumberOfConcurrentConnections() {
-        CrawlJobConfiguration build = sut.withConcurrentConnections(CrawlJobConfiguration.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN + 100).build();
-        assertThat(build.getMaxConcurrentConnections(), is(CrawlJobConfiguration.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN));
+        CrawlJobConfiguration build = sut.withConcurrentConnections(MAX_CONCURRENT_CONNECTIONS + 100).build();
+        assertThat(build.getMaxConcurrentConnections(), is(MAX_CONCURRENT_CONNECTIONS));
     }
 
     @Test

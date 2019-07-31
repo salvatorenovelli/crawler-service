@@ -17,10 +17,12 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 
 public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
     private final ObjectId crawlId;
+    private final URI origin;
     private final OutboundLinkRepository repository;
 
-    public OutboundLinksPersistenceListener(ObjectId crawlId, OutboundLinkRepository repository) {
+    public OutboundLinksPersistenceListener(ObjectId crawlId, String origin, OutboundLinkRepository repository) {
         this.crawlId = crawlId;
+        this.origin = URI.create(origin);
         this.repository = repository;
     }
 
@@ -55,8 +57,13 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
             URI pageUrlUri = UriCreator.create(pageUrl);
 
-            if (!linkUri.isAbsolute() || schemeMatching(pageUrlUri, linkUri) && isHostMatching(pageUrlUri, linkUri)) {
-                return pageUrlUri.resolve(linkUri).getRawPath();
+            if (isRelativeUrl(linkUri) || hostMatches(linkUri)) {
+                URI resolved = pageUrlUri.resolve(linkUri);
+                if (hostMatches(pageUrlUri)) {
+                    return resolved.getRawPath();
+                } else {
+                    return resolved.toString();
+                }
             }
 
         } catch (IllegalArgumentException e) {
@@ -66,8 +73,16 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
         return linkUri.toString();
     }
 
-    private boolean schemeMatching(URI pageUrlUri, URI linkUri) {
-        return Objects.equals(pageUrlUri.getScheme(), linkUri.getScheme());
+    private boolean isRelativeUrl(URI linkUri) {
+        return !linkUri.isAbsolute();
+    }
+
+    private boolean hostMatches(URI linkUri) {
+        return schemeMatching(linkUri) && isHostMatching(origin, linkUri);
+    }
+
+    private boolean schemeMatching(URI linkUri) {
+        return Objects.equals(origin.getScheme(), linkUri.getScheme());
     }
 
     private String removeFragment(String url) {

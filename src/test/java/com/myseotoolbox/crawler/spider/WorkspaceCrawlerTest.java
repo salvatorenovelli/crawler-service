@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import static com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration.MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN;
+import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -170,13 +170,13 @@ public class WorkspaceCrawlerTest {
 
     @Test
     public void shouldNeverUseMoreThanMaxConnections() {
-        for (int i = 0; i < MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN * 2; i++) {
+        for (int i = 0; i < MAX_CONCURRENT_CONNECTIONS * 2; i++) {
             givenAWorkspace().withWebsiteUrl("http://host1/path" + i).build();
         }
 
         sut.crawlAllWorkspaces();
 
-        websiteCrawledWithConcurrentConnections(MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
+        websiteCrawledWithConcurrentConnections(MAX_CONCURRENT_CONNECTIONS);
 
     }
 

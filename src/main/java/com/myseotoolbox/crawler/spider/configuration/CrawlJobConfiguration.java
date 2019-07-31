@@ -13,16 +13,13 @@ import java.util.Collections;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.spider.configuration.AllowedPathFromSeeds.extractAllowedPathFromSeeds;
+import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.*;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 
 @Getter
 public class CrawlJobConfiguration {
 
-
-    public static final int MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN = 5;
-    public static final int DEFAULT_MAX_URL_PER_CRAWL = 10000;
-    public static final int DEFAULT_CONCURRENT_CONNECTIONS = 1;
 
     private final URI origin;
     private final Collection<URI> seeds;
@@ -33,7 +30,7 @@ public class CrawlJobConfiguration {
     private CrawlJobConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, int crawledPageLimit, RobotsTxt robotsTxt) {
         this.origin = origin;
         this.seeds = seeds;
-        this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, 1, MAX_CONCURRENT_CONNECTIONS_PER_DOMAIN);
+        this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, MIN_CONCURRENT_CONNECTIONS, MAX_CONCURRENT_CONNECTIONS);
         this.crawledPageLimit = crawledPageLimit;
         this.robotsTxt = robotsTxt;
     }
