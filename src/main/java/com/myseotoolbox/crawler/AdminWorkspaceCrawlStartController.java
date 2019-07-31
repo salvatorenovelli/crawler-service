@@ -15,7 +15,6 @@ import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import org.bson.types.ObjectId;
-import org.springframework.context.annotation.Profile;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@Profile("dev")
 public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
