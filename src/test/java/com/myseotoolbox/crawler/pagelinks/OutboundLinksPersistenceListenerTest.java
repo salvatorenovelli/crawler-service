@@ -144,6 +144,17 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     @Test
+    public void shouldPersistLinksWithSpacesAtTheEnd() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain","http://domain/path ");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/path"));
+        });
+    }
+
+    @Test
     public void shouldRelativizeRelativeToCurrentUrls() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path/",
                 "salve");
@@ -188,7 +199,7 @@ public class OutboundLinksPersistenceListenerTest {
         sut.accept(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
-            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http:-/link1__(this is invalid)__", "https://domain/link2"));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http:-/link1__(this%20is%20invalid)__", "https://domain/link2"));
         });
     }
 

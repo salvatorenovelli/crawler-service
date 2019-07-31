@@ -27,7 +27,7 @@ public class PageLinksHelper {
         if (links != null) {
             filtered = links
                     .stream()
-                    .map(this::toValidUri)
+                    .map(PageLinksHelper::toValidUri)
                     .flatMap(this::stream)
                     .collect(Collectors.toList());
         }
@@ -39,7 +39,7 @@ public class PageLinksHelper {
         return opt.map(Stream::of).orElseGet(Stream::empty);
     }
 
-    private Optional<URI> toValidUri(String str) {
+    public static Optional<URI> toValidUri(String str) {
 
         if (!isValidUri(str) || str.length() > MAX_URL_LEN) {
             return Optional.empty();
@@ -62,7 +62,7 @@ public class PageLinksHelper {
 
     }
 
-    private URI removeFragment(URI uri) {
+    private static URI removeFragment(URI uri) {
         if (uri.getFragment() == null) return uri;
         try {
             return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), null);
@@ -72,7 +72,7 @@ public class PageLinksHelper {
         }
     }
 
-    private boolean isEmptyLink(@Nullable URI uri) {
+    private static boolean isEmptyLink(@Nullable URI uri) {
         if (uri == null) return false;
         try {
             String s = URLDecoder.decode(uri.toString(), "UTF-8");

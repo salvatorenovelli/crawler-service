@@ -1,16 +1,13 @@
 package com.myseotoolbox.crawler.pagelinks;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
-import com.myseotoolbox.crawler.utils.UriUtils;
+import com.myseotoolbox.crawler.spider.PageLinksHelper;
 import com.myseotoolbox.crawlercommons.UriCreator;
 import org.bson.types.ObjectId;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -43,18 +40,19 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
         if (links == null) return Collections.emptyList();
         return links.stream()
                 .map(this::removeFragment)
-                .filter(this::isValidUrl)
+                .map(PageLinksHelper::toValidUri)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .map(link -> relativize(crawlResult.getUri(), link))
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
     }
 
-    private String relativize(String pageUrl, String link) {
+    private String relativize(String pageUrl, URI linkUri) {
 
         try {
 
-            URI linkUri = UriCreator.create(link);
             URI pageUrlUri = UriCreator.create(pageUrl);
 
             if (!linkUri.isAbsolute() || schemeMatching(pageUrlUri, linkUri) && isHostMatching(pageUrlUri, linkUri)) {
@@ -65,15 +63,11 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
             //nothing to do here, just an invalid link, will return original one.
         }
 
-        return link;
+        return linkUri.toString();
     }
 
     private boolean schemeMatching(URI pageUrlUri, URI linkUri) {
         return Objects.equals(pageUrlUri.getScheme(), linkUri.getScheme());
-    }
-
-    private boolean isValidUrl(String url) {
-        return UriUtils.isValidUri(url);
     }
 
     private String removeFragment(String url) {
