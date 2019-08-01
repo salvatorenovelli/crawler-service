@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.config;
+package com.myseotoolbox.archive;
 
 
 import lombok.Data;

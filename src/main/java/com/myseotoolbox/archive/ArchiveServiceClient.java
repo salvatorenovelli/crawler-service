@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler;
+package com.myseotoolbox.archive;
 
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import org.springframework.beans.factory.annotation.Value;
