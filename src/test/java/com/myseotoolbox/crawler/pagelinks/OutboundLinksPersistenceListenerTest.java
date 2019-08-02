@@ -1,6 +1,8 @@
 package com.myseotoolbox.crawler.pagelinks;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
+import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.model.RedirectChainElement;
 import org.bson.types.ObjectId;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -11,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.net.URI;
 import java.util.function.Consumer;
 
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
@@ -27,6 +30,7 @@ public class OutboundLinksPersistenceListenerTest {
     @Mock OutboundLinkRepository repository;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     private OutboundLinksPersistenceListener sut;
+    private static final URI CRAWL_ORIGIN = URI.create("http://host");
 
     @Before
     public void setUp() {
@@ -49,7 +53,7 @@ public class OutboundLinksPersistenceListenerTest {
     @Test
     public void shouldOnlyPersistSelfCanonicalized() {
         CrawlResult crawlResult = CrawlResult.forSnapshot(
-                aTestPageSnapshotForUri("http://testuri?someWeirdDinamicUrl=2b234rb9b")
+                CRAWL_ORIGIN, aTestPageSnapshotForUri("http://testuri?someWeirdDinamicUrl=2b234rb9b")
                         .withCanonicals("http://testuri")
                         .withLinks("/relativeLink", "http://absoluteLink/hello").build());
 
@@ -74,7 +78,7 @@ public class OutboundLinksPersistenceListenerTest {
     @Test
     public void shouldBeFineWithNullLinks() {
         CrawlResult crawlResult = CrawlResult.forSnapshot(
-                aTestPageSnapshotForUri("http://testuri").withNullLinks().build());
+                CRAWL_ORIGIN, aTestPageSnapshotForUri("http://testuri").withNullLinks().build());
 
         sut.accept(crawlResult);
 
@@ -169,7 +173,7 @@ public class OutboundLinksPersistenceListenerTest {
 
     @Test
     public void shouldPersistLinksWithSpacesAtTheEnd() {
-        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain","http://domain/path ");
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain", "http://domain/path ");
 
         sut.accept(crawlResult);
 
@@ -287,6 +291,17 @@ public class OutboundLinksPersistenceListenerTest {
         });
     }
 
+    @Test
+    public void shouldResolveLinksBasedOnDestinationUrl() {
+        CrawlResult crawlResult = givenCrawlResultWithRedirect("http://domain", "https://domain", "/link1", "/link2");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("https://domain/link1", "https://domain/link2"));
+        });
+    }
+
     private void verifySavedLinks(Consumer<OutboundLinks> linksVerify) {
         Mockito.verify(repository).save(ArgumentMatchers.argThat(argument -> {
             linksVerify.accept(argument);
@@ -298,7 +313,14 @@ public class OutboundLinksPersistenceListenerTest {
         return givenCrawlResultForUrlWithPageWithLinks("http://domain", links);
     }
 
+    private CrawlResult givenCrawlResultWithRedirect(String url, String destinationUrl, String... links) {
+        PageSnapshot build = aTestPageSnapshotForUri(url)
+                .withRedirectChainElements(new RedirectChainElement(url, 301, destinationUrl), new RedirectChainElement(destinationUrl, 200, destinationUrl))
+                .withLinks(links).build();
+        return CrawlResult.forSnapshot(CRAWL_ORIGIN, build);
+    }
+
     private CrawlResult givenCrawlResultForUrlWithPageWithLinks(String url, String... links) {
-        return CrawlResult.forSnapshot(aTestPageSnapshotForUri(url).withLinks(links).build());
+        return CrawlResult.forSnapshot(CRAWL_ORIGIN, aTestPageSnapshotForUri(url).withLinks(links).build());
     }
 }

@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
+import static com.myseotoolbox.crawler.utils.DestinationUri.getDestinationUri;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 @Slf4j
@@ -49,6 +50,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     @Override
     public void accept(CrawlResult result) {
         String sourceUri = result.getUri();
+        String destinationUri = getDestinationUri(result.getPageSnapshot());
         List<URI> links = result.isBlockedChain() ? Collections.emptyList() : discoverLinks(result.getPageSnapshot());
 
         log.debug("Scanned: {} links:{}", sourceUri, links.size());
@@ -59,7 +61,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
             log.debug("Skipping crawl notification for {} because result is blockedChain: {}", sourceUri, result.getChain());
         }
 
-        onScanCompleted(URI.create(sourceUri), links);
+        onScanCompleted(URI.create(sourceUri), URI.create(destinationUri), links);
     }
 
     private List<URI> discoverLinks(PageSnapshot snapshot) {
@@ -70,21 +72,21 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         return links;
     }
 
-    private synchronized void onScanCompleted(URI baseUri, List<URI> links) {
+    private synchronized void onScanCompleted(URI baseUri, URI destinationUri, List<URI> links) {
         assertAbsolute(baseUri);
         if (!inProgress.remove(baseUri))
             throw new IllegalStateException("Completing snapshot of not in progress URI:" + baseUri + " (could be already completed or never submitted)");
         if (!visited.add(baseUri))
             throw new IllegalStateException("Already visited: " + baseUri);
-        enqueueDiscoveredLinks(baseUri, links);
+        enqueueDiscoveredLinks(destinationUri, links);
     }
 
-    private synchronized void enqueueDiscoveredLinks(URI sourceUri, List<URI> links) {
+    private synchronized void enqueueDiscoveredLinks(URI destinationUri, List<URI> links) {
         List<URI> newLinks = links.stream()
-                .map(uri -> toAbsolute(sourceUri, uri))
+                .map(uri -> toAbsolute(destinationUri, uri))
                 .filter(Objects::nonNull)
                 .filter(uri -> uri.toString().length() < MAX_URL_LEN)
-                .filter(uri -> uriFilter.shouldCrawl(sourceUri, uri))
+                .filter(uri -> uriFilter.shouldCrawl(destinationUri, uri))
                 .filter(uri -> !alreadyVisited(uri))
                 .distinct()
                 .collect(Collectors.toList());
