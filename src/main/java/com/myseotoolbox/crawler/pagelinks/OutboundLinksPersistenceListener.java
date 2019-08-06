@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
-import static com.myseotoolbox.crawler.utils.DestinationUri.getDestinationUri;
+import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUriString;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 
@@ -46,7 +46,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
                 .map(PageLinksHelper::toValidUri)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(link -> relativize(getDestinationUri(crawlResult.getPageSnapshot()), link))
+                .map(link -> relativize(getDestinationUriString(crawlResult.getPageSnapshot()), link))
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());

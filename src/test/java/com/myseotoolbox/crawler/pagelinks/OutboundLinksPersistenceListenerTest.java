@@ -27,10 +27,10 @@ import static org.junit.Assert.assertThat;
 public class OutboundLinksPersistenceListenerTest {
 
     private static final String TEST_ORIGIN = "http://domain";
+    private static final URI CRAWL_ORIGIN = URI.create(TEST_ORIGIN);
     @Mock OutboundLinkRepository repository;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     private OutboundLinksPersistenceListener sut;
-    private static final URI CRAWL_ORIGIN = URI.create("http://host");
 
     @Before
     public void setUp() {
@@ -45,7 +45,7 @@ public class OutboundLinksPersistenceListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
-            assertThat(outboundLinks.getUrl(), equalTo("http://domain"));
+            assertThat(outboundLinks.getUrl(), equalTo(TEST_ORIGIN));
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
         });
     }
@@ -310,7 +310,7 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     private CrawlResult givenCrawlResultForPageWithLinks(String... links) {
-        return givenCrawlResultForUrlWithPageWithLinks("http://domain", links);
+        return givenCrawlResultForUrlWithPageWithLinks(TEST_ORIGIN, links);
     }
 
     private CrawlResult givenCrawlResultWithRedirect(String url, String destinationUrl, String... links) {
@@ -321,6 +321,8 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     private CrawlResult givenCrawlResultForUrlWithPageWithLinks(String url, String... links) {
-        return CrawlResult.forSnapshot(CRAWL_ORIGIN, aTestPageSnapshotForUri(url).withLinks(links).build());
+        return CrawlResult.forSnapshot(CRAWL_ORIGIN, aTestPageSnapshotForUri(url)
+                .withRedirectChainElements(new RedirectChainElement(url, 200, url))
+                .withLinks(links).build());
     }
 }

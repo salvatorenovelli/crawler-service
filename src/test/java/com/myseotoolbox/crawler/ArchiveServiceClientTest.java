@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.myseotoolbox.archive.ArchiveServiceClient;
 import com.myseotoolbox.crawler.config.AppConfig;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import org.junit.Before;

@@ -23,8 +23,29 @@ public class WebsiteOriginUtils {
         return extractHostPort(possibleSubdomain).endsWith("." + extractHostPort(origin));
     }
 
+
     public static boolean isHostMatching(URI a, URI b) {
-        return extractHostPort(a).equals(extractHostPort(b));
+        return isHostMatching(a, b, true);
+    }
+
+    /**
+     * Non strict will match www.host to host
+     */
+    public static boolean isHostMatching(URI a, URI b, boolean strictWww) {
+        String hostA = extractHostPort(a);
+        String hostB = extractHostPort(b);
+
+        if (!strictWww) {
+            hostA = hostA.replaceAll("^www\\.", "");
+            hostB = hostB.replaceAll("^www\\.", "");
+        }
+
+
+        return hostA.equals(hostB);
+    }
+
+    public static boolean isSameOrigin(URI base, URI compare, boolean strictWww) {
+        return isSchemeMatching(base, compare) && isHostMatching(base, compare, strictWww);
     }
 
     public static boolean isChildOf(URI origin, URI possibleChild) {
@@ -44,10 +65,6 @@ public class WebsiteOriginUtils {
         return possibleChildPath.startsWith(originPath);
     }
 
-
-    public static URI extractOrigin(URI source) {
-        return source.resolve("/");
-    }
 
     private static boolean isSchemeMatching(URI origin, URI possibleChild) {
         return Objects.equals(origin.getScheme(), possibleChild.getScheme());
@@ -69,5 +86,9 @@ public class WebsiteOriginUtils {
     private static String extractHost(URI uri) {
         //can be null in case of mailto: (for some reason I don't understand)
         return uri.getHost() != null ? uri.getHost() : "";
+    }
+
+    public static URI extractOrigin(URI source) {
+        return source.resolve("/");
     }
 }

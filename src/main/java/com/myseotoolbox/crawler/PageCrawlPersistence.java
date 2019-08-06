@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler;
 
 
+import com.myseotoolbox.archive.ArchiveServiceClient;
 import com.myseotoolbox.crawler.model.PageCrawl;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.PageCrawlRepository;

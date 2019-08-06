@@ -4,11 +4,11 @@ import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 
 public class TestWorkspaceBuilder {
-    public static final String DEFAULT_TEST_WEBSITE_URL = "http://host";
+    public static final String DEFAULT_WORKSPACE_ORIGIN = "https://testhost";
     private static final String DEFAULT_OWNER = "user340790";
     private final WorkspaceRepository workspaceRepository;
     private final int seqNumber;
-    private String websiteUrl = DEFAULT_TEST_WEBSITE_URL;
+    private String websiteUrl = DEFAULT_WORKSPACE_ORIGIN;
     private String ownerName = DEFAULT_OWNER;
 
     public TestWorkspaceBuilder(WorkspaceRepository workspaceRepository, int seqNumber) {
@@ -16,7 +16,7 @@ public class TestWorkspaceBuilder {
         this.seqNumber = seqNumber;
     }
 
-    public TestWorkspaceBuilder withWebsiteUrl(String url) {
+    public TestWorkspaceBuilder withCrawlOrigin(String url) {
         this.websiteUrl = url;
         return this;
     }

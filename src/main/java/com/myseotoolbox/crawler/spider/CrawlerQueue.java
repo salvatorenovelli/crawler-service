@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
-import static com.myseotoolbox.crawler.utils.DestinationUri.getDestinationUri;
+import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUri;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 @Slf4j
@@ -33,6 +33,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private final int maxCrawls;
     private final String queueName;
+    private boolean crawlShutdownInvoked = false;
 
     public CrawlerQueue(String queueName, Collection<URI> seeds, CrawlersPool crawlersPool, UriFilter filter, int maxCrawls, CrawlEventDispatch dispatch) {
         this.queueName = queueName;
@@ -49,19 +50,14 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     @Override
     public void accept(CrawlResult result) {
-        String sourceUri = result.getUri();
-        String destinationUri = getDestinationUri(result.getPageSnapshot());
-        List<URI> links = result.isBlockedChain() ? Collections.emptyList() : discoverLinks(result.getPageSnapshot());
-
-        log.debug("Scanned: {} links:{}", sourceUri, links.size());
 
         if (!result.isBlockedChain()) {
             notifyPageCrawled(result);
         } else {
-            log.debug("Skipping crawl notification for {} because result is blockedChain: {}", sourceUri, result.getChain());
+            log.debug("Skipping crawl notification for {} because result is blockedChain: {}", result.getUri(), result.getChain());
         }
 
-        onScanCompleted(URI.create(sourceUri), URI.create(destinationUri), links);
+        onScanCompleted(result);
     }
 
     private List<URI> discoverLinks(PageSnapshot snapshot) {
@@ -72,43 +68,55 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         return links;
     }
 
-    private synchronized void onScanCompleted(URI baseUri, URI destinationUri, List<URI> links) {
+    private synchronized void onScanCompleted(CrawlResult crawlResult) {
+
+        URI baseUri = URI.create(crawlResult.getUri());
+
         assertAbsolute(baseUri);
         if (!inProgress.remove(baseUri))
             throw new IllegalStateException("Completing snapshot of not in progress URI:" + baseUri + " (could be already completed or never submitted)");
         if (!visited.add(baseUri))
             throw new IllegalStateException("Already visited: " + baseUri);
-        enqueueDiscoveredLinks(destinationUri, links);
+
+        enqueueDiscoveredLinks(crawlResult);
+
+        if (crawlCompleted()) {
+            shutdown();
+        }
     }
 
-    private synchronized void enqueueDiscoveredLinks(URI destinationUri, List<URI> links) {
-        List<URI> newLinks = links.stream()
-                .map(uri -> toAbsolute(destinationUri, uri))
-                .filter(Objects::nonNull)
-                .filter(uri -> uri.toString().length() < MAX_URL_LEN)
-                .filter(uri -> uriFilter.shouldCrawl(destinationUri, uri))
-                .filter(uri -> !alreadyVisited(uri))
-                .distinct()
-                .collect(Collectors.toList());
+    private synchronized void enqueueDiscoveredLinks(CrawlResult crawlResult) {
 
-        submitTasks(newLinks);
+        PageSnapshot pageSnapshot = crawlResult.getPageSnapshot();
+        String sourceUri = crawlResult.getUri();
+
+        if (!crawlResult.isBlockedChain()) {
+            List<URI> links = discoverLinks(pageSnapshot);
+            log.debug("Scanned: {} links:{}", sourceUri, links.size());
+            URI destinationUri = getDestinationUri(pageSnapshot);
+
+            List<URI> newLinks = links.stream()
+                    .map(uri -> toAbsolute(destinationUri, uri))
+                    .filter(Objects::nonNull)
+                    .filter(uri -> uri.toString().length() < MAX_URL_LEN)
+                    .filter(uri -> uriFilter.shouldCrawl(destinationUri, uri))
+                    .filter(uri -> !alreadyVisited(uri))
+                    .distinct()
+                    .collect(Collectors.toList());
+
+            submitTasks(newLinks);
+        }
+
 
     }
 
     private synchronized void submitTasks(List<URI> seeds) {
-
         List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
-
         if (allowedSeeds.size() > 0) {
             inProgress.addAll(allowedSeeds);
             allowedSeeds.stream()
                     .map(uri -> new SnapshotTask(uri, this))
                     .forEach(crawlersPool::accept);
-        } else {
-            if (inProgress.size() == 0) {
-                crawlersPool.shutDown();
-                dispatch.crawlEnded();
-            }
         }
     }
 
@@ -158,6 +166,18 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private void notifyPageCrawled(CrawlResult crawlResult) {
         dispatch.pageCrawled(crawlResult);
+    }
+
+    private synchronized void shutdown() {
+        if (!crawlShutdownInvoked) {
+            crawlShutdownInvoked = true;
+            crawlersPool.shutDown();
+            dispatch.crawlEnded();
+        }
+    }
+
+    private synchronized boolean crawlCompleted() {
+        return inProgress.size() == 0;
     }
 }
 

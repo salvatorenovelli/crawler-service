@@ -18,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,10 +36,11 @@ import static org.mockito.Mockito.verify;
 public class CrawlEventDispatchTest {
 
     public static final String TEST_ORIGIN = "http://origin";
+    public static final URI CRAWL_ORIGIN = URI.create(TEST_ORIGIN);
     public static final CrawlStartedEvent CRAWL_STARTED_EVENT = new CrawlStartedEvent(TEST_ORIGIN, Arrays.asList("/one", "/two"));
 
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
-    public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
+    public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(CRAWL_ORIGIN, TEST_PAGE_SNAPSHOT);
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     private static final WebsiteCrawl CRAWL = new WebsiteCrawl(TEST_CRAWL_ID, TEST_ORIGIN, LocalDateTime.now(), Collections.emptyList());
     @Mock private PageCrawlPersistence crawlPersistence;
@@ -57,7 +59,7 @@ public class CrawlEventDispatchTest {
     @Test
     public void shouldNotifyPageCrawlListeners() {
         sut.pageCrawled(TEST_CRAWL_RESULT);
-        verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
+        verify(monitoredUriUpdater).updateCurrentValue(CRAWL_ORIGIN, TEST_PAGE_SNAPSHOT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
     }
@@ -75,7 +77,7 @@ public class CrawlEventDispatchTest {
 
     @Test
     public void exceptionsInMonitoredUriUpdaterDoesNotPreventPersistenceOfCrawl() {
-        doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
+        doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any(), any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
         sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(crawlPersistence).persistPageCrawl(TEST_PAGE_SNAPSHOT);
@@ -86,13 +88,13 @@ public class CrawlEventDispatchTest {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
         sut.pageCrawled(TEST_CRAWL_RESULT);
-        verify(monitoredUriUpdater).updateCurrentValue(TEST_PAGE_SNAPSHOT);
+        verify(monitoredUriUpdater).updateCurrentValue(CRAWL_ORIGIN, TEST_PAGE_SNAPSHOT);
     }
 
     @Test
     public void exceptionsInLinksListenerDoesNotPreventMonitoredUriUpdate() {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any());
-        doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any());
+        doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any(), any());
         sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
     }

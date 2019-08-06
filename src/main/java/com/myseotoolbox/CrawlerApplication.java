@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler;
+package com.myseotoolbox;
 
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
 import lombok.extern.slf4j.Slf4j;

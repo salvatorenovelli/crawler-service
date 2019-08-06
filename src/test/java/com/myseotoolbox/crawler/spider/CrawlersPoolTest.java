@@ -27,8 +27,8 @@ import static org.mockito.Mockito.*;
 public class CrawlersPoolTest {
 
     public static final PageSnapshot FAILURE_TEST_SNAPSHOT = new PageSnapshot();
-
-    private static final CrawlResult TEST_SNAPSHOT_RESULT = CrawlResult.forSnapshot(new PageSnapshot());
+    private static final URI CRAWL_ORIGIN = URI.create("http://host");
+    private static final CrawlResult TEST_SNAPSHOT_RESULT = CrawlResult.forSnapshot(CRAWL_ORIGIN, new PageSnapshot());
     private static final URI SUCCESS_TEST_LINK = URI.create("http://host1");
     private static final URI FAILURE_TEST_LINK = URI.create("http://verybadhost");
     @Mock private Appender<ILoggingEvent> mockAppender;
@@ -45,7 +45,7 @@ public class CrawlersPoolTest {
         ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(CrawlersPool.class.getName());
         logger.addAppender(mockAppender);
 
-        sut = new CrawlersPool(reader, executor);
+        sut = new CrawlersPool(CRAWL_ORIGIN, reader, executor);
     }
 
     @Test

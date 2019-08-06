@@ -16,16 +16,16 @@ import java.util.stream.Collectors;
 public class CrawlJob {
 
     private final CrawlEventDispatch dispatch;
-    private final URI origin;
+    private final URI crawlOrigin;
     private final List<URI> seeds;
     private final CrawlerQueue crawlerQueue;
 
-    public CrawlJob(URI origin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls, CrawlEventDispatch dispatch) {
-        this.origin = origin;
+    public CrawlJob(URI crawlOrigin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls, CrawlEventDispatch dispatch) {
+        this.crawlOrigin = crawlOrigin;
         this.seeds = new ArrayList<>(seeds);
-        String name = origin.getHost();
-        CrawlersPool pool = new CrawlersPool(pageReader, executor);
-        this.crawlerQueue = new CrawlerQueue(name, removeSeedsOutsideOrigin(origin, seeds), pool, uriFilter, maxCrawls, dispatch);
+        String name = this.crawlOrigin.getHost();
+        CrawlersPool pool = new CrawlersPool(this.crawlOrigin, pageReader, executor);
+        this.crawlerQueue = new CrawlerQueue(name, removeSeedsOutsideOrigin(this.crawlOrigin, seeds), pool, uriFilter, maxCrawls, dispatch);
         startMonitoring(name, executor);
         this.dispatch = dispatch;
     }
@@ -48,7 +48,7 @@ public class CrawlJob {
 
     private void notifyCrawlStart() {
         List<String> collect = seeds.subList(0, Math.min(seeds.size(), 20)).stream().map(URI::toString).collect(Collectors.toList());
-        dispatch.crawlStarted(new CrawlStartedEvent(origin.toString(), collect));
+        dispatch.crawlStarted(new CrawlStartedEvent(crawlOrigin.toString(), collect));
     }
 
 }

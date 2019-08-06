@@ -92,4 +92,24 @@ public class WebsiteOriginUtilsTest {
     public void isValidOriginShouldAllowValid() {
         assertTrue(isValidOrigin("http://salve"));
     }
+
+    @Test
+    public void shouldBeStrictOnWwwByDefault() {
+        assertFalse(isHostMatching(uri("http://host"), uri("http://www.host")));
+    }
+
+    @Test
+    public void nonStrictShouldMatchWwwWithNonWww() {
+        assertTrue(isHostMatching(URI.create("http://www.host"), URI.create("http://host"), false));
+        assertTrue(isHostMatching(URI.create("http://host"), URI.create("http://www.host"), false));
+    }
+
+    @Test
+    public void hostMatchingShouldNotCareAboutScheme() {
+        assertTrue(isHostMatching(URI.create("http://host"), URI.create("https://host"), false));
+    }
+
+    private URI uri(String s) {
+        return URI.create(s);
+    }
 }
