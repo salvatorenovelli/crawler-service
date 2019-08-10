@@ -2,10 +2,12 @@ package com.myseotoolbox.crawler.model;
 
 
 import lombok.Getter;
+import lombok.ToString;
 
 import java.net.URI;
 
 @Getter
+@ToString
 public class CrawlResult {
 
     private final String uri;

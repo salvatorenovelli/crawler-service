@@ -336,6 +336,17 @@ public class WebPageReaderTest {
 
     }
 
+    @Test
+    public void redirectDestinationShouldBeAValidUri() throws Exception {
+        givenAWebsite()
+                .havingPage("/link withspaces").withTitle("You've reached the right place!")
+                .run();
+
+        PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/link withspaces")).getPageSnapshot();
+
+        assertThat(getDestinationUri(pageSnapshot), is(testUri("/link%20withspaces").toString()));
+    }
+
     private String getDestinationUri(PageSnapshot pageSnapshot) {
         List<RedirectChainElement> redirectChainElements = pageSnapshot.getRedirectChainElements();
         return redirectChainElements.get(redirectChainElements.size() - 1).getDestinationURI();

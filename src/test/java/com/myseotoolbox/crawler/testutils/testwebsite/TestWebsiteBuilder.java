@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.testutils.testwebsite;
 
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
+import com.myseotoolbox.crawler.spider.PageLinksHelper;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +91,8 @@ public class TestWebsiteBuilder {
         if (!server.isStarted()) {
             throw new IllegalStateException("Sorry, you'll need to start the server before asking for URI. (At the moment the server port is not known)");
         }
-        return URI.create(getBaseUriAsString()).resolve(uri);
+        Optional<URI> uri1 = PageLinksHelper.toValidUri(uri);
+        return URI.create(getBaseUriAsString()).resolve(uri1.get());
     }
 
     public String getBaseUriAsString() {

@@ -3,13 +3,11 @@ package com.myseotoolbox.crawler.httpclient;
 import com.myseotoolbox.crawler.CalendarService;
 import com.myseotoolbox.crawler.model.*;
 import com.myseotoolbox.crawler.spider.UriFilter;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URLDecoder;
 
 import static javax.servlet.http.HttpServletResponse.*;
 
@@ -77,7 +75,7 @@ public class WebPageReader {
         int httpStatus = response.getHttpStatus();
         URI location = response.getLocation();
 
-        redirectChain.addElement(new RedirectChainElement(decode(currentURI), httpStatus, decode(location)));
+        redirectChain.addElement(new RedirectChainElement(currentURI.toString(), httpStatus, location.toString()));
 
         if (isRedirect(httpStatus)) {
             if (isBlockedChain(currentURI, location)) return false;
@@ -90,11 +88,6 @@ public class WebPageReader {
 
     private boolean isBlockedChain(URI currentURI, URI location) {
         return !uriFilter.shouldCrawl(currentURI, location);
-    }
-
-    @SneakyThrows
-    private String decode(URI currentURI) {
-        return URLDecoder.decode(currentURI.toASCIIString(), "UTF-8");
     }
 
     private URI buildUri(String startURI) throws URISyntaxException {

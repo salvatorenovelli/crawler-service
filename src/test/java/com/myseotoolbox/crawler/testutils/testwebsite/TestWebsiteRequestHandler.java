@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.testutils.testwebsite;
 
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.jetty.server.Request;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +52,8 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         } else if (path.contains("sitemap")) {
             serveSitemap(request, httpServletResponse, path);
         } else {
-            Page page = testWebsiteBuilder.getPage(path);
+            String decoded = decode(path);
+            Page page = testWebsiteBuilder.getPage(decoded);
             if (page != null) {
                 servePage(page, httpServletResponse);
                 request.setHandled(true);
@@ -58,6 +61,11 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         }
 
 
+    }
+
+    @SneakyThrows
+    private String decode(String path) {
+        return URLDecoder.decode(path, "UTF-8");
     }
 
     private void serveSitemap(Request request, HttpServletResponse response, String path) {

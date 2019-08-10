@@ -211,6 +211,20 @@ public class SpiderIntegrationTest {
         verify(dispatch, atMost(1)).pageCrawled(any());
     }
 
+    @Test
+    public void websiteWithRedirectDestinationWithSpacesShouldResolveLinksProperly() {
+        givenAWebsite()
+                .havingRootPage().redirectingTo(301, "/link withspaces/base").and()
+                .havingPage("/link withspaces/base").withLinksTo("relative").save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(dispatch).pageCrawled(uri("/"));
+        verify(dispatch).pageCrawled(uri("/link%20withspaces/relative"));
+        verify(dispatch, atMost(2)).pageCrawled(any());
+    }
+
     private CrawlResult uri(String uri) {
         return argThat(argument -> argument.getPageSnapshot().getUri().equals(testUri(uri).toString()));
     }

@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.httpclient.WebPageReader.isRedirect;
+import static com.myseotoolbox.crawler.spider.PageLinksHelper.toValidUri;
 
 
 public class HttpGetRequest {
@@ -65,19 +66,17 @@ public class HttpGetRequest {
     }
 
 
-
-
     private URI extractDestinationUri(HttpURLConnection connection, URI initialLocation) throws URISyntaxException {
         String locationHeader = connection.getHeaderField("location");
-        URI location;
 
 
         if (containsUnicodeCharacters(locationHeader)) {
             logger.warn("Redirect destination {} contains non ASCII characters (as required by the standard)", connection.getURL());
-            location = new URI(SafeStringEscaper.escapeString(locationHeader));
-        } else {
-            location = new URI(locationHeader);
+            locationHeader = SafeStringEscaper.escapeString(locationHeader);
         }
+
+        URI location = toValidUri(locationHeader)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid redirect destination. src: " + initialLocation + " dst: " + connection.getHeaderField("location")));
 
         if (location.isAbsolute()) {
             return location;
