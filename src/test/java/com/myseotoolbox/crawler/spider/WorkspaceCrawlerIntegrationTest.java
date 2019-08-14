@@ -1,9 +1,8 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
-import com.myseotoolbox.crawler.httpclient.HTTPClient;
-import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
-import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
+import com.myseotoolbox.crawler.httpclient.*;
+import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -61,6 +60,20 @@ public class WorkspaceCrawlerIntegrationTest {
         givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
     }
 
+
+    public void crawlSingleUrlExploratory() {
+        WebPageReader build = webPageReaderFactory.build(URI.create(""), (sourceUri, discoveredLink) -> true);
+
+        CrawlResult crawlResult = null;
+        try {
+            crawlResult = build.snapshotPage(URI.create(""));
+        } catch (SnapshotException e) {
+            System.out.println(e.getPartialSnapshot().getRedirectChainElements());
+        }
+
+        System.out.println(crawlResult);
+
+    }
 
     @Test
     public void shouldNotifyListenerOfAllThePageCrawled() {

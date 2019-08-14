@@ -40,7 +40,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
     private List<String> getLinks(CrawlResult crawlResult) {
         List<String> links = crawlResult.getPageSnapshot().getLinks();
-        if (links == null) return Collections.emptyList();
+        if (links == null || links.isEmpty()) return Collections.emptyList();
         return links.stream()
                 .map(this::removeFragment)
                 .map(PageLinksHelper::toValidUri)
@@ -87,7 +87,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
     }
 
     private String removeFragment(String url) {
-        if (url.equals("#")) return "";
+        if (url.equals("#")) return "" ;
         if (!url.contains("#")) return url;
         return url.split("#")[0];
     }

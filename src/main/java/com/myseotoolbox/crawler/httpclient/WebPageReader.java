@@ -4,15 +4,19 @@ import com.myseotoolbox.crawler.CalendarService;
 import com.myseotoolbox.crawler.model.*;
 import com.myseotoolbox.crawler.spider.UriFilter;
 import lombok.extern.slf4j.Slf4j;
+import org.jsoup.UnsupportedMimeTypeException;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.regex.Pattern;
 
 import static javax.servlet.http.HttpServletResponse.*;
 
 @Slf4j
 public class WebPageReader {
+
+    private static final Pattern allowedContentTypeRegex = Pattern.compile("(application|text)/\\w*\\+?xml.*");
 
     private final HtmlParser parser = new HtmlParser();
     private final CalendarService calendarService = new CalendarService();
@@ -77,6 +81,8 @@ public class WebPageReader {
 
         redirectChain.addElement(new RedirectChainElement(currentURI.toString(), httpStatus, location.toString()));
 
+        checkMimeType(response.getContentType(), currentURI);
+
         if (isRedirect(httpStatus)) {
             if (isBlockedChain(currentURI, location)) return false;
             return scanRedirectChain(redirectChain, location);
@@ -84,6 +90,11 @@ public class WebPageReader {
             redirectChain.setInputStream(response.getInputStream());
             return true;
         }
+    }
+
+    private void checkMimeType(String contentType, URI url) throws UnsupportedMimeTypeException {
+        if (contentType != null && !contentType.startsWith("text/") && !allowedContentTypeRegex.matcher(contentType).matches())
+            throw new UnsupportedMimeTypeException("Unhandled content type. Must be text/*, application/xml, or application/xhtml+xml", contentType, url.toString());
     }
 
     private boolean isBlockedChain(URI currentURI, URI location) {

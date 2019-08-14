@@ -11,11 +11,13 @@ public class HttpResponse {
 
     private final int httpStatus;
     private final URI location;
+    private final String contentType;
     private final InputStream inputStream;
 
-    public HttpResponse(int httpStatus, URI location, InputStream inputStream) {
+    public HttpResponse(int httpStatus, URI location, String contentType, InputStream inputStream) {
         this.httpStatus = httpStatus;
         this.location = location;
+        this.contentType = contentType;
         this.inputStream = inputStream;
     }
 }

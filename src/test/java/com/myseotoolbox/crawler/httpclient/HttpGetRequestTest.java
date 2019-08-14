@@ -7,7 +7,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static javax.servlet.http.HttpServletResponse.*;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -147,6 +149,16 @@ public class HttpGetRequestTest {
         HttpResponse request = new HttpGetRequest(testUri("/source"), connectionFactory).execute();
         assertThat(request.getLocation(), is(testUri("/fam%C3%ADlia")));
 
+    }
+
+    @Test
+    public void shouldSetContentTypeInResponse() throws IOException, URISyntaxException {
+        givenAWebsite()
+                .havingPage("/hello").save();
+
+        HttpResponse response = new HttpGetRequest(testUri("/hello"), connectionFactory).execute();
+
+        assertThat(response.getContentType(), is("text/html"));
     }
 
     private URI testUri(String url) {

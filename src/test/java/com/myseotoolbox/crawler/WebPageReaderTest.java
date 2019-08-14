@@ -31,9 +31,9 @@ import static org.junit.Assert.*;
 @SuppressWarnings("unchecked")
 public class WebPageReaderTest {
 
-    public static final String TEST_TITLE = "Test withTitle";
-    public static final String TEST_ROOT_PAGE_PATH = "/";
-    public static final String TEST_REDIRECT_URL = "/another_url";
+    public static final String TEST_TITLE = "Test withTitle" ;
+    public static final String TEST_ROOT_PAGE_PATH = "/" ;
+    public static final String TEST_REDIRECT_URL = "/another_url" ;
     public static final UriFilter ALLOW_ALL_URI = (sourceUri, discoveredLink) -> true;
     private static final URI CRAWL_ORIGIN = URI.create("http://host");
 
@@ -265,7 +265,6 @@ public class WebPageReaderTest {
                 .havingRootPage().withMimeType("application/pdf")
                 .run();
 
-
         try {
             sut.snapshotPage(testUri("/"));
         } catch (SnapshotException e) {
@@ -275,6 +274,23 @@ public class WebPageReaderTest {
 
         fail("Expected exception");
 
+    }
+
+    @Test
+    public void redirectChainShouldBePresentInCaseOfMimeException() throws Exception {
+        //content-type should be text/*
+        givenAWebsite()
+                .havingRootPage().withMimeType("application/pdf")
+                .run();
+        try {
+            sut.snapshotPage(testUri("/"));
+        } catch (SnapshotException e) {
+            assertThat(e.getPartialSnapshot().getRedirectChainElements(), hasSize(1));
+            assertThat(e.getPartialSnapshot().getRedirectChainElements().get(0).getHttpStatus(), is(200));
+            return;
+        }
+
+        fail("Expected exception");
     }
 
     @Test
