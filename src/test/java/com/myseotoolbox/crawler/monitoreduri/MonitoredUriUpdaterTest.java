@@ -7,6 +7,8 @@ import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,7 +18,8 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.net.URI;
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
@@ -32,15 +35,16 @@ import static org.junit.Assert.assertThat;
 @DataMongoTest
 public class MonitoredUriUpdaterTest {
 
-    public static final String TEST_URI = DEFAULT_WORKSPACE_ORIGIN + "/path";
+    public static final String TEST_URI = DEFAULT_WORKSPACE_ORIGIN + "/path" ;
     public static final int TEST_WORKSPACE_NUMBER = 23;
+    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     @Autowired private MongoOperations operations;
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
 
     MonitoredUriUpdater sut;
-    private static final URI CRAWL_ORIGIN = URI.create(DEFAULT_WORKSPACE_ORIGIN);
+    private static final WebsiteCrawl TEST_CRAWL = getCrawlForOrigin(DEFAULT_WORKSPACE_ORIGIN);
 
     @Before
     public void setUp() {
@@ -69,7 +73,7 @@ public class MonitoredUriUpdaterTest {
                 .build();
 
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findByUri(TEST_URI);
@@ -94,7 +98,7 @@ public class MonitoredUriUpdaterTest {
                 .withTitle("This is a new title")
                 .build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findByUri(TEST_URI);
         assertThat(monitoredUris, hasSize(2));
@@ -112,7 +116,7 @@ public class MonitoredUriUpdaterTest {
                 .withTitle("This is a new title")
                 .build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -136,7 +140,7 @@ public class MonitoredUriUpdaterTest {
                 .withTitle("This is a new title")
                 .build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -156,7 +160,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/it-it").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -171,7 +175,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("http://testhost/page1").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(1));
@@ -182,7 +186,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("http://testhost/page1").build();
 
-        sut.updateCurrentValue(URI.create("http://testhost"), snapshot); //different schema, it will not be the same crawl
+        sut.updateCurrentValue(getCrawlForOrigin("http://testhost"), snapshot); //different schema, it will not be the same crawl
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
@@ -193,7 +197,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://www.testhost").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(1));
@@ -204,7 +208,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://www.testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(1));
@@ -216,7 +220,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhostIsDifferent/page1").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
 
@@ -229,7 +233,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://subdomain.testhost").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -243,7 +247,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
         assertThat(monitoredUris, hasSize(1));
@@ -264,9 +268,9 @@ public class MonitoredUriUpdaterTest {
         PageSnapshot snapshot1 = aTestPageSnapshotForUri("https://testhost/page1?t=123").withCanonicals("https://testhost/page1").build();
         PageSnapshot snapshot2 = aTestPageSnapshotForUri("https://testhost/page1?t=456").withCanonicals("https://testhost/page1").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot0);
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot1);
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot2);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot0);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot1);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot2);
 
         assertThat(monitoredUriRepo.findAll(), hasSize(1));
         assertThat(monitoredUriRepo.findAll().get(0).getUri(), is("https://testhost/page1"));
@@ -280,7 +284,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(3).withCrawlOrigin("https://testhost/").save();
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").build();
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         assertThat(monitoredUriRepo.findAllByWorkspaceNumber(1), hasSize(1));
         assertThat(monitoredUriRepo.findAllByWorkspaceNumber(3), hasSize(1));
@@ -292,14 +296,28 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").build();
 
-        sut.updateCurrentValue(CRAWL_ORIGIN, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
+    }
+
+    @Test
+    public void shouldPersistCrawlId() {
+        givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
+
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris1.get(0).getWebsiteCrawlId(), is(TEST_CRAWL_ID.toHexString()));
     }
 
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
         return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
     }
 
+    private static WebsiteCrawl getCrawlForOrigin(String origin) {
+        return new WebsiteCrawl(TEST_CRAWL_ID, origin, LocalDateTime.now(), Collections.emptyList());
+    }
 }

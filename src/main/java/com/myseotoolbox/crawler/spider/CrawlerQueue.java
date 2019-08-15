@@ -87,11 +87,14 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private synchronized void enqueueDiscoveredLinks(CrawlResult crawlResult) {
 
+        if (crawlResult.isBlockedChain()) return;
+
         PageSnapshot pageSnapshot = crawlResult.getPageSnapshot();
         String sourceUri = crawlResult.getUri();
 
-        if (!crawlResult.isBlockedChain()) {
-            List<URI> links = discoverLinks(pageSnapshot);
+        List<URI> links = discoverLinks(pageSnapshot);
+
+        if (!links.isEmpty()) {
             log.debug("Scanned: {} links:{}", sourceUri, links.size());
             URI destinationUri = getDestinationUri(pageSnapshot);
 
@@ -106,7 +109,6 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
             submitTasks(newLinks);
         }
-
 
     }
 

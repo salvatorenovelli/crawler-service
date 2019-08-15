@@ -21,6 +21,7 @@ import static java.util.Arrays.asList;
 
 public class CrawlHistoryTestBuilder {
 
+    public static final String WEBSITE_CRAWL_ID = new ObjectId().toHexString();
     private final Date crawlDate = STANDARD_DATE;
     private final CrawlHistoryTest testContext;
 
@@ -38,7 +39,7 @@ public class CrawlHistoryTestBuilder {
     }
 
     private PageCrawl buildCrawlForAllValue(PageSnapshot value) {
-        return new PageCrawl(generateCrawlId(), STANDARD_URI, crawlDate,
+        return new PageCrawl(generateCrawlId(), STANDARD_URI, WEBSITE_CRAWL_ID, crawlDate,
                 ResolvableField.forValue(value.getRedirectChainElements()),
                 ResolvableField.forValue(value.getTitle()),
                 ResolvableField.forValue(value.getMetaDescriptions()),
@@ -137,8 +138,8 @@ public class CrawlHistoryTestBuilder {
         }
 
         public PageCrawl buildPrevCrawl(PageSnapshot prevValue,
-                                         PageSnapshot curValue,
-                                         PageCrawl prevCrawl) {
+                                        PageSnapshot curValue,
+                                        PageCrawl prevCrawl) {
 
 
             PageCrawl base = new PageCrawl(curValue.getUri(), curValue.getCreateDate());

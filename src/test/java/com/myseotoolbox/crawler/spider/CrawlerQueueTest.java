@@ -34,8 +34,8 @@ public class CrawlerQueueTest {
 
     private static final UriFilter NO_URI_FILTER = (s, d) -> true;
     private static final int MAX_CRAWLS = 100;
-    private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família";
-    private static final String QUEUE_NAME = "name";
+    private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família" ;
+    private static final String QUEUE_NAME = "name" ;
     private URI crawlOrigin = URI.create("http://host");
 
 
@@ -329,8 +329,8 @@ public class CrawlerQueueTest {
     @Test
     public void shouldEnqueueCanonicalLinkIfDifferentFromUri() {
 
-        String baseUri = "http://host1/base?t=12345";
-        String canonicalPath = "http://host1/base";
+        String baseUri = "http://host1/base?t=12345" ;
+        String canonicalPath = "http://host1/base" ;
 
         initMocksToReturnCanonical(baseUri, canonicalPath);
 
@@ -348,8 +348,8 @@ public class CrawlerQueueTest {
 
     @Test
     public void shouldNotCrawlTwiceWhenCanonicalIsSameAsUri() {
-        String baseUri = "http://host1/base";
-        String canonicalPath = "http://host1/base";
+        String baseUri = "http://host1/base" ;
+        String canonicalPath = "http://host1/base" ;
 
         initMocksToReturnCanonical(baseUri, canonicalPath);
 
@@ -468,6 +468,14 @@ public class CrawlerQueueTest {
         verifyNoMoreInteractions(pool);
     }
 
+    @Test
+    public void shouldHandleEmptyRedirectChains() {
+        //unknown host would return that, for example. But any SnapshotException can potentially return it
+        whenCrawling("http://host1").returnEmptyRedirectChain();
+        sut.start();
+        verify(pool).accept(taskForUri("http://host1"));
+    }
+
     private List<URI> uris(String... s) {
         return Stream.of(s).map(URI::create).collect(Collectors.toList());
     }
@@ -524,6 +532,16 @@ public class CrawlerQueueTest {
                 RedirectChain chain = new RedirectChain();
                 chain.addElement(new RedirectChainElement(baseUri, 301, redirectDestination));
                 task.getTaskRequester().accept(CrawlResult.forBlockedChain(crawlOrigin, chain));
+                return null;
+            }).when(pool).accept(taskForUri(baseUri));
+        }
+
+        public void returnEmptyRedirectChain() {
+            doAnswer(invocation -> {
+                SnapshotTask task = invocation.getArgument(0);
+                PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+                t.setRedirectChainElements(Collections.emptyList());
+                task.getTaskRequester().accept(CrawlResult.forSnapshot(crawlOrigin, t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }

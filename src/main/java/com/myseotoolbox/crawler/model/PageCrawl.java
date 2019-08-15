@@ -18,6 +18,7 @@ public class PageCrawl {
 
     @Id private ObjectId id;
     @Indexed private String uri;
+    private String websiteCrawlId;
     private Date createDate;
     private ResolvableField<List<RedirectChainElement>> redirectChainElements;
     private ResolvableField<String> title;

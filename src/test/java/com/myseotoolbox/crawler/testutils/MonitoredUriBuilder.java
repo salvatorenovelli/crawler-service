@@ -23,7 +23,7 @@ import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRe
 
 public class MonitoredUriBuilder {
 
-    public static final String DEFAULT_USER = "default_user";
+    public static final String DEFAULT_USER = "default_user" ;
     public static final int TEST_WORKSPACE_NUMBER = 19514; //just a random number to avoid hardcoded stuff
     private static MonitoredUriRepository monitoredUriRepo;
     private static PageSnapshotRepository pageSnapshotRepo;
@@ -39,7 +39,7 @@ public class MonitoredUriBuilder {
                 .withTitle("Title" + id)
                 .withH1s(id + "H1-1", id + "H1-2")
                 .withMetas(id + "Meta1", id + "Meta2").build();
-        this.monitoredUri = new MonitoredUri(null, uri, DEFAULT_USER, TEST_WORKSPACE_NUMBER, recomm, null, null, "");
+        this.monitoredUri = new MonitoredUri(null, uri, DEFAULT_USER, TEST_WORKSPACE_NUMBER, recomm, null, null, "", "");
     }
 
     public static void setUp(MonitoredUriRepository monitoredUriRepo, PageSnapshotRepository pageSnapshotRepo) {

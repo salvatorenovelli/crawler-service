@@ -6,6 +6,7 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.PageCrawlRepository;
 import com.myseotoolbox.crawler.testutils.CrawlHistoryTest;
 import com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,6 +32,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
 
     @Mock private PageCrawlRepository repo;
     @Mock private ArchiveServiceClient archiveClient;
+    public final String TEST_CRAWL_ID = new ObjectId().toHexString();
 
     PageCrawlPersistence sut;
 
@@ -50,7 +52,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .build();
 
 
-        sut.persistPageCrawl(curVal);
+        sut.persistPageCrawl(TEST_CRAWL_ID, curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
@@ -67,7 +69,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue(a404PageSnapshot())
                 .build();
 
-        sut.persistPageCrawl(curVal);
+        sut.persistPageCrawl(TEST_CRAWL_ID, curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(buildRedirectChainElementsFor(STANDARD_URI, 404)));
@@ -86,7 +88,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue().havingStandardValueValues()
                 .build();
 
-        sut.persistPageCrawl(curVal);
+        sut.persistPageCrawl(TEST_CRAWL_ID, curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
@@ -102,7 +104,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
                 .withCurrentValue().havingStandardValueValues()
                 .build();
 
-        sut.persistPageCrawl(curVal);
+        sut.persistPageCrawl(TEST_CRAWL_ID, curVal);
 
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getRedirectChainElements(), valueType(curVal.getRedirectChainElements()));
@@ -118,9 +120,9 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
         PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
 
-        sut.persistPageCrawl(snapshot0);
-        sut.persistPageCrawl(snapshot1);
-        sut.persistPageCrawl(snapshot2);
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot1);
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot2);
 
 
         verify(repo, times(1)).findTopByUriOrderByCreateDateDesc(snapshot0.getUri());
@@ -139,12 +141,23 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
         PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
 
-        sut.persistPageCrawl(snapshot0);
-        sut.persistPageCrawl(snapshot1);
-        sut.persistPageCrawl(snapshot2);
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot1);
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot2);
 
         verify(archiveClient).getLastPageSnapshot(snapshot0.getUri());
         verifyNoMoreInteractions(archiveClient);
+    }
+
+    @Test
+    public void shouldPersistCrawlId() {
+        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
+        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);
+
+        verify(repo).save(argThat(crawl -> {
+            assertThat(crawl.getWebsiteCrawlId(), is(TEST_CRAWL_ID));
+            return true;
+        }));
     }
 
     private CrawlHistoryTestBuilder givenCrawlHistory() {

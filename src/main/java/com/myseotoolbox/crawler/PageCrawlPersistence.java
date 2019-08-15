@@ -25,18 +25,18 @@ public class PageCrawlPersistence {
         this.pageCrawlRepository = pageCrawlRepository;
     }
 
-    public void persistPageCrawl(PageSnapshot curVal) {
+    public void persistPageCrawl(String websiteCrawlId, PageSnapshot curVal) {
         if (isCanonicalizedToDifferentUri(curVal)) return;
 
         Optional<PageSnapshot> prevValue = archiveClient.getLastPageSnapshot(curVal.getUri());
-        persistPageCrawl(prevValue.orElse(null), curVal);
+        persistPageCrawl(websiteCrawlId, prevValue.orElse(null), curVal);
     }
 
-    private void persistPageCrawl(@Nullable PageSnapshot prevValue, PageSnapshot curValue) {
+    private void persistPageCrawl(String websiteCrawlId, @Nullable PageSnapshot prevValue, PageSnapshot curValue) {
 
         Optional<PageCrawl> lastCrawl = pageCrawlRepository.findTopByUriOrderByCreateDateDesc(curValue.getUri());
         PageCrawl build = builder.build(prevValue, curValue, lastCrawl.orElse(null));
+        build.setWebsiteCrawlId(websiteCrawlId);
         pageCrawlRepository.save(build);
-
     }
 }

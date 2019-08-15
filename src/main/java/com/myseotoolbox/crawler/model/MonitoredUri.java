@@ -29,6 +29,9 @@ public class MonitoredUri {
     private PageSnapshot currentValue;
 
     private Date lastScan;
+
+    private String websiteCrawlId;
+
     private String status;
 
 }
