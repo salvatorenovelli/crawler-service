@@ -45,9 +45,10 @@ public class MonitoredUriUpdater {
                     Update update = new Update()
                             .set("uri", snapshot.getUri())
                             .set("workspaceNumber", workspace.getSeqNumber())
-                            .set("websiteCrawlId", websiteCrawl.getId().toHexString())
                             .set("currentValue", snapshot)
-                            .set("lastScan", snapshot.getCreateDate());
+                            .unset("lastCrawl.inboundLinksCount.internal")
+                            .set("lastCrawl.websiteCrawlId", websiteCrawl.getId().toHexString())
+                            .set("lastCrawl.dateTime", snapshot.getCreateDate());
 
                     mongoOperations.upsert(query, update, MonitoredUri.class);
                 });

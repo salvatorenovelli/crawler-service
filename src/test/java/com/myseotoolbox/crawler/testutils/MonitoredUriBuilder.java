@@ -1,10 +1,7 @@
 package com.myseotoolbox.crawler.testutils;
 
 
-import com.myseotoolbox.crawler.model.MonitoredUri;
-import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.Recommendation;
-import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.model.*;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 
@@ -39,7 +36,9 @@ public class MonitoredUriBuilder {
                 .withTitle("Title" + id)
                 .withH1s(id + "H1-1", id + "H1-2")
                 .withMetas(id + "Meta1", id + "Meta2").build();
-        this.monitoredUri = new MonitoredUri(null, uri, DEFAULT_USER, TEST_WORKSPACE_NUMBER, recomm, null, null, "", "");
+        LastCrawl lastCrawl = new LastCrawl();
+        lastCrawl.setInboundLinksCount(new InboundLinksCount());
+        this.monitoredUri = new MonitoredUri(null, uri, DEFAULT_USER, TEST_WORKSPACE_NUMBER, recomm, null, lastCrawl, "");
     }
 
     public static void setUp(MonitoredUriRepository monitoredUriRepo, PageSnapshotRepository pageSnapshotRepo) {
@@ -100,6 +99,17 @@ public class MonitoredUriBuilder {
         return new CurrentValueBuilder(this);
     }
 
+    public MonitoredUriBuilder havingInternalHrefLinksCount(int count) {
+        this.monitoredUri.getLastCrawl().getInboundLinksCount().setExternal(new InboundLinks(count, null, null));
+        return this;
+    }
+
+    public MonitoredUriBuilder havingExternalHrefLinksCount(int count) {
+        this.monitoredUri.getLastCrawl().getInboundLinksCount().setExternal(new InboundLinks(count, null, null));
+
+        return this;
+    }
+
     public MonitoredUriBuilder withNoRecommendation() {
         monitoredUri.setRecommendation(null);
         return this;
@@ -157,6 +167,7 @@ public class MonitoredUriBuilder {
 
             return this;
         }
+
 
         public MonitoredUriBuilder and() {
             monitoredUriBuilder.monitoredUri.setRecommendation(recommendation);

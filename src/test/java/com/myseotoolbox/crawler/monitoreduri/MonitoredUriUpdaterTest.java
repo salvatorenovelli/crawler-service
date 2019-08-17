@@ -25,6 +25,7 @@ import java.util.List;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_WORKSPACE_ORIGIN;
+import static junit.framework.TestCase.assertNull;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
@@ -255,7 +256,8 @@ public class MonitoredUriUpdaterTest {
         MonitoredUri monitoredUri = monitoredUris.get(0);
         assertThat(monitoredUri.getUri(), is(snapshot.getUri()));
         assertThat(monitoredUri.getWorkspaceNumber(), is(TEST_WORKSPACE_NUMBER));
-        assertNotNull(monitoredUri.getLastScan());
+        assertThat(monitoredUri.getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL_ID.toHexString()));
+        assertNotNull(monitoredUri.getLastCrawl().getDateTime());
 
     }
 
@@ -310,7 +312,39 @@ public class MonitoredUriUpdaterTest {
         sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
-        assertThat(monitoredUris1.get(0).getWebsiteCrawlId(), is(TEST_CRAWL_ID.toHexString()));
+        assertThat(monitoredUris1.get(0).getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL_ID.toHexString()));
+    }
+
+    @Test
+    public void shouldResetInternalInboundLinksCount() {
+        MonitoredUri build = givenAMonitoredUri()
+                .forUri("https://testhost")
+                .forWorkspace(0).havingInternalHrefLinksCount(10).build();
+        monitoredUriRepo.save(build);
+
+        givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
+
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertNull(monitoredUris1.get(0).getLastCrawl().getInboundLinksCount().getInternal());
+    }
+
+    @Test
+    public void shouldNotResetExternalLinksCount() {
+        MonitoredUri build = givenAMonitoredUri()
+                .forUri("https://testhost")
+                .forWorkspace(0).havingExternalHrefLinksCount(10).build();
+        monitoredUriRepo.save(build);
+
+        givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
+
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris1.get(0).getLastCrawl().getInboundLinksCount().getExternal().getAhref(), is(10));
     }
 
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
