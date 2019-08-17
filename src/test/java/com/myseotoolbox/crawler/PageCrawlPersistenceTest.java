@@ -21,6 +21,7 @@ import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRedirectChainElementsFor;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
@@ -150,12 +151,14 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
     }
 
     @Test
-    public void shouldPersistCrawlId() {
+    public void shouldPersistLastCrawlInformation() {
         PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
         sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);
 
         verify(repo).save(argThat(crawl -> {
-            assertThat(crawl.getWebsiteCrawlId(), is(TEST_CRAWL_ID));
+            assertThat(crawl.getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL_ID));
+            assertNotNull(crawl.getLastCrawl().getDateTime());
+            assertNotNull(crawl.getLastCrawl().getInboundLinksCount());
             return true;
         }));
     }

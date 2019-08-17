@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler;
 
 
 import com.myseotoolbox.archive.ArchiveServiceClient;
+import com.myseotoolbox.crawler.model.LastCrawl;
 import com.myseotoolbox.crawler.model.PageCrawl;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.PageCrawlRepository;
@@ -36,7 +37,7 @@ public class PageCrawlPersistence {
 
         Optional<PageCrawl> lastCrawl = pageCrawlRepository.findTopByUriOrderByCreateDateDesc(curValue.getUri());
         PageCrawl build = builder.build(prevValue, curValue, lastCrawl.orElse(null));
-        build.setWebsiteCrawlId(websiteCrawlId);
+        build.setLastCrawl(new LastCrawl(websiteCrawlId));
         pageCrawlRepository.save(build);
     }
 }

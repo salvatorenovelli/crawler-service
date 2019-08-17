@@ -22,6 +22,7 @@ public class MonitoredUriBuilder {
 
     public static final String DEFAULT_USER = "default_user" ;
     public static final int TEST_WORKSPACE_NUMBER = 19514; //just a random number to avoid hardcoded stuff
+    public static final String WEBSITE_CRAWL_ID = "2340239845nn" ;
     private static MonitoredUriRepository monitoredUriRepo;
     private static PageSnapshotRepository pageSnapshotRepo;
 
@@ -36,7 +37,7 @@ public class MonitoredUriBuilder {
                 .withTitle("Title" + id)
                 .withH1s(id + "H1-1", id + "H1-2")
                 .withMetas(id + "Meta1", id + "Meta2").build();
-        LastCrawl lastCrawl = new LastCrawl();
+        LastCrawl lastCrawl = new LastCrawl(WEBSITE_CRAWL_ID);
         lastCrawl.setInboundLinksCount(new InboundLinksCount());
         this.monitoredUri = new MonitoredUri(null, uri, DEFAULT_USER, TEST_WORKSPACE_NUMBER, recomm, null, lastCrawl, "");
     }
