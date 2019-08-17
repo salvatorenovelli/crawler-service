@@ -158,7 +158,6 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         verify(repo).save(argThat(crawl -> {
             assertThat(crawl.getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL_ID));
             assertNotNull(crawl.getLastCrawl().getDateTime());
-            assertNotNull(crawl.getLastCrawl().getInboundLinksCount());
             return true;
         }));
     }

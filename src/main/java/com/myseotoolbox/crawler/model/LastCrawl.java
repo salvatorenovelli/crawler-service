@@ -14,6 +14,5 @@ public class LastCrawl {
     public LastCrawl(String websiteCrawlId) {
         this.websiteCrawlId = websiteCrawlId;
         this.dateTime = LocalDateTime.now();
-        this.inboundLinksCount = new InboundLinksCount();
     }
 }
