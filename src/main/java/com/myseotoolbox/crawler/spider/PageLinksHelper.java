@@ -1,5 +1,9 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.google.common.escape.Escaper;
+import com.google.common.net.UrlEscapers;
+import com.myseotoolbox.crawler.utils.RemoveUrlFragment;
+import com.myseotoolbox.crawler.utils.UrlDecoder;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.annotation.Nullable;
@@ -20,6 +24,7 @@ import static com.myseotoolbox.crawler.utils.UriUtils.isValidUri;
 public class PageLinksHelper {
 
     public static final int MAX_URL_LEN = 1000;
+    private static final Escaper ESCAPER = UrlEscapers.urlFragmentEscaper();
 
     public List<URI> filterValidLinks(List<String> links) {
         List<URI> filtered = new ArrayList<>();
@@ -45,12 +50,14 @@ public class PageLinksHelper {
             return Optional.empty();
         }
 
+        str = RemoveUrlFragment.removeFragment(str);
         str = str.trim();
 
         try {
-            String escaped = str.replaceAll("\\s", "%20");
-            URI uri = new URI(escaped);
-            uri = removeFragment(uri);
+            String decoded = UrlDecoder.decode(str);
+            String transCoded = ESCAPER.escape(decoded);
+
+            URI uri = new URI(transCoded);
             if (isEmptyLink(uri)) return Optional.empty();
 
             return Optional.ofNullable(uri);
@@ -62,15 +69,6 @@ public class PageLinksHelper {
 
     }
 
-    private static URI removeFragment(URI uri) {
-        if (uri.getFragment() == null) return uri;
-        try {
-            return new URI(uri.getScheme(), uri.getUserInfo(), uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), null);
-        } catch (URISyntaxException e) {
-            log.warn("Unable to remove fragment for uri:  {}", uri);
-            return null;
-        }
-    }
 
     private static boolean isEmptyLink(@Nullable URI uri) {
         if (uri == null) return false;

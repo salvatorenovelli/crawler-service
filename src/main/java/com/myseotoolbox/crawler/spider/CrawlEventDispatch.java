@@ -29,7 +29,7 @@ public class CrawlEventDispatch {
         PageSnapshot snapshot = crawlResult.getPageSnapshot();
         log.debug("Persisting page crawled: {}", snapshot.getUri());
         runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(websiteCrawl, snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
-        runOrLogWarning(() -> crawlPersistence.persistPageCrawl(websiteCrawl.getId().toHexString(),snapshot), "Error while persisting crawl for uri: " + snapshot.getUri());
+        runOrLogWarning(() -> crawlPersistence.persistPageCrawl(websiteCrawl.getId().toHexString(), snapshot), "Error while persisting crawl for uri: " + snapshot.getUri());
         runOrLogWarning(() -> outLinkPersistenceListener.accept(crawlResult), "Error while persisting outbound links for uri: " + crawlResult.getUri());
     }
 

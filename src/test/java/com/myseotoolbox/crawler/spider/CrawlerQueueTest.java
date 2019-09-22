@@ -34,8 +34,8 @@ public class CrawlerQueueTest {
 
     private static final UriFilter NO_URI_FILTER = (s, d) -> true;
     private static final int MAX_CRAWLS = 100;
-    private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família" ;
-    private static final String QUEUE_NAME = "name" ;
+    private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família";
+    private static final String QUEUE_NAME = "name";
     private URI crawlOrigin = URI.create("http://host");
 
 
@@ -73,6 +73,22 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").discover("http://host1/dst");
         sut.start();
         verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+    }
+
+    @Test
+    public void shouldNotifyListenerWithResultHavingUnicodeUri() {
+        whenCrawling("http://host1").discover("http://host1/linkWithUnicode\u200B  \u200B");
+        sut.start();
+        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1/linkWithUnicode%E2%80%8B%20%20%E2%80%8B")));
+    }
+
+    @Test
+    public void shouldEncodeUnicodeCharsBeforeCrawling() {
+        whenCrawling("http://host1").discover("http://host1/linkWithUnicode\u200B  \u200B");
+        sut.start();
+        verify(pool).accept(taskForUri("http://host1"));
+        verify(pool).accept(taskForUri("http://host1/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
     }
 
     @Test
@@ -232,6 +248,15 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1/dst1"));
     }
 
+
+    @Test
+    public void canHandleLinksRelativeToCurrentPage() {
+        whenCrawling("http://host1").discover("http://host1/path/page");
+        whenCrawling("http://host1/path/page").discover("relativeToCurrentPath");
+        sut.start();
+        verify(pool).accept(taskForUri("http://host1/path/relativeToCurrentPath"));
+    }
+
     @Test
     public void canHandleInvalidLink() {
         whenCrawling("http://host1").discover("not +[a valid link", "/dst1");
@@ -240,6 +265,7 @@ public class CrawlerQueueTest {
 
         verify(pool).accept(taskForUri("http://host1"));
         verify(pool).accept(taskForUri("http://host1/dst1"));
+        verify(pool).accept(taskForUri("http://host1/not%20+%5Ba%20valid%20link"));
     }
 
     @Test
@@ -264,8 +290,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         verify(pool).accept(taskForUri("http://host1"));
-        verify(pool).shutDown();
-        verifyNoMoreInteractions(pool);
+        verify(pool, times(1)).accept(any());
 
     }
 
@@ -329,8 +354,8 @@ public class CrawlerQueueTest {
     @Test
     public void shouldEnqueueCanonicalLinkIfDifferentFromUri() {
 
-        String baseUri = "http://host1/base?t=12345" ;
-        String canonicalPath = "http://host1/base" ;
+        String baseUri = "http://host1/base?t=12345";
+        String canonicalPath = "http://host1/base";
 
         initMocksToReturnCanonical(baseUri, canonicalPath);
 
@@ -348,8 +373,8 @@ public class CrawlerQueueTest {
 
     @Test
     public void shouldNotCrawlTwiceWhenCanonicalIsSameAsUri() {
-        String baseUri = "http://host1/base" ;
-        String canonicalPath = "http://host1/base" ;
+        String baseUri = "http://host1/base";
+        String canonicalPath = "http://host1/base";
 
         initMocksToReturnCanonical(baseUri, canonicalPath);
 

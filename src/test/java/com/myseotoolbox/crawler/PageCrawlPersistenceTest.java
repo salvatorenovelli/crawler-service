@@ -63,6 +63,20 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
     }
 
     @Test
+    public void shouldPersistEncodedUnicodeAsIs() {
+        givenCrawlHistory()
+                .withCurrentValue().havingStandardValueValues().withUri(STANDARD_URI + "/linkWithUnicode%E2%80%8B%20%20%E2%80%8B")
+                .build();
+
+        sut.persistPageCrawl(TEST_CRAWL_ID, curVal);
+
+        verify(repo).save(argThat(crawl -> {
+            assertThat(crawl.getUri(), is("http://uri/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
+            return true;
+        }));
+    }
+
+    @Test
     public void canHandle404() {
         givenCrawlHistory()
                 .withCrawl().havingStandardValueValues().and()
