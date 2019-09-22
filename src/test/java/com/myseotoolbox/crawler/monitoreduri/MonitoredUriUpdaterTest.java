@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat;
 @DataMongoTest
 public class MonitoredUriUpdaterTest {
 
-    public static final String TEST_URI = DEFAULT_WORKSPACE_ORIGIN + "/path" ;
+    public static final String TEST_URI = DEFAULT_WORKSPACE_ORIGIN + "/path";
     public static final int TEST_WORKSPACE_NUMBER = 23;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     @Autowired private MongoOperations operations;
@@ -82,6 +82,21 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot currentValue = monitoredUris.get(0).getCurrentValue();
         assertThat(currentValue.getTitle(), is("This is a new title"));
+    }
+
+    @Test
+    public void shouldPersistEncodedUnicodeAsIs() {
+
+        //At this point it should always be encoded
+        givenAWorkspaceWithSeqNumber(1).save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri(DEFAULT_WORKSPACE_ORIGIN + "/linkWithUnicode%E2%80%8B%20%20%E2%80%8B").build();
+
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAll();
+        assertThat(monitoredUris, hasSize(1));
+
+        assertThat(monitoredUris.get(0).getCurrentValue().getUri(), is("https://testhost/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
     }
 
     @Test

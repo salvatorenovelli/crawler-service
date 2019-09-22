@@ -74,6 +74,11 @@ public class CrawlHistoryTestBuilder {
         return this;
     }
 
+    public CrawlHistoryTestBuilder withUri(String uri) {
+        this.currentValue.setUri(uri);
+        return this;
+    }
+
     public CrawlHistoryTestBuilder withTitle(String title) {
         this.currentValue.setTitle(title);
         return this;
