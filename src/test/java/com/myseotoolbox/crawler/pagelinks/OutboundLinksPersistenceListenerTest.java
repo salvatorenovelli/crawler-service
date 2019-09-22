@@ -149,6 +149,19 @@ public class OutboundLinksPersistenceListenerTest {
         });
     }
 
+
+    @Test
+    public void shouldBeAbleToRelativizeUrlsUnicodeCharacters() {
+        CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
+                "http://domain/linkWithUnicode\u200B  \u200B");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
+        });
+    }
+
     @Test
     public void shouldRelativizeBasedOnOrigin() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("https://domain/some/path", "https://domain/link");

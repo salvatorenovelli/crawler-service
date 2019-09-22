@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
+import com.myseotoolbox.crawler.utils.LinkResolver;
 import com.myseotoolbox.crawler.utils.LoggingUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -94,8 +95,9 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
         List<URI> links = discoverLinks(pageSnapshot);
 
+        log.debug("Scanned: {} links:{}", sourceUri, links.size());
+
         if (!links.isEmpty()) {
-            log.debug("Scanned: {} links:{}", sourceUri, links.size());
             URI destinationUri = getDestinationUri(pageSnapshot);
 
             List<URI> newLinks = links.stream()
@@ -150,10 +152,10 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         String path = uri.toString();
         if (containsUnicodeCharacters(path)) {
             log.debug("Redirect destination {} contains non ASCII characters (as required by the standard)", path);
-            return sourceUri.resolve(SafeStringEscaper.escapeString(path));
+            return LinkResolver.resolve(sourceUri, SafeStringEscaper.escapeString(path));
         } else {
             try {
-                return sourceUri.resolve(path);
+                return LinkResolver.resolve(sourceUri, path);
             } catch (IllegalArgumentException e) {
                 log.warn("Error while converting to absolute '{}' (source: '{}'). {}", uri, sourceUri, e.getMessage());
                 return null;
