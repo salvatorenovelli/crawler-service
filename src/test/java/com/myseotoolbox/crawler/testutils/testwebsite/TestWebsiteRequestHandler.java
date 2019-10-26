@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import static com.myseotoolbox.crawler.utils.IsRedirect.isRedirect;
 
 @Slf4j
 class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
@@ -177,10 +177,6 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private boolean isRedirect(int httpStatus) {
-        return httpStatus == SC_MOVED_TEMPORARILY || httpStatus == SC_MOVED_PERMANENTLY || httpStatus == SC_SEE_OTHER;
     }
 
     private CharSequence renderPage(Page page) {

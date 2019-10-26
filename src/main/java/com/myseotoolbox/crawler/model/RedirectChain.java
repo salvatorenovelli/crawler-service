@@ -8,7 +8,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.myseotoolbox.crawler.httpclient.WebPageReader.isRedirect;
+import static com.myseotoolbox.crawler.utils.IsRedirect.isRedirect;
 
 
 @Getter

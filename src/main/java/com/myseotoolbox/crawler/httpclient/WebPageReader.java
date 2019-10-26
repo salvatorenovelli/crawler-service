@@ -11,7 +11,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.regex.Pattern;
 
-import static javax.servlet.http.HttpServletResponse.*;
+import static com.myseotoolbox.crawler.utils.IsRedirect.isRedirect;
 
 @Slf4j
 public class WebPageReader {
@@ -59,18 +59,6 @@ public class WebPageReader {
 
     }
 
-    public static boolean isRedirect(int statusCode) {
-        switch (statusCode) {
-            case SC_MOVED_PERMANENTLY: // 301
-            case SC_MOVED_TEMPORARILY: // 302
-            case SC_SEE_OTHER: // 303
-            case SC_TEMPORARY_REDIRECT: // 307
-            case 308:
-                return true;
-            default:
-                return false;
-        }
-    }
 
     private boolean scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
 

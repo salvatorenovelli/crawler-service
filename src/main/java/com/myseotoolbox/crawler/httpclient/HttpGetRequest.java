@@ -10,8 +10,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
-import static com.myseotoolbox.crawler.httpclient.WebPageReader.isRedirect;
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.toValidUri;
+import static com.myseotoolbox.crawler.utils.IsRedirect.isRedirect;
 
 
 public class HttpGetRequest {
