@@ -50,17 +50,6 @@ public class OutboundLinksPersistenceListenerTest {
         });
     }
 
-    @Test
-    public void shouldOnlyPersistSelfCanonicalized() {
-        CrawlResult crawlResult = CrawlResult.forSnapshot(
-                CRAWL_ORIGIN, aTestPageSnapshotForUri("http://testuri?someWeirdDinamicUrl=2b234rb9b")
-                        .withCanonicals("http://testuri")
-                        .withLinks("/relativeLink", "http://absoluteLink/hello").build());
-
-        sut.accept(crawlResult);
-
-        Mockito.verifyNoMoreInteractions(repository);
-    }
 
     @Test
     public void shouldNotPersistDuplicateLinks() {

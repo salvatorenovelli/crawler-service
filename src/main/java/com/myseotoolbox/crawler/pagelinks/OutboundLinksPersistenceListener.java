@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
 import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUriString;
-import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 
 public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
@@ -29,8 +28,6 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
     @Override
     public void accept(CrawlResult crawlResult) {
-
-        if (isCanonicalizedToDifferentUri(crawlResult.getPageSnapshot())) return;
 
         HashMap<LinkType, List<String>> linkTypeListHashMap = new HashMap<>();
         linkTypeListHashMap.put(LinkType.AHREF, getLinks(crawlResult));

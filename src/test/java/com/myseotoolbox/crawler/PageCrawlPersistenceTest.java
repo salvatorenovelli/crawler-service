@@ -129,42 +129,6 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
     }
 
     @Test
-    public void shouldNotPersistCanonicalizedPagesMultipleTimes() {
-
-        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
-        PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
-        PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
-
-        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);
-        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot1);
-        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot2);
-
-
-        verify(repo, times(1)).findTopByUriOrderByCreateDateDesc(snapshot0.getUri());
-
-        verify(repo, times(1)).save(argThat(crawl -> {
-            assertThat(crawl.getUri(), is(snapshot0.getUri()));
-            return true;
-        }));
-
-        verifyNoMoreInteractions(repo);
-    }
-
-    @Test
-    public void shouldNotBotherArchiveIfCanonicalized() {
-        PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
-        PageSnapshot snapshot1 = aTestPageSnapshotForUri("http://host1/page1?t=123").withCanonicals("http://host1/page1").build();
-        PageSnapshot snapshot2 = aTestPageSnapshotForUri("http://host1/page1?t=456").withCanonicals("http://host1/page1").build();
-
-        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);
-        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot1);
-        sut.persistPageCrawl(TEST_CRAWL_ID, snapshot2);
-
-        verify(archiveClient).getLastPageSnapshot(snapshot0.getUri());
-        verifyNoMoreInteractions(archiveClient);
-    }
-
-    @Test
     public void shouldPersistLastCrawlInformation() {
         PageSnapshot snapshot0 = aTestPageSnapshotForUri("http://host1/page1").build();
         sut.persistPageCrawl(TEST_CRAWL_ID, snapshot0);

@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 import java.net.URI;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
-import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
 
 @Component
@@ -31,11 +30,6 @@ public class MonitoredUriUpdater {
 
     public void updateCurrentValue(WebsiteCrawl websiteCrawl, PageSnapshot snapshot) {
 
-        //this is canonicalized to a different URL. No need to re-persist it. We'll crawl the canonical version and persist that separately
-        if (isCanonicalizedToDifferentUri(snapshot)) {
-            log.debug("Skipping persistence of {} as it's canonicalized to {}", snapshot.getUri(), snapshot.getCanonicals());
-            return;
-        }
 
         workspaceRepository.findAll()
                 .stream()

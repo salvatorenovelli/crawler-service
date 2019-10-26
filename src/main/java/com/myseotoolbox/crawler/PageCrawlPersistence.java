@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
-import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
-
 
 @Component
 public class PageCrawlPersistence {
@@ -27,8 +25,6 @@ public class PageCrawlPersistence {
     }
 
     public void persistPageCrawl(String websiteCrawlId, PageSnapshot curVal) {
-        if (isCanonicalizedToDifferentUri(curVal)) return;
-
         Optional<PageSnapshot> prevValue = archiveClient.getLastPageSnapshot(curVal.getUri());
         persistPageCrawl(websiteCrawlId, prevValue.orElse(null), curVal);
     }

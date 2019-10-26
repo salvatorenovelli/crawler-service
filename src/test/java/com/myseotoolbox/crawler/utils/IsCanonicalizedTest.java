@@ -51,6 +51,17 @@ public class IsCanonicalizedTest {
         assertFalse(IsCanonicalized.isCanonicalizedToDifferentUri(snapshot));
     }
 
+
+    @Test
+    public void differentDomain() {
+        PageSnapshot snapshot = PageSnapshotTestBuilder
+                .aTestPageSnapshotForUri("http://testhost/sourceUri")
+                .withCanonicals("http://anotherHost/sourceUri")
+                .build();
+
+        assertTrue(IsCanonicalized.isCanonicalizedToDifferentUri(snapshot));
+    }
+
     private RedirectChainElement el(int statusCode, String url) {
         return new RedirectChainElement(null, statusCode, url);
     }

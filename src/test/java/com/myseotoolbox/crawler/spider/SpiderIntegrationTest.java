@@ -7,10 +7,10 @@ import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
-import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +21,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
@@ -258,12 +257,6 @@ public class SpiderIntegrationTest {
         return crawlJobFactory.build(conf, dispatch);
     }
 
-    private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
-        @Override
-        public ThreadPoolExecutor buildExecutor(String namePostfix, int concurrentConnections) {
-            return new CurrentThreadTestExecutorService();
-        }
-    }
 
     private URI testUri(String url) {
         return testWebsiteBuilder.buildTestUri(url);

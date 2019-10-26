@@ -68,4 +68,31 @@ public class TestWorkspaceBuilder {
     }
 
 
+    public CrawlerSettingsInnerBuilder havingCrawlerSettings() {
+        return new CrawlerSettingsInnerBuilder(this);
+    }
+
+    public class CrawlerSettingsInnerBuilder {
+
+        private final TestWorkspaceBuilder testWorkspaceBuilder;
+        private int crawlIntervalDays = 1;
+        private boolean ignoreRobotsTxt = false;
+        private int maxConcurrentConnections = 1;
+        private boolean crawlEnabled = true;
+
+        public CrawlerSettingsInnerBuilder(TestWorkspaceBuilder testWorkspaceBuilder) {
+            this.testWorkspaceBuilder = testWorkspaceBuilder;
+        }
+
+        public CrawlerSettingsInnerBuilder ignoringRobotsTxt(boolean b) {
+            this.ignoreRobotsTxt = b;
+            return this;
+        }
+
+        public TestWorkspaceBuilder and() {
+            CrawlerSettings crawlerSettings = new CrawlerSettings(maxConcurrentConnections, crawlEnabled, crawlIntervalDays, new FilterConfiguration(ignoreRobotsTxt));
+            testWorkspaceBuilder.withCrawlerSettings(crawlerSettings);
+            return testWorkspaceBuilder;
+        }
+    }
 }

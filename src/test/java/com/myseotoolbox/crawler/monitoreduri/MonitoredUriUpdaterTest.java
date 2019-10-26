@@ -276,23 +276,6 @@ public class MonitoredUriUpdaterTest {
 
     }
 
-    @Test
-    public void itShouldNotPersistCanonicalizedPagesTwice() {
-
-        givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withCrawlOrigin("https://testhost/").save();
-
-        PageSnapshot snapshot0 = aTestPageSnapshotForUri("https://testhost/page1").build();
-        PageSnapshot snapshot1 = aTestPageSnapshotForUri("https://testhost/page1?t=123").withCanonicals("https://testhost/page1").build();
-        PageSnapshot snapshot2 = aTestPageSnapshotForUri("https://testhost/page1?t=456").withCanonicals("https://testhost/page1").build();
-
-        sut.updateCurrentValue(TEST_CRAWL, snapshot0);
-        sut.updateCurrentValue(TEST_CRAWL, snapshot1);
-        sut.updateCurrentValue(TEST_CRAWL, snapshot2);
-
-        assertThat(monitoredUriRepo.findAll(), hasSize(1));
-        assertThat(monitoredUriRepo.findAll().get(0).getUri(), is("https://testhost/page1"));
-
-    }
 
     @Test
     public void shouldBeAbleToHandleNullOrigin() {
