@@ -71,16 +71,16 @@ public class WorkspaceCrawler {
 
                     log.info("Starting crawl for {} with seeds: {}", origin, seeds);
 
-                    RobotsTxt merged = robotsTxtAggregation.aggregate(workspaces);
+                    RobotsTxt mergedConfiguration = robotsTxtAggregation.aggregate(workspaces);
 
                     CrawlJobConfiguration conf = CrawlJobConfiguration
                             .newConfiguration(origin)
                             .withSeeds(seeds)
                             .withConcurrentConnections(seeds.size())
-                            .withRobotsTxt(merged)
+                            .withRobotsTxt(mergedConfiguration)
                             .build();
 
-                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(generateCrawl(origin.toString(), seeds));
+                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(generateWebsiteCrawl(origin.toString(), seeds));
 
                     CrawlJob job = crawlJobFactory.build(conf, dispatch);
                     job.start();
@@ -92,7 +92,7 @@ public class WorkspaceCrawler {
 
     }
 
-    private WebsiteCrawl generateCrawl(String origin, Collection<URI> seeds) {
+    private WebsiteCrawl generateWebsiteCrawl(String origin, Collection<URI> seeds) {
         return new WebsiteCrawl(new ObjectId(), origin, LocalDateTime.now(), seeds.stream().map(URI::toString).collect(Collectors.toList()));
     }
 
