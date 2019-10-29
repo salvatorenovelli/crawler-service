@@ -31,11 +31,10 @@ import static org.junit.Assert.*;
 @SuppressWarnings("unchecked")
 public class WebPageReaderTest {
 
-    public static final String TEST_TITLE = "Test withTitle" ;
-    public static final String TEST_ROOT_PAGE_PATH = "/" ;
-    public static final String TEST_REDIRECT_URL = "/another_url" ;
+    public static final String TEST_TITLE = "Test withTitle";
+    public static final String TEST_ROOT_PAGE_PATH = "/";
+    public static final String TEST_REDIRECT_URL = "/another_url";
     public static final UriFilter ALLOW_ALL_URI = (sourceUri, discoveredLink) -> true;
-    private static final URI CRAWL_ORIGIN = URI.create("http://host");
 
 
     private WebPageReader sut;
@@ -44,7 +43,7 @@ public class WebPageReaderTest {
 
     @Before
     public void setUp() {
-        sut = new WebPageReader(CRAWL_ORIGIN, ALLOW_ALL_URI, httpRequestFactory);
+        sut = new WebPageReader(ALLOW_ALL_URI, httpRequestFactory);
     }
 
     @After
@@ -311,7 +310,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldReturnBlockedSnapshotIfUrlIsDisallowed() throws Exception {
 
-        sut = new WebPageReader(CRAWL_ORIGIN, (sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
 
         givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
@@ -334,7 +333,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldNotFetchDisallowedUri() throws Exception {
 
-        sut = new WebPageReader(CRAWL_ORIGIN, (sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
 
         TestWebsite website = givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()

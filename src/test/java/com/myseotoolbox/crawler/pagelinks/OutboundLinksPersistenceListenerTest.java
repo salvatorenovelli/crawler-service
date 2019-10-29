@@ -66,8 +66,7 @@ public class OutboundLinksPersistenceListenerTest {
 
     @Test
     public void shouldBeFineWithNullLinks() {
-        CrawlResult crawlResult = CrawlResult.forSnapshot(
-                CRAWL_ORIGIN, aTestPageSnapshotForUri("http://testuri").withNullLinks().build());
+        CrawlResult crawlResult = CrawlResult.forSnapshot(aTestPageSnapshotForUri("http://testuri").withNullLinks().build());
 
         sut.accept(crawlResult);
 
@@ -319,11 +318,11 @@ public class OutboundLinksPersistenceListenerTest {
         PageSnapshot build = aTestPageSnapshotForUri(url)
                 .withRedirectChainElements(new RedirectChainElement(url, 301, destinationUrl), new RedirectChainElement(destinationUrl, 200, destinationUrl))
                 .withLinks(links).build();
-        return CrawlResult.forSnapshot(CRAWL_ORIGIN, build);
+        return CrawlResult.forSnapshot(build);
     }
 
     private CrawlResult givenCrawlResultForUrlWithPageWithLinks(String url, String... links) {
-        return CrawlResult.forSnapshot(CRAWL_ORIGIN, aTestPageSnapshotForUri(url)
+        return CrawlResult.forSnapshot(aTestPageSnapshotForUri(url)
                 .withRedirectChainElements(new RedirectChainElement(url, 200, url))
                 .withLinks(links).build());
     }

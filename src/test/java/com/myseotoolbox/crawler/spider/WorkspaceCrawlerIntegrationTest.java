@@ -62,7 +62,7 @@ public class WorkspaceCrawlerIntegrationTest {
 
 
     public void crawlSingleUrlExploratory() {
-        WebPageReader build = webPageReaderFactory.build(URI.create(""), (sourceUri, discoveredLink) -> true);
+        WebPageReader build = webPageReaderFactory.build((sourceUri, discoveredLink) -> true);
 
         CrawlResult crawlResult = null;
         try {

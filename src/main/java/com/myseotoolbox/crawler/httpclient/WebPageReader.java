@@ -20,12 +20,10 @@ public class WebPageReader {
 
     private final HtmlParser parser = new HtmlParser();
     private final CalendarService calendarService = new CalendarService();
-    private final URI crawlOrigin;
     private final UriFilter uriFilter;
     private final HttpRequestFactory httpRequestFactory;
 
-    public WebPageReader(URI crawlOrigin, UriFilter uriFilter, HttpRequestFactory httpRequestFactory) {
-        this.crawlOrigin = crawlOrigin;
+    public WebPageReader(UriFilter uriFilter, HttpRequestFactory httpRequestFactory) {
         this.uriFilter = uriFilter;
         this.httpRequestFactory = httpRequestFactory;
     }
@@ -42,10 +40,10 @@ public class WebPageReader {
             if (scanRedirectChain(chain, baseUri)) {
                 PageSnapshot snapshot = parser.parse(startURI, chain.getElements(), chain.getInputStream());
                 snapshot.setCreateDate(calendarService.now());
-                return CrawlResult.forSnapshot(crawlOrigin, snapshot);
+                return CrawlResult.forSnapshot(snapshot);
             }
 
-            return CrawlResult.forBlockedChain(crawlOrigin, chain);
+            return CrawlResult.forBlockedChain( chain);
 
 
         } catch (Exception e) {

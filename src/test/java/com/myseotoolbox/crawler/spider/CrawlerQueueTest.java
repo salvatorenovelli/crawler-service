@@ -36,7 +36,6 @@ public class CrawlerQueueTest {
     private static final int MAX_CRAWLS = 100;
     private static final String LOCATION_WITH_UNICODE_CHARACTERS = "/família";
     private static final String QUEUE_NAME = "name";
-    private URI crawlOrigin = URI.create("http://host");
 
 
     private CrawlerQueue sut;
@@ -47,7 +46,7 @@ public class CrawlerQueueTest {
     public void setUp() {
         doAnswer(invocation -> {
             SnapshotTask task = invocation.getArgument(0);
-            task.getTaskRequester().accept(CrawlResult.forSnapshot(crawlOrigin, aPageSnapshotWithStandardValuesForUri(task.getUri().toString())));
+            task.getTaskRequester().accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(task.getUri().toString())));
             return null;
         }).when(pool).accept(any());
         sut = initSut().build();
@@ -129,7 +128,7 @@ public class CrawlerQueueTest {
         sut = initSut().withUris("http://host1/dst").build();
 
         try {
-            sut.accept(CrawlResult.forSnapshot(crawlOrigin, aPageSnapshotWithStandardValuesForUri("/dst")));
+            sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri("/dst")));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("URI should be absolute"));
@@ -145,7 +144,7 @@ public class CrawlerQueueTest {
         sut = initSut().withUris("http://host1/dst").build();
 
         try {
-            sut.accept(CrawlResult.forSnapshot(crawlOrigin, aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
+            sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("never submitted"));
@@ -161,7 +160,7 @@ public class CrawlerQueueTest {
         sut.start();
 
         try {
-            sut.accept(CrawlResult.forSnapshot(crawlOrigin, aPageSnapshotWithStandardValuesForUri(("http://host1"))));
+            sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1"))));
         } catch (IllegalStateException e) {
             //success!!
             assertThat(e.getMessage(), containsString("already completed"));
@@ -274,7 +273,7 @@ public class CrawlerQueueTest {
             SnapshotTask task = invocation.getArgument(0);
             PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
             t.setLinks(null);
-            task.getTaskRequester().accept(CrawlResult.forSnapshot(crawlOrigin, t));
+            task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
             return null;
         }).when(pool).accept(taskForUri("http://host1"));
 
@@ -520,7 +519,7 @@ public class CrawlerQueueTest {
             PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
             t.setCanonicals(Collections.singletonList(canonicalPath));
 
-            CrawlResult result = CrawlResult.forSnapshot(crawlOrigin, t);
+            CrawlResult result = CrawlResult.forSnapshot(t);
             task.getTaskRequester().accept(result);
             return null;
         }).when(pool).accept(taskForUri(baseUri));
@@ -546,7 +545,7 @@ public class CrawlerQueueTest {
                             new RedirectChainElement(sourceUri, 301, this.redirectUrl),
                             new RedirectChainElement(this.redirectUrl, 200, this.redirectUrl)));
                 }
-                task.getTaskRequester().accept(CrawlResult.forSnapshot(crawlOrigin, t));
+                task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
@@ -556,7 +555,7 @@ public class CrawlerQueueTest {
                 SnapshotTask task = invocation.getArgument(0);
                 RedirectChain chain = new RedirectChain();
                 chain.addElement(new RedirectChainElement(baseUri, 301, redirectDestination));
-                task.getTaskRequester().accept(CrawlResult.forBlockedChain(crawlOrigin, chain));
+                task.getTaskRequester().accept(CrawlResult.forBlockedChain(chain));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
@@ -566,7 +565,7 @@ public class CrawlerQueueTest {
                 SnapshotTask task = invocation.getArgument(0);
                 PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
                 t.setRedirectChainElements(Collections.emptyList());
-                task.getTaskRequester().accept(CrawlResult.forSnapshot(crawlOrigin, t));
+                task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }

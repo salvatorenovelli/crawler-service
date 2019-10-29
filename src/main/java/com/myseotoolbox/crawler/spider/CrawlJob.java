@@ -24,7 +24,7 @@ public class CrawlJob {
         this.crawlOrigin = crawlOrigin;
         this.seeds = new ArrayList<>(seeds);
         String name = this.crawlOrigin.getHost();
-        CrawlersPool pool = new CrawlersPool(this.crawlOrigin, pageReader, executor);
+        CrawlersPool pool = new CrawlersPool(pageReader, executor);
         this.crawlerQueue = new CrawlerQueue(name, removeSeedsOutsideOrigin(this.crawlOrigin, seeds), pool, uriFilter, maxCrawls, dispatch);
         startMonitoring(name, executor);
         this.dispatch = dispatch;

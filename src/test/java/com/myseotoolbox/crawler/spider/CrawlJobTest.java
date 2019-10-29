@@ -36,11 +36,10 @@ public class CrawlJobTest {
     public static final int MAX_CRAWLS = 1000;
     @Mock private WebPageReader pageReader;
     @Mock private CrawlEventDispatch dispatch;
-    private static final URI CRAWL_ORIGIN = URI.create("http://host");
 
     @Before
     public void setUp() throws Exception {
-        when(pageReader.snapshotPage(any())).thenAnswer(arguments -> CrawlResult.forSnapshot(CRAWL_ORIGIN, PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(arguments.getArguments()[0].toString())));
+        when(pageReader.snapshotPage(any())).thenAnswer(arguments -> CrawlResult.forSnapshot(PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(arguments.getArguments()[0].toString())));
     }
 
     @Test

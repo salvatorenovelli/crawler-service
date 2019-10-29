@@ -15,11 +15,9 @@ import java.util.function.Consumer;
 public class CrawlersPool implements Consumer<SnapshotTask> {
 
     private final ThreadPoolExecutor executor;
-    private final URI crawlOrigin;
     private final WebPageReader pageReader;
 
-    public CrawlersPool(URI crawlOrigin, WebPageReader pageReader, ThreadPoolExecutor executor) {
-        this.crawlOrigin = crawlOrigin;
+    public CrawlersPool(WebPageReader pageReader, ThreadPoolExecutor executor) {
         this.pageReader = pageReader;
         this.executor = executor;
     }
@@ -34,7 +32,7 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
                     task.getTaskRequester().accept(result);
                 } catch (SnapshotException e) {
                     logException(e, task.getUri());
-                    task.getTaskRequester().accept(CrawlResult.forSnapshot(crawlOrigin, e.getPartialSnapshot()));
+                    task.getTaskRequester().accept(CrawlResult.forSnapshot(e.getPartialSnapshot()));
                 }
             } catch (Exception e) {
                 log.error("Exception while crawling: " + task.getUri(), e);

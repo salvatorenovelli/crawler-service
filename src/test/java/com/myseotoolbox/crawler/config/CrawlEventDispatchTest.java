@@ -18,7 +18,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,11 +35,10 @@ import static org.mockito.Mockito.verify;
 public class CrawlEventDispatchTest {
 
     public static final String TEST_ORIGIN = "http://origin" ;
-    public static final URI CRAWL_ORIGIN = URI.create(TEST_ORIGIN);
     public static final CrawlStartedEvent CRAWL_STARTED_EVENT = new CrawlStartedEvent(TEST_ORIGIN, Arrays.asList("/one", "/two"));
 
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
-    public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(CRAWL_ORIGIN, TEST_PAGE_SNAPSHOT);
+    public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     public static final String TEST_CRAWL_ID_STR = TEST_CRAWL_ID.toHexString();
     private static final WebsiteCrawl CRAWL = new WebsiteCrawl(TEST_CRAWL_ID, TEST_ORIGIN, LocalDateTime.now(), Collections.emptyList());

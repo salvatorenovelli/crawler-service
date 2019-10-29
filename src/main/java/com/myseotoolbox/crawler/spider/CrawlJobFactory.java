@@ -42,14 +42,14 @@ public class CrawlJobFactory {
         RobotsTxt robotsTxt = configuration.getRobotsTxt();
 
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths, robotsTxt);
-        WebPageReader webPageReader = webPageReaderFactory.build(origin, uriFilter);
+        WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), configuration.getMaxConcurrentConnections());
 
         List<URI> seedsFromSitemap = sitemapReader.getSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), allowedPaths);
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 
-        return new CrawlJob(origin, allSeeds, webPageReader, uriFilter, executor, configuration.getCrawledPageLimit(),dispatch);
+        return new CrawlJob(origin, allSeeds, webPageReader, uriFilter, executor, configuration.getCrawledPageLimit(), dispatch);
     }
 
     private List<URI> concat(Collection<URI> seeds, Collection<URI> seedsFromSitemap) {

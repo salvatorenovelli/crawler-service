@@ -129,14 +129,14 @@ public class CrawlJobFactoryTest {
         String uri = invocation.getArgument(0).toString();
         PageSnapshot snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(uri);
         snapshot.setLinks(Arrays.asList(TEST_FILTERED_LINK.toString()));
-        return CrawlResult.forSnapshot(TEST_ORIGIN, snapshot);
+        return CrawlResult.forSnapshot(snapshot);
     }
 
     private WebPageReaderFactory mockWebPageReaderFactory() {
 
         return new WebPageReaderFactory(null) {
             @Override
-            public WebPageReader build(URI crawlOrigin, UriFilter uriFilter) {
+            public WebPageReader build(UriFilter uriFilter) {
                 return reader;
             }
         };
