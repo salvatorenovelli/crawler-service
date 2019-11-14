@@ -11,6 +11,7 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
 
+import java.net.URI;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.StandardMetaTagValues.*;
@@ -18,7 +19,8 @@ import static com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder.a404Pag
 import static com.myseotoolbox.crawler.testutils.CrawlHistoryTestBuilder.standardPageSnapshot;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.referenceTo;
 import static com.myseotoolbox.crawler.testutils.PageCrawlMatchers.valueType;
-import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.*;
+import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri;
+import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRedirectChainElementsFor;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -41,6 +43,19 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
         this.prevCrawl = prevCrawl;
         this.prevVal = prevVal;
         this.curVal = curVal;
+    }
+
+    @Test
+    public void shouldPersistDomainAsSeparateField() {
+        givenCrawlHistory()
+                .withCrawl().havingStandardValueValues().and()
+                .withCurrentValue().havingStandardValueValues()
+                .build();
+
+        PageCrawl pageCrawl = sut.build(prevVal, curVal, prevCrawl);
+
+        assertThat(pageCrawl.getHost(), is(URI.create(curVal.getUri()).getHost()));
+
     }
 
     @Test

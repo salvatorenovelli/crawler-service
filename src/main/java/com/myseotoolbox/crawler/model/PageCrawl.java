@@ -8,6 +8,7 @@ import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
@@ -18,6 +19,7 @@ public class PageCrawl {
 
     @Id private ObjectId id;
     @Indexed private String uri;
+    @Indexed private String host;
     private LastCrawl lastCrawl;
     private Date createDate;
     private ResolvableField<List<RedirectChainElement>> redirectChainElements;
@@ -31,6 +33,7 @@ public class PageCrawl {
 
     public PageCrawl(String uri, Date createDate) {
         this.uri = uri;
+        this.host = URI.create(uri).getHost();
         this.createDate = createDate;
     }
 }

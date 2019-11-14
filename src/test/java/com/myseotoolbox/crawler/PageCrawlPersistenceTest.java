@@ -71,7 +71,7 @@ public class PageCrawlPersistenceTest implements CrawlHistoryTest {
         sut.persistPageCrawl(TEST_CRAWL_ID, curVal);
 
         verify(repo).save(argThat(crawl -> {
-            assertThat(crawl.getUri(), is("http://uri/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
+            assertThat(crawl.getUri(), is(STANDARD_URI + "/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
             return true;
         }));
     }

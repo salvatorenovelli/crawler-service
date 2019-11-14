@@ -11,7 +11,7 @@ import static java.util.Collections.singletonList;
 
 public class StandardMetaTagValues {
     public static final Date STANDARD_DATE = new Date();
-    public static final String STANDARD_URI = "http://uri";
+    public static final String STANDARD_URI = "http://host";
     public static final String STANDARD_TITLE = "Title";
     public static final List<String> STANDARD_META_DESCR = asList("Meta1", "Meta2");
     public static final List<String> STANDARD_H1 = asList("H1-1", "H1-2");

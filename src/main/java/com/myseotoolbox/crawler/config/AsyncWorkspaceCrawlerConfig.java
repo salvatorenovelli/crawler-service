@@ -11,7 +11,7 @@ import java.util.concurrent.Executor;
 @Configuration
 
 public class AsyncWorkspaceCrawlerConfig {
-    public static final int MAX_CONCURRENT_CRAWL_START = 10;
+    public static final int MAX_CONCURRENT_CRAWL_START = 5;
 
     @Bean
     @Qualifier("crawl-job-init-executor")
