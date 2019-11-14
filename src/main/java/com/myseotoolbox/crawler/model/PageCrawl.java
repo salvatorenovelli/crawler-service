@@ -12,6 +12,8 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractHostAndPort;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -33,7 +35,7 @@ public class PageCrawl {
 
     public PageCrawl(String uri, Date createDate) {
         this.uri = uri;
-        this.host = URI.create(uri).getHost();
+        this.host = extractHostAndPort(URI.create(uri));
         this.createDate = createDate;
     }
 }
