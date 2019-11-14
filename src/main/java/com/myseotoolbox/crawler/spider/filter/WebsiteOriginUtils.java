@@ -20,7 +20,7 @@ public class WebsiteOriginUtils {
     }
 
     public static boolean isSubdomain(URI origin, URI possibleSubdomain) {
-        return extractHostPort(possibleSubdomain).endsWith("." + extractHostPort(origin));
+        return concatHostPort(possibleSubdomain).endsWith("." + concatHostPort(origin));
     }
 
 
@@ -32,8 +32,8 @@ public class WebsiteOriginUtils {
      * Non strict will match www.host to host
      */
     public static boolean isHostMatching(URI a, URI b, boolean strictWww) {
-        String hostA = extractHostPort(a);
-        String hostB = extractHostPort(b);
+        String hostA = concatHostPort(a);
+        String hostB = concatHostPort(b);
 
         if (!strictWww) {
             hostA = hostA.replaceAll("^www\\.", "");
@@ -74,7 +74,16 @@ public class WebsiteOriginUtils {
         return path + (path.endsWith("/") ? "" : "/");
     }
 
-    private static String extractHostPort(URI uri) {
+    public static String extractHostAndPort(URI uri) {
+        String portStr = "";
+        if (uri.getPort() != -1 && uri.getPort() != 80) {
+            portStr = ":" + uri.getPort();
+        }
+        String host = extractHost(uri);
+        return host.toLowerCase() + portStr;
+    }
+
+    private static String concatHostPort(URI uri) {
         String portStr = "";
         if (uri.getPort() != -1 && uri.getPort() != 80) {
             portStr = "" + uri.getPort();

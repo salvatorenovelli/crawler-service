@@ -59,6 +59,18 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
     }
 
     @Test
+    public void shouldPersistPortNumberIfPresent() {
+        givenCrawlHistoryForUri("http://it.host123:8080/salve")
+                .withCrawl().havingStandardValueValues().and()
+                .withCurrentValue().havingStandardValueValues()
+                .build();
+
+        PageCrawl pageCrawl = sut.build(prevVal, curVal, prevCrawl);
+
+        assertThat(pageCrawl.getHost(), is("it.host123:8080"));
+    }
+
+    @Test
     public void shouldSetReferenceToPreCrawlIdIfItWasValueType() {
 
 
@@ -400,6 +412,10 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
 
         assertNull(build.getTitle().getValue());
 
+    }
+
+    private CrawlHistoryTestBuilder givenCrawlHistoryForUri(String uri) {
+        return new CrawlHistoryTestBuilder(this, uri);
     }
 
     private CrawlHistoryTestBuilder givenCrawlHistory() {

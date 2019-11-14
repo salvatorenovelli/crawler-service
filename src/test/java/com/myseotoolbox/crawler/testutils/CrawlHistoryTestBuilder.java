@@ -5,6 +5,7 @@ import org.bson.types.ObjectId;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -21,6 +22,7 @@ public class CrawlHistoryTestBuilder {
     public static final String WEBSITE_CRAWL_ID = new ObjectId().toHexString();
     private final Date crawlDate = STANDARD_DATE;
     private final CrawlHistoryTest testContext;
+    private final String uri;
 
     private PageSnapshot prevValue;
     private PageSnapshot currentValue;
@@ -29,6 +31,12 @@ public class CrawlHistoryTestBuilder {
 
     public CrawlHistoryTestBuilder(CrawlHistoryTest testContext) {
         this.testContext = testContext;
+        this.uri = STANDARD_URI;
+    }
+
+    public CrawlHistoryTestBuilder(CrawlHistoryTest testContext, String uri) {
+        this.testContext = testContext;
+        this.uri = uri;
     }
 
     public PrevValueBuilder withCrawl() {
@@ -36,7 +44,7 @@ public class CrawlHistoryTestBuilder {
     }
 
     private PageCrawl buildCrawlForAllValue(PageSnapshot value) {
-        return new PageCrawl(generateCrawlId(), STANDARD_URI, "host", new LastCrawl(WEBSITE_CRAWL_ID), crawlDate,
+        return new PageCrawl(generateCrawlId(), uri, URI.create(uri).getHost(), new LastCrawl(WEBSITE_CRAWL_ID), crawlDate,
                 ResolvableField.forValue(value.getRedirectChainElements()),
                 ResolvableField.forValue(value.getTitle()),
                 ResolvableField.forValue(value.getMetaDescriptions()),
@@ -65,7 +73,7 @@ public class CrawlHistoryTestBuilder {
     }
 
     public CrawlHistoryTestBuilder havingStandardValueValues() {
-        this.currentValue = standardPageSnapshot();
+        this.currentValue = aPageSnapshotWithStandardValuesForUri(uri);
         return this;
     }
 
@@ -196,7 +204,7 @@ public class CrawlHistoryTestBuilder {
         }
 
         public PrevValueBuilder havingStandardValueValues() {
-            this.curValue = standardPageSnapshot();
+            this.curValue = aPageSnapshotWithStandardValuesForUri(uri);
             return this;
         }
 
