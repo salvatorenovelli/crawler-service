@@ -20,6 +20,5 @@ public class EnsurePageCrawlIndexService {
     @PostConstruct
     public void ensureIndex() {
         mongoOperations.indexOps(PageCrawl.class).ensureIndex(new Index().on("uri", Sort.Direction.ASC));
-        mongoOperations.indexOps(PageCrawl.class).ensureIndex(new Index().on("host", Sort.Direction.ASC));
     }
 }

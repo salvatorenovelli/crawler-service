@@ -11,7 +11,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
 
-import java.net.URI;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.StandardMetaTagValues.*;
@@ -45,30 +44,6 @@ public class PageCrawlBuilderTest implements CrawlHistoryTest {
         this.curVal = curVal;
     }
 
-    @Test
-    public void shouldPersistDomainAsSeparateField() {
-        givenCrawlHistory()
-                .withCrawl().havingStandardValueValues().and()
-                .withCurrentValue().havingStandardValueValues()
-                .build();
-
-        PageCrawl pageCrawl = sut.build(prevVal, curVal, prevCrawl);
-
-        assertThat(pageCrawl.getHost(), is(URI.create(curVal.getUri()).getHost()));
-
-    }
-
-    @Test
-    public void shouldPersistPortNumberIfPresent() {
-        givenCrawlHistoryForUri("http://it.host123:8080/salve")
-                .withCrawl().havingStandardValueValues().and()
-                .withCurrentValue().havingStandardValueValues()
-                .build();
-
-        PageCrawl pageCrawl = sut.build(prevVal, curVal, prevCrawl);
-
-        assertThat(pageCrawl.getHost(), is("it.host123:8080"));
-    }
 
     @Test
     public void shouldSetReferenceToPreCrawlIdIfItWasValueType() {
