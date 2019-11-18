@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
@@ -19,7 +18,6 @@ public class CrawlEventDispatch {
 
     private final WebsiteCrawl websiteCrawl;
     private final MonitoredUriUpdater monitoredUriUpdater;
-    private final PageCrawlPersistence crawlPersistence;
     private final OutboundLinksPersistenceListener outLinkPersistenceListener;
     private final WebsiteCrawlRepository websiteCrawlRepository;
     private final PubSubEventDispatch pubSubEventDispatch;
@@ -29,7 +27,7 @@ public class CrawlEventDispatch {
         PageSnapshot snapshot = crawlResult.getPageSnapshot();
         log.debug("Persisting page crawled: {}", snapshot.getUri());
         runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(websiteCrawl, snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
-        runOrLogWarning(() -> crawlPersistence.persistPageCrawl(websiteCrawl.getId().toHexString(), snapshot), "Error while persisting crawl for uri: " + snapshot.getUri());
+        runOrLogWarning(() -> pubSubEventDispatch.pageCrawlCompletedEvent(websiteCrawl.getId().toHexString(), snapshot), "Error while persisting crawl for uri: " + snapshot.getUri());
         runOrLogWarning(() -> outLinkPersistenceListener.accept(crawlResult), "Error while persisting outbound links for uri: " + crawlResult.getUri());
     }
 
@@ -38,6 +36,6 @@ public class CrawlEventDispatch {
     }
 
     public void crawlEnded() {
-        pubSubEventDispatch.crawlCompletedEvent(websiteCrawl);
+        pubSubEventDispatch.websiteCrawlCompletedEvent(websiteCrawl);
     }
 }

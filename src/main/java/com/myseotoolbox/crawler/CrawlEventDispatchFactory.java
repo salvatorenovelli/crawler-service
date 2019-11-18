@@ -15,13 +15,12 @@ import org.springframework.stereotype.Component;
 public class CrawlEventDispatchFactory {
 
     private final MonitoredUriUpdater monitoredUriUpdater;
-    private final PageCrawlPersistence crawlPersistence;
     private final OutboundLinkRepository outboundLinkRepository;
     private final WebsiteCrawlRepository websiteCrawlRepository;
     private final PubSubEventDispatch dispatch;
 
     public CrawlEventDispatch get(WebsiteCrawl crawl) {
         OutboundLinksPersistenceListener outLinkPersistenceListener = new OutboundLinksPersistenceListener(crawl.getId(), crawl.getOrigin(), outboundLinkRepository);
-        return new CrawlEventDispatch(crawl, monitoredUriUpdater, crawlPersistence, outLinkPersistenceListener, websiteCrawlRepository, dispatch);
+        return new CrawlEventDispatch(crawl, monitoredUriUpdater, outLinkPersistenceListener, websiteCrawlRepository, dispatch);
     }
 }

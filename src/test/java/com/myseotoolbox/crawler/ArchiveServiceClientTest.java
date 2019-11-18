@@ -30,7 +30,7 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 @SuppressWarnings("OptionalGetWithoutIsPresent")
 @RunWith(SpringRunner.class)
 @RestClientTest
-@Import(AppConfig.class)
+@Import({AppConfig.class, ArchiveServiceClient.class})
 public class ArchiveServiceClientTest {
 
     public static final String TEST_PAGE_URI = "http://host/a";
@@ -40,19 +40,18 @@ public class ArchiveServiceClientTest {
     @Autowired private ObjectMapper objectMapper;
 
 
-    ArchiveServiceClient sut;
+    @Autowired ArchiveServiceClient sut;
     private PageSnapshot expectedSnapshot = aPageSnapshotWithStandardValuesForUri(TEST_PAGE_URI);
     private MockRestServiceServer server;
 
 
     @Before
     public void setUp() {
-        sut = new ArchiveServiceClient(restTemplate, "","archive-api/page?uri={uri}");
         server = MockRestServiceServer.createServer(restTemplate);
     }
 
     @Test
-    public void shouldContactArchiveMicroservice() throws JsonProcessingException {
+    public void shouldContactArchiveService() throws JsonProcessingException {
         String snapshotString = objectMapper.writeValueAsString(expectedSnapshot);
         server.expect(requestTo("/archive-api/page?uri=" + TEST_PAGE_URI)).andRespond(withSuccess(snapshotString, MediaType.APPLICATION_JSON));
 

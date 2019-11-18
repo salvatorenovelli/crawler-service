@@ -9,7 +9,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "publisher")
 public class PubSubProperties {
-    private String topicName;
+    private String websiteCrawlCompletedTopicName;
+    private String pageCrawlCompletedTopicName;
     private int connectionTimeoutSeconds = 10;
 }
 

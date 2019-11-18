@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.config;
 
-import com.myseotoolbox.crawler.PageCrawlPersistence;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
@@ -34,7 +33,7 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class CrawlEventDispatchTest {
 
-    public static final String TEST_ORIGIN = "http://origin" ;
+    public static final String TEST_ORIGIN = "http://origin";
     public static final CrawlStartedEvent CRAWL_STARTED_EVENT = new CrawlStartedEvent(TEST_ORIGIN, Arrays.asList("/one", "/two"));
 
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
@@ -42,7 +41,6 @@ public class CrawlEventDispatchTest {
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     public static final String TEST_CRAWL_ID_STR = TEST_CRAWL_ID.toHexString();
     private static final WebsiteCrawl CRAWL = new WebsiteCrawl(TEST_CRAWL_ID, TEST_ORIGIN, LocalDateTime.now(), Collections.emptyList());
-    @Mock private PageCrawlPersistence crawlPersistence;
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
     @Mock private OutboundLinksPersistenceListener linksListener;
     @Mock private WebsiteCrawlRepository websiteCrawlRepository;
@@ -52,14 +50,14 @@ public class CrawlEventDispatchTest {
 
     @Before
     public void setUp() {
-        sut = new CrawlEventDispatch(CRAWL, monitoredUriUpdater, crawlPersistence, linksListener, websiteCrawlRepository, dispatch);
+        sut = new CrawlEventDispatch(CRAWL, monitoredUriUpdater, linksListener, websiteCrawlRepository, dispatch);
     }
 
     @Test
     public void shouldNotifyPageCrawlListeners() {
         sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(CRAWL, TEST_PAGE_SNAPSHOT);
-        verify(crawlPersistence).persistPageCrawl(TEST_CRAWL_ID_STR, TEST_PAGE_SNAPSHOT);
+        verify(dispatch).pageCrawlCompletedEvent(TEST_CRAWL_ID_STR, TEST_PAGE_SNAPSHOT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
     }
 
@@ -79,12 +77,12 @@ public class CrawlEventDispatchTest {
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any(), any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
         sut.pageCrawled(TEST_CRAWL_RESULT);
-        verify(crawlPersistence).persistPageCrawl(TEST_CRAWL_ID_STR, TEST_PAGE_SNAPSHOT);
+        verify(dispatch).pageCrawlCompletedEvent(TEST_CRAWL_ID_STR, TEST_PAGE_SNAPSHOT);
     }
 
     @Test
     public void exceptionsInpageCrawlPersistenceDoesNotPreventMonitoredUriUpdate() {
-        doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any(), any());
+        doThrow(new RuntimeException("This should not prevent update of the other")).when(dispatch).pageCrawlCompletedEvent(any(), any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(linksListener).accept(any());
         sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(monitoredUriUpdater).updateCurrentValue(CRAWL, TEST_PAGE_SNAPSHOT);
@@ -92,7 +90,7 @@ public class CrawlEventDispatchTest {
 
     @Test
     public void exceptionsInLinksListenerDoesNotPreventMonitoredUriUpdate() {
-        doThrow(new RuntimeException("This should not prevent update of the other")).when(crawlPersistence).persistPageCrawl(any(), any());
+        doThrow(new RuntimeException("This should not prevent update of the other")).when(dispatch).pageCrawlCompletedEvent(any(), any());
         doThrow(new RuntimeException("This should not prevent update of the other")).when(monitoredUriUpdater).updateCurrentValue(any(), any());
         sut.pageCrawled(TEST_CRAWL_RESULT);
         verify(linksListener).accept(TEST_CRAWL_RESULT);
@@ -107,6 +105,6 @@ public class CrawlEventDispatchTest {
     @Test
     public void shouldPublishCrawlEndedOnPubSub() {
         sut.crawlEnded();
-        verify(dispatch).crawlCompletedEvent(CRAWL);
+        verify(dispatch).websiteCrawlCompletedEvent(CRAWL);
     }
 }

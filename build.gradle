@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.myseotoolbox'
-version = '1.9.4'
+version = '1.9.5-SNAPSHOT'
 sourceCompatibility = 1.8
 
 apply plugin: 'io.spring.dependency-management'
@@ -61,7 +61,6 @@ dependencies {
 
     implementation group: 'io.vavr', name: 'vavr', version: '0.9.3'
     compile 'org.projectlombok:lombok'
-    compile group: 'com.google.code.findbugs', name: 'jsr305', version: '3.0.2'
     compile 'com.google.guava:guava:23.0'
 
     testImplementation('de.flapdoodle.embed:de.flapdoodle.embed.mongo:2.1.1')
