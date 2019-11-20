@@ -30,7 +30,7 @@ public class PubSubConnectionVerification {
     public void verifyPubSubConnection() {
         try {
             log.info("Verifying pubsub connection. ProjectId: {}", projectIdProvider.getProjectId());
-            Topic topic = CompletableFuture.supplyAsync(() -> pubSubAdmin.getTopic(pubSubProperties.getTopicName())).get(pubSubProperties.getConnectionTimeoutSeconds(), TimeUnit.SECONDS);
+            Topic topic = CompletableFuture.supplyAsync(() -> pubSubAdmin.getTopic(pubSubProperties.getWebsiteCrawlCompletedTopicName())).get(pubSubProperties.getConnectionTimeoutSeconds(), TimeUnit.SECONDS);
             log.info("Successfully verified connection to pubsub. Topic: {}", topic.getName());
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             log.warn("Exception while connecting to PubSub. This can be caused by bad permissions in credentials. Try to set DEBUG log level to io.grpc & com.google.api.client");

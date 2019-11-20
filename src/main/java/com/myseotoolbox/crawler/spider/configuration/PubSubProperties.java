@@ -1,11 +1,13 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 @ConfigurationProperties(prefix = "publisher")
 public class PubSubProperties {

@@ -21,7 +21,7 @@ public class PubSubEventDispatch {
     public void websiteCrawlCompletedEvent(WebsiteCrawl websiteCrawl) {
         CrawlCompletedEvent payload = new CrawlCompletedEvent(websiteCrawl);
         log.info("WebsiteCrawl completed. Publishing event. {}", payload);
-        template.publish(config.getPageCrawlCompletedTopicName(), payload);
+        template.publish(config.getWebsiteCrawlCompletedTopicName(), payload);
     }
 
     public void pageCrawlCompletedEvent(String websiteCrawlId, PageSnapshot curVal) {
