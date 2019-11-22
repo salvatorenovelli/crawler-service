@@ -9,5 +9,5 @@ ENV PROFILER=" -Dcom.sun.management.jmxremote \
               -Dcom.sun.management.jmxremote.authenticate=false \
               -Dcom.sun.management.jmxremote.ssl=false"
 EXPOSE 8080 5005 1098
-ADD *.jar /home/app.jar
-ENTRYPOINT [ "sh", "-c", "java $DEBUGGER $PROFILER -Djava.security.egd=file:/dev/./urandom -jar /home/app.jar" ]
+ADD *.jar /home/crawler.jar
+ENTRYPOINT [ "sh", "-c", "java $DEBUGGER $PROFILER -Djava.security.egd=file:/dev/./urandom -jar /home/crawler.jar" ]
