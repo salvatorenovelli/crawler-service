@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
+import com.myseotoolbox.crawler.spider.ConcurrentCrawlsSemaphore;
 import com.myseotoolbox.crawler.spider.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.PubSubEventDispatch;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
@@ -26,8 +27,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
@@ -45,12 +45,13 @@ public class CrawlEventDispatchTest {
     @Mock private OutboundLinksPersistenceListener linksListener;
     @Mock private WebsiteCrawlRepository websiteCrawlRepository;
     @Mock private PubSubEventDispatch dispatch;
+    @Mock private ConcurrentCrawlsSemaphore semaphore;
 
     CrawlEventDispatch sut;
 
     @Before
     public void setUp() {
-        sut = new CrawlEventDispatch(CRAWL, monitoredUriUpdater, linksListener, websiteCrawlRepository, dispatch);
+        sut = new CrawlEventDispatch(CRAWL, monitoredUriUpdater, linksListener, websiteCrawlRepository, dispatch, semaphore);
     }
 
     @Test
@@ -106,5 +107,11 @@ public class CrawlEventDispatchTest {
     public void shouldPublishCrawlEndedOnPubSub() {
         sut.crawlEnded();
         verify(dispatch).websiteCrawlCompletedEvent(CRAWL);
+    }
+
+    @Test
+    public void shouldReleaseSemaphoreWhenCrawlEnds() {
+        sut.crawlEnded();
+        verify(semaphore, times(1)).release();
     }
 }

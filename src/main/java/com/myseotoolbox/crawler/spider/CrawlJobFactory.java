@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Slf4j
+@RequiredArgsConstructor
 public class CrawlJobFactory {
 
     private final WebPageReaderFactory webPageReaderFactory;
@@ -21,15 +23,6 @@ public class CrawlJobFactory {
     private final CrawlExecutorFactory crawlExecutorFactory;
     private final SitemapReader sitemapReader;
 
-    public CrawlJobFactory(WebPageReaderFactory webPageReaderFactory,
-                           WebsiteUriFilterFactory uriFilterFactory,
-                           CrawlExecutorFactory crawlExecutorFactory,
-                           SitemapReader sitemapReader) {
-        this.webPageReaderFactory = webPageReaderFactory;
-        this.uriFilterFactory = uriFilterFactory;
-        this.crawlExecutorFactory = crawlExecutorFactory;
-        this.sitemapReader = sitemapReader;
-    }
 
 
     public CrawlJob build(CrawlJobConfiguration configuration, CrawlEventDispatch dispatch) {

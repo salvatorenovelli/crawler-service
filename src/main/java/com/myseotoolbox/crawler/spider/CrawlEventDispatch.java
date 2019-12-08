@@ -21,6 +21,7 @@ public class CrawlEventDispatch {
     private final OutboundLinksPersistenceListener outLinkPersistenceListener;
     private final WebsiteCrawlRepository websiteCrawlRepository;
     private final PubSubEventDispatch pubSubEventDispatch;
+    private final ConcurrentCrawlsSemaphore semaphore;
 
 
     public void pageCrawled(CrawlResult crawlResult) {
@@ -37,5 +38,6 @@ public class CrawlEventDispatch {
 
     public void crawlEnded() {
         pubSubEventDispatch.websiteCrawlCompletedEvent(websiteCrawl);
+        semaphore.release();
     }
 }

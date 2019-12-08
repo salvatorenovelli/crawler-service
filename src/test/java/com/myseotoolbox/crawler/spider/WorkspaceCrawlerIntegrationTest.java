@@ -44,6 +44,7 @@ public class WorkspaceCrawlerIntegrationTest {
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
     @Mock private CrawlEventDispatch dispatch;
     @Mock private CrawlEventDispatchFactory listenerProvider;
+    @Mock private ConcurrentCrawlsSemaphore semaphore;
 
     private List<Workspace> allWorkspaces = new ArrayList<>();
     private CrawlJobFactory crawlJobFactory;
@@ -55,7 +56,7 @@ public class WorkspaceCrawlerIntegrationTest {
         when(listenerProvider.get(any())).thenReturn(dispatch);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
         crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor, semaphore);
         testWebsiteBuilder.run();
         givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
     }
