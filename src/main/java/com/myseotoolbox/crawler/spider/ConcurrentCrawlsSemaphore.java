@@ -11,6 +11,7 @@ public class ConcurrentCrawlsSemaphore {
     private final Semaphore semaphore;
 
     public ConcurrentCrawlsSemaphore(int maxConcurrentCrawls) {
+        log.info("Initializing crawl semaphore with {} concurrent crawls", maxConcurrentCrawls);
         this.semaphore = new Semaphore(maxConcurrentCrawls);
     }
 
