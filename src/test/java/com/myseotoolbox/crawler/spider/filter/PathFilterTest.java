@@ -27,7 +27,7 @@ public class PathFilterTest {
 
     @Test
     public void shouldCrawlInsidePath() {
-        PathFilter sut = new PathFilter(Collections.singletonList("/base"));
+        PathFilter sut = new PathFilter(Collections.singletonList("/base/"));
         assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base/path1")));
         assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base")));
         assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base/")));
@@ -35,7 +35,7 @@ public class PathFilterTest {
 
     @Test
     public void shouldNotCrawlOutsidePath() {
-        PathFilter sut = new PathFilter(Collections.singletonList("/base"));
+        PathFilter sut = new PathFilter(Collections.singletonList("/base/"));
         assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/outside/path2")));
         assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base2/path2")));
         assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/basepath2"))); //this is the tricky one ^^
@@ -54,20 +54,32 @@ public class PathFilterTest {
 
     @Test
     public void shouldNotCrawlParentOfBase() {
-        PathFilter sut = new PathFilter(Collections.singletonList("/parent/base"));
+        PathFilter sut = new PathFilter(Collections.singletonList("/parent/base/"));
 
         assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/parent/base")));
         assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/parent")));
         assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/parent/base2")));
     }
 
+
+    @Test
+    public void canFilterBySubPath() {
+        PathFilter sut = new PathFilter(Collections.singletonList("/path/subpath/"));
+
+        assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/path/subpath")));
+        assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/path/subpath/something")));
+        assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/path")));
+        assertFalse(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/path/subpath2/something")));
+    }
+
     @Test
     public void shouldAllowMultipleBase() {
-        PathFilter sut = new PathFilter(Arrays.asList("/base1/**", "/base2/"));
-        assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base1")));
+        PathFilter sut = new PathFilter(Arrays.asList("/base1/", "/base2/"));
+        assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base1/")));
         assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base1/2")));
         assertTrue(sut.shouldCrawl(TEST_ORIGIN, TEST_ORIGIN.resolve("/base2/3")));
     }
+
 
     @Test
     public void shouldBeAbleToExcludePathsEvenWithMultipleBase() {

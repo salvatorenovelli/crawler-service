@@ -101,11 +101,11 @@ public class WorkspaceCrawler {
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {
-        return workspaces.stream().map(Workspace::getWebsiteUrl).map(this::addTrailingSlashIfMissing).map(URI::create).collect(Collectors.toSet());
+        return workspaces.stream().map(Workspace::getWebsiteUrl).map(URI::create).collect(Collectors.toSet());
     }
 
     private URI extractOrigin(Workspace workspace) {
-        return WebsiteOriginUtils.extractOrigin(URI.create(addTrailingSlashIfMissing(workspace.getWebsiteUrl())));
+        return WebsiteOriginUtils.extractOrigin(URI.create(workspace.getWebsiteUrl()));
     }
 
     private boolean shouldCrawl(Workspace workspace) {
@@ -135,7 +135,4 @@ public class WorkspaceCrawler {
     }
 
 
-    private String addTrailingSlashIfMissing(String uri) {
-        return uri + (uri.endsWith("/") ? "" : "/");
-    }
 }

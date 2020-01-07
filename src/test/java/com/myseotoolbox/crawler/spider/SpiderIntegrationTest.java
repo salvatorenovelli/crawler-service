@@ -82,15 +82,15 @@ public class SpiderIntegrationTest {
     @Test
     public void shouldOnlyFilterFromSpecifiedPaths() {
         givenAWebsite()
-                .havingPage("/base").withLinksTo("/base/abc", "/base/cde", "/outside/fgh").and()
+                .havingPage("/base/").withLinksTo("/base/abc", "/base/cde", "/outside/fgh").and()
                 .havingPage("/outside/fgh").withLinksTo("/outside/1234")
                 .save();
 
-        CrawlJob job = buildForSeeds(testSeeds("/base"));
+        CrawlJob job = buildForSeeds(testSeeds("/base/"));
         job.start();
 
 
-        verify(dispatch).pageCrawled(uri("/base"));
+        verify(dispatch).pageCrawled(uri("/base/"));
         verify(dispatch).pageCrawled(uri("/base/abc"));
         verify(dispatch).pageCrawled(uri("/base/cde"));
         verify(dispatch).pageCrawled(uri("/outside/fgh"));
@@ -104,15 +104,15 @@ public class SpiderIntegrationTest {
 
 
         givenAWebsite()
-                .havingPage("/base").withLinksTo("/base/abc", "/base/cde", "/base2/fgh", "/outside/a").and()
+                .havingPage("/base/").withLinksTo("/base/abc", "/base/cde", "/base2/fgh", "/outside/a").and()
                 .havingPage("/outside/a").withLinksTo("/outside/b")
                 .save();
 
-        CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
+        CrawlJob job = buildForSeeds(testSeeds("/base/", "/base2/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/base"));
-        verify(dispatch).pageCrawled(uri("/base2"));
+        verify(dispatch).pageCrawled(uri("/base/"));
+        verify(dispatch).pageCrawled(uri("/base2/"));
         verify(dispatch).pageCrawled(uri("/base/abc"));
         verify(dispatch).pageCrawled(uri("/base/cde"));
         verify(dispatch).pageCrawled(uri("/base2/fgh"));

@@ -27,7 +27,7 @@ public class PathFilter implements UriFilter {
     }
 
     private String toAntFilter(String s) {
-        return s + "/**";
+        return s + "**";
     }
 
     private boolean isWithinAllowedPaths(String path) {

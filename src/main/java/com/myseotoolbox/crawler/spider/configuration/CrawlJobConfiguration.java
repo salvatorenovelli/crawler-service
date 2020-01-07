@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.Getter;
+import lombok.ToString;
 import org.apache.commons.lang.Validate;
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.*;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 
-@Getter
+@Getter@ToString
 public class CrawlJobConfiguration {
 
 

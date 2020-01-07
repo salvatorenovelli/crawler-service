@@ -58,7 +58,6 @@ public class WorkspaceCrawlerIntegrationTest {
         crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
         sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor, semaphore);
         testWebsiteBuilder.run();
-        givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
     }
 
 
@@ -78,27 +77,29 @@ public class WorkspaceCrawlerIntegrationTest {
 
     @Test
     public void shouldNotifyListenerOfAllThePageCrawled() {
+        givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
         givenAWebsite().havingRootPage().withLinksTo("/page1", "page2").save();
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
+        verify(dispatch).pageCrawled(crawlResultFor("/"));
+        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
+        verify(dispatch).pageCrawled(crawlResultFor("/page2"));
         verify(dispatch, atMost(3)).pageCrawled(any());
 
     }
 
     @Test
     public void shouldUseRobotsTxt() {
+        givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
         givenAWebsite()
                 .havingRootPage().withLinksTo("/page1", "page2")
                 .withRobotsTxt().userAgent("*").disallow("/page2").build().save();
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
+        verify(dispatch).pageCrawled(crawlResultFor("/"));
+        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
         verify(dispatch, atMost(2)).pageCrawled(any());
     }
 
@@ -115,11 +116,48 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/").toString())));
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page1").toString())));
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(testUri("/page2").toString())));
+        verify(dispatch).pageCrawled(crawlResultFor("/"));
+        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
+        verify(dispatch).pageCrawled(crawlResultFor("/page2"));
         verify(dispatch, atMost(3)).pageCrawled(any());
 
+    }
+
+    @Test
+    public void shouldOnlyCrawlInsidePath() {
+        givenAWorkspace().withWebsiteUrl(testUri("/path/").toString()).build();
+
+        givenAWebsite()
+                .havingPage("/path/").withLinksTo("/path/first", "/path/subpath/second", "/outside/something").and()
+                .havingPage("/outside/something").withLinksTo("/outside/shouldnotcrawlthis")
+                .save();
+        sut.crawlAllWorkspaces();
+
+
+        verify(dispatch).pageCrawled(crawlResultFor("/path/"));
+        verify(dispatch).pageCrawled(crawlResultFor("/path/first"));
+        verify(dispatch).pageCrawled(crawlResultFor("/path/subpath/second"));
+        verify(dispatch).pageCrawled(crawlResultFor("/outside/something"));//still crawl this as the link originates on a page where we want to check for broken links, for example
+        verify(dispatch, atMost(4)).pageCrawled(any());
+
+    }
+
+    @Test
+    public void ifTheSeedsHaveFilenamesAtTheEndTheyShouldNotBeConsideredPath() {
+
+        givenAWorkspace().withWebsiteUrl(testUri("/path/index.html").toString()).build();
+        givenAWebsite()
+                .havingPage("/path/index.html").withLinksTo("/path/first").save();
+        sut.crawlAllWorkspaces();
+
+
+        verify(dispatch).pageCrawled(crawlResultFor("/path/index.html"));
+        verify(dispatch).pageCrawled(crawlResultFor("/path/first"));
+        verify(dispatch, atMost(2)).pageCrawled(any());
+    }
+
+    private CrawlResult crawlResultFor(String s) {
+        return argThat(snapshot -> snapshot.getUri().equals(testUri(s).toString()));
     }
 
 

@@ -103,7 +103,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it"));
+        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -143,7 +143,7 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(origin.resolve("/it/"), uris("/sitemap.xml"), Collections.singletonList("/it"));
+        SiteMap siteMap = new SiteMap(origin.resolve("/it/"), uris("/sitemap.xml"), Collections.singletonList("/it/"));
         siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());

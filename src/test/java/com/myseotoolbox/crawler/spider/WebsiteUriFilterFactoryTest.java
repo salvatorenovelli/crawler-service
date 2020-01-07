@@ -32,7 +32,7 @@ public class WebsiteUriFilterFactoryTest {
     public void shouldAllowCrawlOutsideAllowedPathIfLinkWasDiscoveredInsideAllowedPath() {
 
         URI origin = URI.create("http://testhost/subpath/");
-        URI allowed = origin.resolve("/allowed");
+        URI allowed = origin.resolve("/allowed/");
         UriFilter build = sut.build(origin, extractAllowedPathFromSeeds(Collections.singletonList(allowed)), EmptyRobotsTxt.instance());
 
         assertTrue(build.shouldCrawl(allowed, origin.resolve("/salve")));

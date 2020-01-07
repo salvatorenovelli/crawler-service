@@ -129,26 +129,26 @@ public class WorkspaceCrawlerTest {
     @Test
     public void shouldGroupByOrigin() {
         givenAWorkspace().withWebsiteUrl("http://host1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
         givenAWorkspace().withWebsiteUrl("http://host1/path2/").build();
         givenAWorkspace().withWebsiteUrl("http://host2").build();
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1", "http://host1/path2"));
+        crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1/", "http://host1/path2/"));
         crawlStartedForOriginWithSeeds("http://host2", asList("http://host2"));
     }
 
     @Test
     public void shouldNotHaveDuplicatesInSeeds() {
         givenAWorkspace().withWebsiteUrl("http://host1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path2").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path2/").build();
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1", "http://host1/path2"));
+        crawlStartedForOriginWithSeeds("http://host1/", asList("http://host1", "http://host1/path1/", "http://host1/path2/"));
         verifyNoMoreCrawls();
     }
 
@@ -186,10 +186,10 @@ public class WorkspaceCrawlerTest {
     @Test
     public void numConnectionsOnlyCountsUniqueSeeds() {
 
-        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
         givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path2").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
+        givenAWorkspace().withWebsiteUrl("http://host1/path2/").build();
 
         sut.crawlAllWorkspaces();
 
@@ -208,7 +208,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host2");
+        crawlStartedFor("http://host2/");
     }
 
     @Test
@@ -221,12 +221,12 @@ public class WorkspaceCrawlerTest {
 
     @Test
     public void shouldConsiderPathForCrawlInterval() {
-        givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
-        givenAWorkspace().withWebsiteUrl("http://host1/cde").withCrawlingIntervalOf(1).withLastCrawlHappened(YESTERDAY).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(2).withLastCrawlHappened(YESTERDAY).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/cde/").withCrawlingIntervalOf(1).withLastCrawlHappened(YESTERDAY).build();
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1/cde");
+        crawlStartedFor("http://host1/cde/");
         verifyNoMoreCrawls();
     }
 
@@ -239,8 +239,8 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1");
-        crawlStartedFor("http://host2");
+        crawlStartedFor("http://host1/");
+        crawlStartedFor("http://host2/");
 
         verifyNoMoreCrawls();
     }
@@ -249,14 +249,14 @@ public class WorkspaceCrawlerTest {
     public void canHandleNoLastCrawl() {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(1).build();
         sut.crawlAllWorkspaces();
-        crawlStartedFor("http://host1");
+        crawlStartedFor("http://host1/");
     }
 
     @Test
     public void canHandleNoCrawlIntervalSpecified() {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(DEFAULT_CRAWL_VALUE_WHEN_MISSING).withLastCrawlHappened(YESTERDAY).build();
         sut.crawlAllWorkspaces();
-        crawlStartedFor("http://host1");
+        crawlStartedFor("http://host1/");
     }
 
     @Test
@@ -268,7 +268,7 @@ public class WorkspaceCrawlerTest {
 
     @Test
     public void shouldNotPersistTwice() {
-        givenAWorkspace().withWebsiteUrl("http://host1/abc").withCrawlingIntervalOf(1).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
         givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
 
         sut.crawlAllWorkspaces();
@@ -276,6 +276,7 @@ public class WorkspaceCrawlerTest {
         verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
         verify(websiteCrawlLogRepository, times(2)).findTopByOriginOrderByDateDesc(anyString());
 
+        System.out.println(mockingDetails(websiteCrawlLogRepository).printInvocations());
         verifyNoMoreInteractions(websiteCrawlLogRepository);
     }
 
@@ -308,7 +309,7 @@ public class WorkspaceCrawlerTest {
         verify(dispatchFactory).get(argThat(argument -> {
             assertNotNull(argument.getId());
             assertThat(argument.getOrigin(), is("http://host1/"));
-            assertThat(argument.getSeeds(), containsInAnyOrder("http://host1/", "http://host1/path1/", "http://host1/path2/"));
+            assertThat(argument.getSeeds(), containsInAnyOrder("http://host1", "http://host1/path1", "http://host1/path2/"));
             return true;
         }));
 
@@ -318,18 +319,16 @@ public class WorkspaceCrawlerTest {
     public void shouldNotStartMoreCrawlsThanAllowed() throws InterruptedException {
         ConcurrentCrawlsSemaphore semaphore = new ConcurrentCrawlsSemaphore(MAX_CONCURRENT_CRAWLS);
 
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, Executors.newFixedThreadPool(5), semaphore);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, Executors.newFixedThreadPool(MAX_CONCURRENT_CRAWLS * 2), semaphore);
 
-        givenAWorkspace().withWebsiteUrl("http://host1").build();
-        givenAWorkspace().withWebsiteUrl("http://host2").build();
-        givenAWorkspace().withWebsiteUrl("http://host3").build();
-        givenAWorkspace().withWebsiteUrl("http://host4").build();
-        givenAWorkspace().withWebsiteUrl("http://host5").build();
-        givenAWorkspace().withWebsiteUrl("http://host6").build();
+
+        for (int i = 0; i < MAX_CONCURRENT_CRAWLS * 2; i++) {
+            givenAWorkspace().withWebsiteUrl("http://host" + i).build();
+        }
 
 
         sut.crawlAllWorkspaces();
-        Thread.sleep(100);
+        Thread.sleep(300);
 
         assertThat(mockJobs.size(), is(MAX_CONCURRENT_CRAWLS));
     }
@@ -343,7 +342,7 @@ public class WorkspaceCrawlerTest {
     }
 
     private void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
-        List<URI> expectedSeeds = seeds.stream().map(this::addTrailingSlashIfMissing).map(URI::create).collect(toList());
+        List<URI> expectedSeeds = seeds.stream().map(URI::create).collect(toList());
 
         try {
             URI originRoot = create(origin).resolve("/");

@@ -16,10 +16,18 @@ public class AllowedPathFromSeeds {
      * Or should we? The user might not care or know. This is how it works in most of the crawlers.
      */
     public static List<String> extractAllowedPathFromSeeds(Collection<URI> seeds) {
-        return seeds.stream().map(URI::getPath).map(AllowedPathFromSeeds::normalize).collect(Collectors.toList());
+        return seeds.stream()
+                .map(URI::getPath)
+                .map(AllowedPathFromSeeds::addSlashIfEmpty)
+                .map(path -> removeFilename(path)).collect(Collectors.toList());
     }
 
-    private static String normalize(String input) {
+    private static String removeFilename(String path) {
+        if (path.endsWith("/")) return path;
+        return path.substring(0, path.lastIndexOf("/") + 1);
+    }
+
+    private static String addSlashIfEmpty(String input) {
         return StringUtils.isEmpty(input) ? "/" : input;
     }
 }

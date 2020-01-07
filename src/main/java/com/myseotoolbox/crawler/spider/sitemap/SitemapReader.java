@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @Slf4j
 public class SitemapReader {
     public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrl, List<String> allowedPaths) {
-        log.info("Fetching {} sitemap for {} with allowed paths: {}", sitemapsUrl.size(), origin, allowedPaths);
-        List<URI> sitemapSeeds = new SiteMap(origin, sitemapsUrl, allowedPaths).fetchUris()
+        log.info("Fetching {} sitemap for {} with allowed paths: {}. Urls: {}", sitemapsUrl.size(), origin, allowedPaths, sitemapsUrl);
+        List<URI> sitemapSeeds = new SiteMap(origin, sitemapsUrl, allowedPaths)
+                .fetchUris()
                 .stream()
                 .map(this::toValidUri)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
+                .filter(Optional::isPresent).map(Optional::get)
                 .collect(Collectors.toList());
 
         log.info("Found {} seeds from sitemap for {}", sitemapSeeds.size(), origin);
