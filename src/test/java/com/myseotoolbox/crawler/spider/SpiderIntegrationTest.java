@@ -82,6 +82,7 @@ public class SpiderIntegrationTest {
     @After
     public void tearDown() throws Exception {
         testWebsiteBuilder.tearDown();
+        monitoredUriRepository.deleteAll();
     }
 
     @Test
