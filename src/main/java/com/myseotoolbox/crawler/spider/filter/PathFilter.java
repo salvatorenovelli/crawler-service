@@ -1,8 +1,8 @@
 package com.myseotoolbox.crawler.spider.filter;
 
+import com.myseotoolbox.crawler.spider.PathMatcher;
 import com.myseotoolbox.crawler.spider.UriFilter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.util.AntPathMatcher;
 
 import java.net.URI;
 import java.util.List;
@@ -12,12 +12,11 @@ import java.util.stream.Collectors;
 public class PathFilter implements UriFilter {
 
     private final List<String> allowedPaths;
-    private final AntPathMatcher matcher = new AntPathMatcher();
 
     public PathFilter(List<String> allowedPaths) {
         this.allowedPaths = allowedPaths.stream()
                 .map(this::validatePath)
-                .map(this::toAntFilter).collect(Collectors.toList());
+                .collect(Collectors.toList());
     }
 
     private String validatePath(String s) {
@@ -26,17 +25,13 @@ public class PathFilter implements UriFilter {
         return s;
     }
 
-    private String toAntFilter(String s) {
-        return s + "**";
-    }
-
     private boolean isWithinAllowedPaths(String path) {
-        return allowedPaths.stream().anyMatch(s -> matcher.match(s, path));
+        return allowedPaths.stream().anyMatch(s -> PathMatcher.isSubPath(s, path));
     }
 
     @Override
     public boolean shouldCrawl(URI sourceUri, URI discoveredLink) {
-        boolean b = isWithinAllowedPaths(discoveredLink.getPath()) || isWithinAllowedPaths(sourceUri.getPath());
+        boolean b = isWithinAllowedPaths(sourceUri.getPath()) || isWithinAllowedPaths(discoveredLink.getPath());
         if (!b) {
             log.debug("Blocked: PATH | uri: '{}' source: '{}'", discoveredLink.getPath(), sourceUri.getPath());
         }

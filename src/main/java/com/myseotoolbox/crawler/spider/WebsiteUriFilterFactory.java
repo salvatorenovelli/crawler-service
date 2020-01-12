@@ -17,11 +17,8 @@ public class WebsiteUriFilterFactory {
 
     private FilterAggregator buildUriFilter(URI websiteOrigin, List<String> allowedPaths, RobotsTxt robotsTxt) {
         PathFilter pathFilter = new PathFilter(allowedPaths);
-        BasicUriFilter basicFilter = getBasicUriFilter(websiteOrigin);
+        BasicUriFilter basicFilter = new BasicUriFilter(websiteOrigin);
         return new FilterAggregator(robotsTxt, basicFilter, pathFilter);
     }
 
-    private BasicUriFilter getBasicUriFilter(URI websiteOrigin) {
-        return new BasicUriFilter(websiteOrigin);
-    }
 }

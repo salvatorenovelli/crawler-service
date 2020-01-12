@@ -5,6 +5,8 @@ import java.net.URL;
 import java.util.Arrays;
 import java.util.Objects;
 
+import static com.myseotoolbox.crawler.spider.PathMatcher.isSubPath;
+
 public class WebsiteOriginUtils {
 
     public static boolean isValidOrigin(String origin) {
@@ -52,26 +54,15 @@ public class WebsiteOriginUtils {
         return isChildOf(origin, possibleChild, true);
     }
 
-    public static boolean isChildOf(URI origin, URI possibleChild, boolean matchSchema) {
+    private static boolean isChildOf(URI origin, URI possibleChild, boolean matchSchema) {
         if (matchSchema && !isSchemeMatching(origin, possibleChild)) return false;
         if (!isHostMatching(origin, possibleChild)) return false;
 
         return isSubPath(origin.getPath(), possibleChild.getPath());
     }
 
-    public static boolean isSubPath(String basePath, String possibleChild) {
-        String originPath = addTrailingSlashIfMissing(basePath);
-        String possibleChildPath = addTrailingSlashIfMissing(possibleChild);
-        return possibleChildPath.startsWith(originPath);
-    }
-
-
     private static boolean isSchemeMatching(URI origin, URI possibleChild) {
         return Objects.equals(origin.getScheme(), possibleChild.getScheme());
-    }
-
-    public static String addTrailingSlashIfMissing(String path) {
-        return path + (path.endsWith("/") ? "" : "/");
     }
 
     public static String extractHostAndPort(URI uri) {

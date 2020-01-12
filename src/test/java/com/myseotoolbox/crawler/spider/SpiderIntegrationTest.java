@@ -96,7 +96,24 @@ public class SpiderIntegrationTest {
         verify(dispatch).pageCrawled(uri("/outside/fgh"));
 
         verify(dispatch, atMost(4)).pageCrawled(any());
+    }
 
+
+    @Test
+    public void shouldCrawlOutsideSeedsIfComingFromInside() {
+        givenAWebsite()
+                .havingPage("/base/").withLinksTo("/outside", "/").and()
+                .havingPage("/outside").withLinksTo("/outside/1234")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/base/"));
+        job.start();
+
+        verify(dispatch).pageCrawled(uri("/"));
+        verify(dispatch).pageCrawled(uri("/base/"));
+        verify(dispatch).pageCrawled(uri("/outside"));
+
+        verify(dispatch, atMost(3)).pageCrawled(any());
     }
 
     @Test

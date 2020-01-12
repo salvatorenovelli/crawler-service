@@ -18,6 +18,7 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -26,8 +27,7 @@ import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonit
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_WORKSPACE_ORIGIN;
 import static junit.framework.TestCase.assertNull;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -147,10 +147,34 @@ public class MonitoredUriUpdaterTest {
         assertThat(monitoredUris2.get(0).getCurrentValue().getTitle(), is("This is a new title"));
     }
 
+
+    @Test
+    public void shouldAddMonitoredUriEvenIfWebsiteUrlHasFilename() {
+        givenAWorkspaceWithSeqNumber(1).withCrawlOrigin("https://testhost/it-it/index.html").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/it-it/something").build();
+
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
+        assertThat(monitoredUris1, hasSize(1));
+        assertThat(monitoredUris1.get(0).getUri(), is("https://testhost/it-it/something"));
+    }
+
+    @Test
+    public void shouldFilterMonitoredUriEvenIfWebsiteUrlHasFilename() {
+        givenAWorkspaceWithSeqNumber(1).withCrawlOrigin("https://testhost/it-it/index.html").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/en-gb/something").build();
+
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
+        assertThat(monitoredUris1, hasSize(0));
+    }
+
     @Test
     public void shouldNotAddMonitoredUriIfWorkspaceWebsiteUrlPathDoesNotMatch() {
-        givenAWorkspaceWithSeqNumber(1).withCrawlOrigin("https://testhost/it-it").save();
-        givenAWorkspaceWithSeqNumber(2).withCrawlOrigin("https://testhost/en-gb").save();
+        givenAWorkspaceWithSeqNumber(1).withCrawlOrigin("https://testhost/it-it/").save();
+        givenAWorkspaceWithSeqNumber(2).withCrawlOrigin("https://testhost/en-gb/").save();
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/it-it/something")
                 .withTitle("This is a new title")

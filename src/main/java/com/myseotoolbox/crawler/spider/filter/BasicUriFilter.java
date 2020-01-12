@@ -46,16 +46,14 @@ public class BasicUriFilter implements UriFilter {
     }
 
     private boolean validHost(URI sourceUri, URI discoveredLink) {
-        return (isChildOfOrigin(sourceUri) && isSubdomainOfOrigin(discoveredLink)) || isHostMatching(discoveredLink, websiteOrigin);
+        return (isSameOrigin(websiteOrigin, sourceUri, false) && isSubdomainOfOrigin(discoveredLink)) ||
+                isHostMatching(websiteOrigin, discoveredLink);
     }
 
     private boolean isSubdomainOfOrigin(URI discoveredLink) {
         return isSubdomain(websiteOrigin, discoveredLink);
     }
 
-    private boolean isChildOfOrigin(URI discoveredLink) {
-        return isChildOf(websiteOrigin, discoveredLink);
-    }
 
     private boolean validScheme(URI discoveredLink) {
         String scheme = discoveredLink.getScheme();

@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 
+import static com.myseotoolbox.crawler.spider.PathMatcher.isSubPath;
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 
 

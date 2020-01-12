@@ -18,8 +18,12 @@ public class AllowedPathFromSeeds {
     public static List<String> extractAllowedPathFromSeeds(Collection<URI> seeds) {
         return seeds.stream()
                 .map(URI::getPath)
-                .map(AllowedPathFromSeeds::addSlashIfEmpty)
-                .map(path -> removeFilename(path)).collect(Collectors.toList());
+                .map(AllowedPathFromSeeds::extractAllowedPathFromSeed)
+                .collect(Collectors.toList());
+    }
+
+    public static String extractAllowedPathFromSeed(String path) {
+        return removeFilename(addSlashIfEmpty(path));
     }
 
     private static String removeFilename(String path) {

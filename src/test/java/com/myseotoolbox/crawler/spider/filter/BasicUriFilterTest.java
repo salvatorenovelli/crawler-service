@@ -39,12 +39,17 @@ public class BasicUriFilterTest {
 
     @Test
     public void shouldAllowSubdomainsWhenLinkingFromInside() {
+        assertTrue(sut.shouldCrawl(BASE, URI.create("http://sub.host")));
+    }
+
+    @Test
+    public void shouldCrawlWWW__fromNonWWW() {
         assertTrue(sut.shouldCrawl(BASE, URI.create("http://www.host")));
     }
 
     @Test
     public void shouldNotAllowSubdomainsWhenLinkingFromOutside() {
-        assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://www.host")));
+        assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://sub.host")));
     }
 
 

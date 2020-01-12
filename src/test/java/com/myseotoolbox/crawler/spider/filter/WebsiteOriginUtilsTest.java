@@ -64,6 +64,13 @@ public class WebsiteOriginUtilsTest {
     }
 
     @Test
+    public void canRecognizeChildEvenIfOriginHasFilename() {
+        assertTrue(isChildOf(create("http://host/index.html"), create("http://host/hello")));
+        assertTrue(isChildOf(create("http://host/path/index.html"), create("http://host/path/hello")));
+        assertFalse(isChildOf(create("http://host/path/index.html"), create("http://host/outside/hello")));
+    }
+
+    @Test
     public void extractOriginShouldKeepProtocol() {
         assertThat(extractOrigin(create("http://host/something")), is(URI.create("http://host/")));
     }
