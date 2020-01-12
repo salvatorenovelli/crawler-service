@@ -72,7 +72,6 @@ public class SpiderIntegrationTest {
 
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
-    private String uri;
 
     @Before
     public void setUp() throws Exception {
@@ -265,10 +264,25 @@ public class SpiderIntegrationTest {
         verify(dispatchSpy, atMost(2)).pageCrawled(any());
     }
 
+    @Test
+    public void fileInWebsiteUrlDoesNotMeanPath() {
+        givenAWorkspaceWithSeqNumber(1).withCrawlOrigin(testUri("/path1/index.html").toString()).save();
+        givenAWorkspaceWithSeqNumber(3).withCrawlOrigin(testUri("/").toString()).save();
+
+        givenAWebsite()
+                .havingPage("/").withLinksTo("/path1", "/path1/1", "/path3/3")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        assertThat(monitoredUriRepository.findAllByWorkspaceNumber(1), snapshotsForUris("/path1", "/path1/1"));
+        assertThat(monitoredUriRepository.findAllByWorkspaceNumber(3), snapshotsForUris("/", "/path1", "/path1/1", "/path3/3"));
+    }
+
 
     @Test
     public void shouldUpdateRelevantWorkspaces() {
-
         givenAWorkspaceWithSeqNumber(1).withCrawlOrigin(testUri("/path1/").toString()).save();
         givenAWorkspaceWithSeqNumber(2).withCrawlOrigin(testUri("/path2/").toString()).save();
         givenAWorkspaceWithSeqNumber(3).withCrawlOrigin(testUri("/").toString()).save();
@@ -283,7 +297,6 @@ public class SpiderIntegrationTest {
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(1), snapshotsForUris("/path1", "/path1/1"));
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(2), hasSize(0));
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(3), snapshotsForUris("/", "/path1", "/path1/1", "/path3/3"));
-
     }
 
     private Matcher<Iterable<? extends MonitoredUri>> snapshotsForUris(String... uris) {
