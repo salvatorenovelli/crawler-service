@@ -280,8 +280,6 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        List<MonitoredUri> all = monitoredUriRepository.findAll();
-
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(1), snapshotsForUris("/path1", "/path1/1"));
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(2), hasSize(0));
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(3), snapshotsForUris("/", "/path1", "/path1/1", "/path3/3"));
