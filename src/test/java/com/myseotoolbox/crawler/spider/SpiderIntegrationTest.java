@@ -3,15 +3,21 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.CrawlResult;
+import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.Workspace;
+import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
+import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
+import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
+import com.myseotoolbox.utils.ItemMatcher;
+import org.hamcrest.Matcher;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,12 +31,15 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
 import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -51,22 +60,24 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest
 public class SpiderIntegrationTest {
 
-    private static final String TEST_ORIGIN = "http://host";
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
     @MockBean PubSubEventDispatch eventDispatch;
     @Mock private SitemapReader sitemapReader;
     @Autowired CrawlEventDispatchFactory factory;
+    @Autowired MonitoredUriRepository monitoredUriRepository;
+    @Autowired private WorkspaceRepository workspaceRepository;
 
     private CrawlEventDispatch dispatchSpy;
 
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
+    private String uri;
 
     @Before
     public void setUp() throws Exception {
-        dispatchSpy = Mockito.spy(factory.get(newWebsiteCrawlFor(TEST_ORIGIN, Collections.emptyList())));
         testWebsiteBuilder.run();
+        dispatchSpy = Mockito.spy(factory.get(newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
     }
 
     @After
@@ -254,6 +265,40 @@ public class SpiderIntegrationTest {
         verify(dispatchSpy, atMost(2)).pageCrawled(any());
     }
 
+
+    @Test
+    public void shouldUpdateRelevantWorkspaces() {
+
+        givenAWorkspaceWithSeqNumber(1).withCrawlOrigin(testUri("/path1/").toString()).save();
+        givenAWorkspaceWithSeqNumber(2).withCrawlOrigin(testUri("/path2/").toString()).save();
+        givenAWorkspaceWithSeqNumber(3).withCrawlOrigin(testUri("/").toString()).save();
+
+        givenAWebsite()
+                .havingPage("/").withLinksTo("/path1", "/path1/1", "/path3/3")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        List<MonitoredUri> all = monitoredUriRepository.findAll();
+
+        assertThat(monitoredUriRepository.findAllByWorkspaceNumber(1), snapshotsForUris("/path1", "/path1/1"));
+        assertThat(monitoredUriRepository.findAllByWorkspaceNumber(2), hasSize(0));
+        assertThat(monitoredUriRepository.findAllByWorkspaceNumber(3), snapshotsForUris("/", "/path1", "/path1/1", "/path3/3"));
+
+    }
+
+    private Matcher<Iterable<? extends MonitoredUri>> snapshotsForUris(String... uris) {
+        Collection<Matcher<? super MonitoredUri>> collect = Stream.of(uris)
+                .map(this::testUri)
+                .map(URI::toString)
+                .map(uri -> ItemMatcher.<MonitoredUri>getItemMatcher(monitoredUri -> monitoredUri.getUri().equals(uri), uri))
+                .collect(Collectors.toList());
+
+        return containsInAnyOrder(collect);
+    }
+
+
     private CrawlResult uri(String uri) {
         return argThat(argument -> argument.getPageSnapshot().getUri().equals(testUri(uri).toString()));
     }
@@ -298,5 +343,9 @@ public class SpiderIntegrationTest {
 
     private TestWebsiteBuilder givenAWebsite() {
         return testWebsiteBuilder;
+    }
+
+    private com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
+        return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
     }
 }
