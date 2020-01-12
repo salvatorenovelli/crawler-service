@@ -17,6 +17,13 @@ public class WebsiteCrawl {
     private final LocalDateTime createdAt;
     private final Collection<String> seeds;
 
+    WebsiteCrawl(ObjectId id, String origin, LocalDateTime createdAt, Collection<String> seeds) {
+        this.id = id;
+        this.origin = origin;
+        this.createdAt = createdAt;
+        this.seeds = seeds;
+    }
+
     public static WebsiteCrawl fromCrawlStartedEvent(ObjectId crawlId, CrawlStartedEvent conf) {
         return new WebsiteCrawl(crawlId, conf.getOrigin(), LocalDateTime.now(), conf.getSeeds());
     }

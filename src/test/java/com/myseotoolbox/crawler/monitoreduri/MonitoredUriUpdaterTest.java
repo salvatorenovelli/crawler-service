@@ -8,6 +8,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -374,6 +375,6 @@ public class MonitoredUriUpdaterTest {
     }
 
     private static WebsiteCrawl getCrawlForOrigin(String origin) {
-        return new WebsiteCrawl(TEST_CRAWL_ID, origin, LocalDateTime.now(), Collections.emptyList());
+        return WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, origin, Collections.emptyList());
     }
 }

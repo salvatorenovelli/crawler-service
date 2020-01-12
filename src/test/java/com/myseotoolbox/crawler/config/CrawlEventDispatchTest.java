@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.spider.PubSubEventDispatch;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;
 import org.bson.types.ObjectId;
 import org.junit.Before;
@@ -40,7 +41,7 @@ public class CrawlEventDispatchTest {
     public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     public static final String TEST_CRAWL_ID_STR = TEST_CRAWL_ID.toHexString();
-    private static final WebsiteCrawl CRAWL = new WebsiteCrawl(TEST_CRAWL_ID, TEST_ORIGIN, LocalDateTime.now(), Collections.emptyList());
+    private static final WebsiteCrawl CRAWL = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, TEST_ORIGIN, Collections.emptyList());
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
     @Mock private OutboundLinksPersistenceListener linksListener;
     @Mock private WebsiteCrawlRepository websiteCrawlRepository;

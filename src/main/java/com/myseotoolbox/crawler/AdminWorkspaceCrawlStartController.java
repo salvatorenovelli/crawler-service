@@ -13,19 +13,18 @@ import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
-import org.bson.types.ObjectId;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 
 @RestController
 public class AdminWorkspaceCrawlStartController {
@@ -99,6 +98,6 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     private CrawlEventDispatch getCrawlEventsListener(URI origin) {
-        return crawlEventDispatchFactory.get(new WebsiteCrawl(new ObjectId(), origin.toString(), LocalDateTime.now(), Collections.emptyList()));
+        return crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), Collections.emptyList()));
     }
 }

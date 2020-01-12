@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.model.PageCrawlCompletedEvent;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,7 +41,7 @@ public class PubSubEventDispatchTest {
     @Test
     public void shouldPublishPageCrawlCompletedOnTheCorrectQueue() {
         PubSubEventDispatch sut = new PubSubEventDispatch(template, config);
-        WebsiteCrawl websiteCrawl = new WebsiteCrawl(new ObjectId(), "host.host", LocalDateTime.now(), Collections.emptyList());
+        WebsiteCrawl websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor("host.host", Collections.emptyList());
         sut.websiteCrawlCompletedEvent(websiteCrawl);
         verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(new CrawlCompletedEvent(websiteCrawl)));
     }

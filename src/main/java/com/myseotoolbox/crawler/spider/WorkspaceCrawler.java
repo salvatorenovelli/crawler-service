@@ -10,21 +10,18 @@ import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.extern.slf4j.Slf4j;
-import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
+import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
@@ -84,7 +81,7 @@ public class WorkspaceCrawler {
                             .withRobotsTxt(mergedConfiguration)
                             .build();
 
-                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(generateWebsiteCrawl(origin.toString(), seeds));
+                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));
 
                     CrawlJob job = crawlJobFactory.build(conf, dispatch);
                     job.start();
@@ -93,11 +90,6 @@ public class WorkspaceCrawler {
                 }, "Error while starting crawl for: " + origin))
         );
 
-
-    }
-
-    private WebsiteCrawl generateWebsiteCrawl(String origin, Collection<URI> seeds) {
-        return new WebsiteCrawl(new ObjectId(), origin, LocalDateTime.now(), seeds.stream().map(URI::toString).collect(Collectors.toList()));
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {

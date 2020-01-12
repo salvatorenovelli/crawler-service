@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
@@ -16,14 +17,20 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
+import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -40,19 +47,25 @@ import static org.mockito.Mockito.verify;
  * the hacky bit is that the seeds are used as "allowed paths" when creating the UriFilter see CrawlJobFactory
  * which is kind of not super explicit from the user point of view
  */
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(SpringRunner.class)
+@SpringBootTest
 public class SpiderIntegrationTest {
 
+    private static final String TEST_ORIGIN = "http://host";
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
-    @Mock private CrawlEventDispatch dispatch;
+    @MockBean PubSubEventDispatch eventDispatch;
     @Mock private SitemapReader sitemapReader;
+    @Autowired CrawlEventDispatchFactory factory;
+
+    private CrawlEventDispatch dispatchSpy;
 
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     @Before
     public void setUp() throws Exception {
+        dispatchSpy = Mockito.spy(factory.get(newWebsiteCrawlFor(TEST_ORIGIN, Collections.emptyList())));
         testWebsiteBuilder.run();
     }
 
@@ -71,11 +84,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/"));
-        verify(dispatch).pageCrawled(uri("/abc"));
-        verify(dispatch).pageCrawled(uri("/cde"));
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/abc"));
+        verify(dispatchSpy).pageCrawled(uri("/cde"));
 
-        verify(dispatch, atMost(3)).pageCrawled(any());
+        verify(dispatchSpy, atMost(3)).pageCrawled(any());
 
     }
 
@@ -90,12 +103,12 @@ public class SpiderIntegrationTest {
         job.start();
 
 
-        verify(dispatch).pageCrawled(uri("/base/"));
-        verify(dispatch).pageCrawled(uri("/base/abc"));
-        verify(dispatch).pageCrawled(uri("/base/cde"));
-        verify(dispatch).pageCrawled(uri("/outside/fgh"));
+        verify(dispatchSpy).pageCrawled(uri("/base/"));
+        verify(dispatchSpy).pageCrawled(uri("/base/abc"));
+        verify(dispatchSpy).pageCrawled(uri("/base/cde"));
+        verify(dispatchSpy).pageCrawled(uri("/outside/fgh"));
 
-        verify(dispatch, atMost(4)).pageCrawled(any());
+        verify(dispatchSpy, atMost(4)).pageCrawled(any());
     }
 
 
@@ -109,11 +122,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/"));
-        verify(dispatch).pageCrawled(uri("/base/"));
-        verify(dispatch).pageCrawled(uri("/outside"));
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/base/"));
+        verify(dispatchSpy).pageCrawled(uri("/outside"));
 
-        verify(dispatch, atMost(3)).pageCrawled(any());
+        verify(dispatchSpy, atMost(3)).pageCrawled(any());
     }
 
     @Test
@@ -128,14 +141,14 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base/", "/base2/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/base/"));
-        verify(dispatch).pageCrawled(uri("/base2/"));
-        verify(dispatch).pageCrawled(uri("/base/abc"));
-        verify(dispatch).pageCrawled(uri("/base/cde"));
-        verify(dispatch).pageCrawled(uri("/base2/fgh"));
-        verify(dispatch).pageCrawled(uri("/outside/a"));
+        verify(dispatchSpy).pageCrawled(uri("/base/"));
+        verify(dispatchSpy).pageCrawled(uri("/base2/"));
+        verify(dispatchSpy).pageCrawled(uri("/base/abc"));
+        verify(dispatchSpy).pageCrawled(uri("/base/cde"));
+        verify(dispatchSpy).pageCrawled(uri("/base2/fgh"));
+        verify(dispatchSpy).pageCrawled(uri("/outside/a"));
 
-        verify(dispatch, atMost(6)).pageCrawled(any());
+        verify(dispatchSpy, atMost(6)).pageCrawled(any());
 
 
     }
@@ -150,11 +163,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/base"));
-        verify(dispatch).pageCrawled(uri("/base2"));
-        verify(dispatch).pageCrawled(uri("/base/abc"));
+        verify(dispatchSpy).pageCrawled(uri("/base"));
+        verify(dispatchSpy).pageCrawled(uri("/base2"));
+        verify(dispatchSpy).pageCrawled(uri("/base/abc"));
 
-        verify(dispatch, atMost(3)).pageCrawled(any());
+        verify(dispatchSpy, atMost(3)).pageCrawled(any());
     }
 
     @Test
@@ -182,9 +195,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/"));
-        verify(dispatch).pageCrawled(uri("/dst1"));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/dst1"));
+        verify(dispatchSpy, atMost(2)).pageCrawled(any());
     }
 
 
@@ -195,7 +208,7 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatch).pageCrawled(argThat(snapshot -> {
+        verify(dispatchSpy).pageCrawled(argThat(snapshot -> {
             assertThat(snapshot.getPageSnapshot().getTitle(), is("This has leading spaces"));
             return true;
         }));
@@ -209,9 +222,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/"));
-        verify(dispatch).pageCrawled(uri("/dst1"));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/dst1"));
+        verify(dispatchSpy, atMost(2)).pageCrawled(any());
     }
 
     @Test
@@ -223,8 +236,8 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/"));
-        verify(dispatch, atMost(1)).pageCrawled(any());
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy, atMost(1)).pageCrawled(any());
     }
 
     @Test
@@ -236,9 +249,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatch).pageCrawled(uri("/"));
-        verify(dispatch).pageCrawled(uri("/link%20withspaces/relative"));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/link%20withspaces/relative"));
+        verify(dispatchSpy, atMost(2)).pageCrawled(any());
     }
 
     private CrawlResult uri(String uri) {
@@ -271,7 +284,7 @@ public class SpiderIntegrationTest {
                 .build();
 
 
-        return crawlJobFactory.build(conf, dispatch);
+        return crawlJobFactory.build(conf, dispatchSpy);
     }
 
 
