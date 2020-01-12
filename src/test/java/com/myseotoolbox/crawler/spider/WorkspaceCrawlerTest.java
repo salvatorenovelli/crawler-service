@@ -52,7 +52,6 @@ public class WorkspaceCrawlerTest {
     @Mock private CrawlJobFactory crawlJobFactory;
     @Mock private WorkspaceRepository workspaceRepository;
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    @Mock private CrawlEventDispatch dispatch;
     @Mock private RobotsTxtAggregation robotsAggregation;
     @Mock private CrawlEventDispatchFactory dispatchFactory;
     @Mock private ConcurrentCrawlsSemaphore semaphore;
@@ -62,7 +61,6 @@ public class WorkspaceCrawlerTest {
 
     @Before
     public void setUp() {
-        when(dispatchFactory.get(any())).thenReturn(dispatch);
 
         sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor, semaphore);
 
