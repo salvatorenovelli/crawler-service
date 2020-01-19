@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.myseotoolbox'
-version = '1.12.1'
+version = '1.12.2-SNAPSHOT'
 sourceCompatibility = 1.8
 
 apply plugin: 'io.spring.dependency-management'
@@ -20,6 +20,7 @@ ext {
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven { url 'https://jitpack.io' }
 }
@@ -43,7 +44,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web')
     implementation('org.springframework.boot:spring-boot-starter-data-mongodb')
     implementation('org.springframework.cloud:spring-cloud-gcp-starter-pubsub')
-    implementation 'com.github.salvatorenovelli:gcp-commons:1.2.1'
+    implementation 'com.github.salvatorenovelli:gcp-commons:1.5.0'
 
     implementation group: 'commons-lang', name: 'commons-lang', version: '2.2'
     implementation group: 'commons-io', name: 'commons-io', version: '2.6'
