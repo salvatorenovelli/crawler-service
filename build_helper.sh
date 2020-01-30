@@ -43,31 +43,32 @@ BLUE='\033[1;34m'
 NO_COLOR='\033[0m'
 
 
+# Evaluates the variables that will be injected into google cloud build
+function evaluateSubstitutions() {
+    local GIT_TAG_NAME=$(getGitTagName)
+    local GIT_SHORT_SHA=$(git rev-parse --short HEAD)
+    local LOCAL_ID=$(whoami)_$(hostname)
+
+    local TAG_NAME=${LOCAL_ID}"."${GIT_TAG_NAME}
+    local SHORT_SHA=${LOCAL_ID}"."${GIT_SHORT_SHA}
+
+    echo -e "Triggering build for:"
+    echo -e " TAG: ${BLUE}${TAG_NAME}${NO_COLOR}"
+    echo -e " SHA: ${BLUE}${SHORT_SHA}${NO_COLOR}"
+    confirm || exit
+
+    SUBST=TAG_NAME=${TAG_NAME},SHORT_SHA=${SHORT_SHA}
+    echo $SUBST
+}
+
 case $1 in
     "cloud-build" )
-
-        GIT_TAG_NAME=$(git tag -l --points-at HEAD)
-        GIT_SHORT_SHA=$(git rev-parse --short HEAD)
-
-        if [[ -z ${GIT_TAG_NAME} ]]
-          then
-            GIT_TAG_NAME="untagged"
-        fi
-
-        LOCAL_ID=$(whoami)_$(hostname)
-
-        TAG_NAME=${LOCAL_ID}"."${GIT_TAG_NAME}
-        SHORT_SHA=${LOCAL_ID}"."${GIT_SHORT_SHA}
-
-        echo -e "Triggering remote build for:"
-        echo -e " TAG: ${BLUE}${TAG_NAME}${NO_COLOR}"
-        echo -e " SHA: ${BLUE}${SHORT_SHA}${NO_COLOR}"
-        ! confirm  && exit
-
-
-        SUBST=TAG_NAME=${TAG_NAME},SHORT_SHA=${SHORT_SHA}
+        evaluateSubstitutions
         gcloud builds submit --substitutions=${SUBST} --machine-type=n1-highcpu-8
-#       cloud-build-local    --substitutions=${SUBST} --dryrun=false --write-workspace=../tmp_cloudbuildlocal .
+    ;;
+    "cloud-build-local" )
+        evaluateSubstitutions
+        cloud-build-local  --substitutions=${SUBST} --dryrun=false --write-workspace=../tmp_cloudbuildlocal .
     ;;
     "build" )
         echo "Building ${IMAGE_TAG}"
