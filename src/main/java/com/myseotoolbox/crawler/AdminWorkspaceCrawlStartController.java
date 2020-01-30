@@ -66,7 +66,13 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJob job = factory.build(conf, getCrawlEventsListener(origin));
 
         job.start();
-        return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date();
+        return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date() + "\n";
+    }
+
+    @GetMapping("/crawl-all-workspaces")
+    public String crawlAllWorkspaces() {
+        workspaceCrawler.crawlAllWorkspaces();
+        return "Started on " + new Date() + "\n";
     }
 
     private CrawlJobConfiguration getConfiguration(URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots) throws IOException {
@@ -82,12 +88,6 @@ public class AdminWorkspaceCrawlStartController {
         }
 
         return builder.build();
-    }
-
-    @GetMapping("/crawl-all-workspaces")
-    public String crawlAllWorkspaces() {
-        workspaceCrawler.crawlAllWorkspaces();
-        return "Started on " + new Date();
     }
 
 
