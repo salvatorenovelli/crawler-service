@@ -26,11 +26,11 @@ public class RobotsTxtAggregation {
     }
 
 
-    public RobotsTxt aggregate(Collection<Workspace> workspaces) {
+    public RobotsTxt mergeConfigurations(Collection<Workspace> workspaces) {
         try {
             Workspace workspace0 = new ArrayList<>(workspaces).get(0);
 
-            if (anyWorkspaceDisableRobots(workspaces))
+            if (anyWorkspaceIgnoreRobots(workspaces))
                 return EmptyRobotsTxt.instance();
 
 
@@ -43,7 +43,7 @@ public class RobotsTxtAggregation {
         }
     }
 
-    private boolean anyWorkspaceDisableRobots(Collection<Workspace> workspaces) {
+    private boolean anyWorkspaceIgnoreRobots(Collection<Workspace> workspaces) {
         return workspaces.stream()
                 .map(Workspace::getCrawlerSettings).filter(Objects::nonNull)
                 .map(CrawlerSettings::getFilterConfiguration).filter(Objects::nonNull)

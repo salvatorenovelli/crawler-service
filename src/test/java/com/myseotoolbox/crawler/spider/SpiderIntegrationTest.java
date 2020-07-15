@@ -327,7 +327,7 @@ public class SpiderIntegrationTest {
 
         RobotsTxtAggregation robotsTxtAggregation = new RobotsTxtAggregation(new HTTPClient());
 
-        RobotsTxt merged = robotsTxtAggregation.aggregate(seeds.stream().map(uri -> {
+        RobotsTxt merged = robotsTxtAggregation.mergeConfigurations(seeds.stream().map(uri -> {
             Workspace workspace = new Workspace();
             workspace.setWebsiteUrl(uri.toString());
             return workspace;

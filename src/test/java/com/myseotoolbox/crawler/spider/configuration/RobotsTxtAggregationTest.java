@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettingsBuilder.defaultSettings;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -37,15 +38,15 @@ public class RobotsTxtAggregationTest {
 
     @Test
     public void singleConfShouldIgnoreRobots() {
-        givenAWorkspace().withWebsiteUrl("http://host1").withCrawlerSettings(CrawlerSettingsBuilder.defaultSettings().withIgnoreRobotsTxt(true).build()).build();
-        RobotsTxt aggregate = sut.aggregate(allWorkspaces);
+        givenAWorkspace().withWebsiteUrl("http://host1").withCrawlerSettings(defaultSettings().withIgnoreRobotsTxt(true).build()).build();
+        RobotsTxt aggregate = sut.mergeConfigurations(allWorkspaces);
         assertTrue(aggregate.shouldCrawl(uri("http://host1"), uri("http://host1/blocked-by-robots")));
     }
 
     @Test
     public void singleConfShouldUseRobotsTxtContent() {
         givenAWorkspace().withWebsiteUrl("http://host1").build();
-        RobotsTxt robots = sut.aggregate(allWorkspaces);
+        RobotsTxt robots = sut.mergeConfigurations(allWorkspaces);
         assertFalse(robots.shouldCrawl(uri("http://host1"), uri("http://host1/blocked-by-robots")));
     }
 
@@ -53,9 +54,9 @@ public class RobotsTxtAggregationTest {
     @Test
     public void multipleConfShouldIgnoreRobots() {
         givenAWorkspace().withWebsiteUrl("http://host1/b").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/a").withCrawlerSettings(CrawlerSettingsBuilder.defaultSettings().withIgnoreRobotsTxt(true).build()).build();
+        givenAWorkspace().withWebsiteUrl("http://host1/a").withCrawlerSettings(defaultSettings().withIgnoreRobotsTxt(true).build()).build();
 
-        RobotsTxt robots = sut.aggregate(allWorkspaces);
+        RobotsTxt robots = sut.mergeConfigurations(allWorkspaces);
         assertTrue(robots.shouldCrawl(uri("http://host1"), uri("http://host1/blocked-by-robots")));
     }
 
@@ -63,7 +64,7 @@ public class RobotsTxtAggregationTest {
     @Test
     public void shouldHandleNullFilterConfiguration() {
         givenAWorkspace().withWebsiteUrl("http://host1").withCrawlerSettings(null).build();
-        RobotsTxt robots = sut.aggregate(allWorkspaces);
+        RobotsTxt robots = sut.mergeConfigurations(allWorkspaces);
         assertFalse(robots.shouldCrawl(uri("http://host1"), uri("http://host1/blocked-by-robots")));
     }
 

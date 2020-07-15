@@ -35,21 +35,22 @@ public class WorkspaceCrawler {
     private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
-    private final ConcurrentCrawlsSemaphore semaphore;
+    private final ConcurrentCrawlsSemaphore concurrentCrawlsSemaphore;
 
     public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
                             CrawlJobFactory crawlJobFactory,
                             WebsiteCrawlLogRepository websiteCrawlLogRepository,
                             CrawlEventDispatchFactory crawlEventDispatchFactory,
                             RobotsTxtAggregation robotsTxtAggregation,
-                            @Qualifier("crawl-job-init-executor") Executor executor, ConcurrentCrawlsSemaphore semaphore) {
+                            @Qualifier("crawl-job-init-executor") Executor executor,
+                            ConcurrentCrawlsSemaphore concurrentCrawlsSemaphore) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
         this.crawlEventDispatchFactory = crawlEventDispatchFactory;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
-        this.semaphore = semaphore;
+        this.concurrentCrawlsSemaphore = concurrentCrawlsSemaphore;
     }
 
 
@@ -57,39 +58,44 @@ public class WorkspaceCrawler {
 
         log.info("Starting workspaces crawl...");
 
-        Map<URI, Set<Workspace>> workspacesByHost = workspaceRepository.findAll()
+        Map<URI, Set<Workspace>> workspacesByOrigin = groupWorkspacesByOrigin();
+
+        log.info("Crawling {} hosts", workspacesByOrigin.size());
+
+        workspacesByOrigin.forEach((origin, workspaces) ->
+                executor.execute(() ->
+                        runOrLogWarning(() -> {
+                            concurrentCrawlsSemaphore.acquire();
+                            Set<URI> seeds = extractSeeds(workspaces);
+
+                            log.info("Starting crawl for {} with seeds: {}", origin, seeds);
+
+                            RobotsTxt mergedConfiguration = robotsTxtAggregation.mergeConfigurations(workspaces);
+
+                            CrawlJobConfiguration conf = CrawlJobConfiguration
+                                    .newConfiguration(origin)
+                                    .withSeeds(seeds)
+                                    .withConcurrentConnections(seeds.size())
+                                    .withRobotsTxt(mergedConfiguration)
+                                    .build();
+
+                            CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));
+
+                            CrawlJob job = crawlJobFactory.build(conf, dispatch);
+                            job.start();
+                            //TODO: this needs to go
+                            seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
+                        }, "Error while starting crawl for: " + origin))
+        );
+
+    }
+
+    private Map<URI, Set<Workspace>> groupWorkspacesByOrigin() {
+        return workspaceRepository.findAll()
                 .stream()
                 .filter(this::validOrigin)
                 .filter(this::shouldCrawl)
                 .collect(Collectors.groupingBy(this::extractOrigin, Collectors.toSet()));
-
-        log.info("Crawling {} hosts", workspacesByHost.size());
-
-        workspacesByHost.forEach((origin, workspaces) ->
-                executor.execute(() -> runOrLogWarning(() -> {
-                    semaphore.acquire();
-                    Set<URI> seeds = extractSeeds(workspaces);
-
-                    log.info("Starting crawl for {} with seeds: {}", origin, seeds);
-
-                    RobotsTxt mergedConfiguration = robotsTxtAggregation.aggregate(workspaces);
-
-                    CrawlJobConfiguration conf = CrawlJobConfiguration
-                            .newConfiguration(origin)
-                            .withSeeds(seeds)
-                            .withConcurrentConnections(seeds.size())
-                            .withRobotsTxt(mergedConfiguration)
-                            .build();
-
-                    CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));
-
-                    CrawlJob job = crawlJobFactory.build(conf, dispatch);
-                    job.start();
-                    //TODO: this needs to go
-                    seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
-                }, "Error while starting crawl for: " + origin))
-        );
-
     }
 
     private Set<URI> extractSeeds(Set<Workspace> workspaces) {
@@ -102,28 +108,31 @@ public class WorkspaceCrawler {
 
     private boolean shouldCrawl(Workspace workspace) {
         CrawlerSettings crawlerSettings = workspace.getCrawlerSettings();
-        return crawlerSettings != null && crawlerSettings.isCrawlEnabled() && isDelayExpired(workspace);
+        return crawlerSettings != null && crawlerSettings.isCrawlEnabled() && isCrawlDelayExpired(workspace);
     }
 
     private boolean validOrigin(Workspace workspace) {
         return WebsiteOriginUtils.isValidOrigin(workspace.getWebsiteUrl());
     }
 
-    private boolean isDelayExpired(Workspace workspace) {
+    private boolean isCrawlDelayExpired(Workspace workspace) {
 
-        return websiteCrawlLogRepository.findTopByOriginOrderByDateDesc(workspace.getWebsiteUrl()).map(lastCrawl -> {
-            int crawlIntervalDays = workspace.getCrawlerSettings().getCrawlIntervalDays();
-            boolean delayExpired = LocalDate.now().minusDays(crawlIntervalDays).compareTo(lastCrawl.getDate()) >= 0;
+        return websiteCrawlLogRepository
+                .findTopByOriginOrderByDateDesc(workspace.getWebsiteUrl())
+                .map(lastCrawl -> {
+                    int crawlIntervalDays = workspace.getCrawlerSettings().getCrawlIntervalDays();
+                    boolean delayExpired = LocalDate.now().minusDays(crawlIntervalDays).compareTo(lastCrawl.getDate()) >= 0;
 
-            if (!delayExpired) {
-                log.info("Workspace {} doesnt need crawl yet. Crawl interval: {} Last Crawl: {}",
-                        workspace.getOwnerName() + " - " + workspace.getName(),
-                        crawlIntervalDays,
-                        lastCrawl.getDate());
-            }
+                    if (!delayExpired) {
+                        log.info("Workspace {} doesnt need crawl yet. Crawl interval: {} Last Crawl: {}",
+                                workspace.getOwnerName() + " - " + workspace.getName(),
+                                crawlIntervalDays,
+                                lastCrawl.getDate());
+                    }
 
-            return delayExpired;
-        }).orElse(true);
+                    return delayExpired;
+                })
+                .orElse(true);
     }
 
 

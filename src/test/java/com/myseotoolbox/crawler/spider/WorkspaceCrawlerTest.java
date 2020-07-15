@@ -74,20 +74,20 @@ public class WorkspaceCrawlerTest {
         );
 
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
-        when(robotsAggregation.aggregate(any())).thenReturn(EmptyRobotsTxt.instance());
+        when(robotsAggregation.mergeConfigurations(any())).thenReturn(EmptyRobotsTxt.instance());
     }
 
     @Test
     public void shouldBuildRobotsTxtBasedOnAggregationAndUseItToConfigureCrawlJob() {
         RobotsTxt returnedValue = Mockito.mock(RobotsTxt.class);
-        when(robotsAggregation.aggregate(any())).thenReturn(returnedValue);
+        when(robotsAggregation.mergeConfigurations(any())).thenReturn(returnedValue);
 
         givenAWorkspace().withWebsiteUrl("http://host1/1").build();
         givenAWorkspace().withWebsiteUrl("http://host1/2").build();
         givenAWorkspace().withWebsiteUrl("http://host1/3").build();
 
         sut.crawlAllWorkspaces();
-        verify(robotsAggregation).aggregate(argThat(workspaces -> workspaces.size() == 3));
+        verify(robotsAggregation).mergeConfigurations(argThat(workspaces -> workspaces.size() == 3));
         verify(crawlJobFactory).build(argThat(argument -> argument.getRobotsTxt() == returnedValue), any());
     }
 
@@ -98,7 +98,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1");
+        verifyCrawlStartedFor("http://host1");
 
     }
 
@@ -109,8 +109,8 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1");
-        crawlStartedFor("http://host2");
+        verifyCrawlStartedFor("http://host1");
+        verifyCrawlStartedFor("http://host2");
     }
 
     @Test
@@ -120,7 +120,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1");
+        verifyCrawlStartedFor("http://host1");
         verifyNoMoreCrawls();
     }
 
@@ -206,7 +206,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host2/");
+        verifyCrawlStartedFor("http://host2/");
     }
 
     @Test
@@ -224,7 +224,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1/cde/");
+        verifyCrawlStartedFor("http://host1/cde/");
         verifyNoMoreCrawls();
     }
 
@@ -237,8 +237,8 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        crawlStartedFor("http://host1/");
-        crawlStartedFor("http://host2/");
+        verifyCrawlStartedFor("http://host1/");
+        verifyCrawlStartedFor("http://host2/");
 
         verifyNoMoreCrawls();
     }
@@ -247,14 +247,14 @@ public class WorkspaceCrawlerTest {
     public void canHandleNoLastCrawl() {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(1).build();
         sut.crawlAllWorkspaces();
-        crawlStartedFor("http://host1/");
+        verifyCrawlStartedFor("http://host1/");
     }
 
     @Test
     public void canHandleNoCrawlIntervalSpecified() {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(DEFAULT_CRAWL_VALUE_WHEN_MISSING).withLastCrawlHappened(YESTERDAY).build();
         sut.crawlAllWorkspaces();
-        crawlStartedFor("http://host1/");
+        verifyCrawlStartedFor("http://host1/");
     }
 
     @Test
@@ -335,7 +335,7 @@ public class WorkspaceCrawlerTest {
         verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());
     }
 
-    private void crawlStartedFor(String origin) {
+    private void verifyCrawlStartedFor(String origin) {
         crawlStartedForOriginWithSeeds(addTrailingSlashIfMissing(origin), singletonList(origin));
     }
 
