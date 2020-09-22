@@ -22,7 +22,12 @@ public class WebsiteOriginUtils {
     }
 
     public static boolean isSubdomain(URI origin, URI possibleSubdomain) {
-        return concatHostPort(possibleSubdomain).endsWith("." + concatHostPort(origin));
+        return areSubdomains(origin, possibleSubdomain, false);
+    }
+
+    public static boolean areSubdomains(URI uri1, URI uri2, boolean bidirectional) {
+        return concatHostPort(uri2).endsWith("." + concatHostPort(uri1)) ||
+                bidirectional && concatHostPort(uri1).endsWith("." + concatHostPort(uri2));
     }
 
 
@@ -31,7 +36,7 @@ public class WebsiteOriginUtils {
     }
 
     /**
-     * Non strict will match www.host to host
+     * Non strict will match www.host to host and viceversa
      */
     public static boolean isHostMatching(URI a, URI b, boolean strictWww) {
         String hostA = concatHostPort(a);

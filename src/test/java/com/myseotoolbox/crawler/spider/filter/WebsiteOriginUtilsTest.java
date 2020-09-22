@@ -27,6 +27,13 @@ public class WebsiteOriginUtilsTest {
         assertFalse(isSubdomain(create("http://host"), create("http://anotherhost")));
     }
 
+
+    @Test
+    public void subdomainShouldGoBothWays() {
+        assertTrue(areSubdomains(create("http://www.host"), create("http://host"), true));
+        assertTrue(areSubdomains(create("http://host"), create("http://www.host"), true));
+    }
+
     @Test
     public void isCaseInsensitive() {
         assertTrue(isHostMatching(create("http://host"), create("http://HOST/differentPath")));

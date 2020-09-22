@@ -47,14 +47,13 @@ public class BasicUriFilter implements UriFilter {
     }
 
     private boolean validHost(URI sourceUri, URI discoveredLink) {
-        return (isSameOrigin(websiteOrigin, sourceUri, false) && isSubdomainOfOrigin(discoveredLink)) ||
-                isHostMatching(websiteOrigin, discoveredLink);
+        return isHostMatching(websiteOrigin, discoveredLink, false) ||
+                isHostMatching(websiteOrigin, sourceUri, true) && areSubdomainsWithOrigin(discoveredLink);
     }
 
-    private boolean isSubdomainOfOrigin(URI discoveredLink) {
-        return isSubdomain(websiteOrigin, discoveredLink);
+    private boolean areSubdomainsWithOrigin(URI discoveredLink) {
+        return areSubdomains(websiteOrigin, discoveredLink, true);
     }
-
 
     private boolean validScheme(URI discoveredLink) {
         String scheme = discoveredLink.getScheme();

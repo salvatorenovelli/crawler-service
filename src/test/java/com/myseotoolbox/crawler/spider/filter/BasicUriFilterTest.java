@@ -4,97 +4,96 @@ import org.junit.Test;
 
 import java.net.URI;
 
+import static java.net.URI.create;
 import static org.junit.Assert.*;
 
 public class BasicUriFilterTest {
 
-    private static final URI BASE = URI.create("http://host");
+    private static final URI BASE_HTTP = create("http://host");
+    private static final URI BASE_HTTPS = create("https://host");
 
-    BasicUriFilter sut = new BasicUriFilter(BASE);
+    BasicUriFilter sutHttp = new BasicUriFilter(BASE_HTTP);
+    BasicUriFilter sutHttps = new BasicUriFilter(BASE_HTTPS);
 
     @Test
-    public void shouldFilterCss() {
-        assertFalse(sut.shouldCrawl(BASE, URI.create("http://host1/main.css")));
+    public void filterInvalidExtensions() {
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host1/main.css")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host1/img.png")));
     }
 
     @Test
-    public void shouldAllowHttpsWhenStartingFromHttp() {
-        assertTrue(sut.shouldCrawl(BASE, URI.create("https://host/salve")));
+    public void differentScheme() {
+        assertTrue(sutHttp.shouldCrawl(BASE_HTTP, create("https://host/salve")));
+        assertTrue(sutHttps.shouldCrawl(BASE_HTTPS, create("http://host/salve")));
     }
 
     @Test
     public void shouldNotCrawlDifferentPortsWhenDiscoveredInsideOrigin() {
-        assertFalse(sut.shouldCrawl(BASE, URI.create("http://host:8080/salve")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host:8080/salve")));
     }
 
     @Test
     public void shouldNotCrawlDifferentPortsWhenDiscoveredOutOrigin() {
-        assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://host:8080/salve")));
+        assertFalse(sutHttp.shouldCrawl(create("http://anotherHost"), create("http://host:8080/salve")));
     }
 
     @Test
     public void port80IsSameAsNoPortSpecified() {
-        assertTrue(sut.shouldCrawl(BASE, URI.create("http://host:80/salve")));
+        assertTrue(sutHttp.shouldCrawl(BASE_HTTP, create("http://host:80/salve")));
     }
 
     @Test
     public void shouldAllowSubdomainsWhenLinkingFromInside() {
-        assertTrue(sut.shouldCrawl(BASE, URI.create("http://sub.host")));
-    }
-
-    @Test
-    public void shouldCrawlWWW__fromNonWWW() {
-        assertTrue(sut.shouldCrawl(BASE, URI.create("http://www.host")));
+        //This is to allow discovery of "internal" broken links
+        assertTrue(sutHttp.shouldCrawl(BASE_HTTP, create("http://sub.host")));
     }
 
     @Test
     public void shouldNotAllowSubdomainsWhenLinkingFromOutside() {
-        assertFalse(sut.shouldCrawl(URI.create("http://anotherHost"), URI.create("http://sub.host")));
+        //we crawl subdomains only to verify broken links, no value in crawling this by that logic
+        assertFalse(sutHttp.shouldCrawl(create("http://anotherHost"), create("http://sub.host")));
     }
 
+    @Test
+    public void shouldCrawlWWW__fromNonWWW() {
+        assertTrue(sutHttp.shouldCrawl(BASE_HTTP, create("http://www.host")));
+    }
+
+    @Test
+    public void shouldCrawlNonWWW__fromWWW_nonWWWBase() {
+        assertTrue(sutHttp.shouldCrawl(create("https://www.host"), create("https://host")));
+        assertTrue(sutHttp.shouldCrawl(create("https://host"), create("https://host/link")));
+    }
+
+    @Test
+    public void shouldCrawlNonWWW__fromWWW_wwwBase() {
+        sutHttp = new BasicUriFilter(create("https://www.host"));
+        assertTrue(sutHttp.shouldCrawl(create("https://www.host"), create("https://host")));
+        assertTrue(sutHttp.shouldCrawl(create("https://host"), create("https://host/link")));
+    }
 
     @Test
     public void shouldNotCrawlEntirelyDifferentDomains() {
-        assertFalse(sut.shouldCrawl(BASE, URI.create("http://differentHost")));
-    }
-
-    @Test
-    public void shouldAllowUriOutsideBaseIfDiscoveredInsideBase() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host/base"));
-        assertTrue(sut.shouldCrawl(URI.create("http://host/base"), URI.create("http://host/base/1")));
-        assertTrue(sut.shouldCrawl(URI.create("http://host/base"), BASE));
-        assertTrue(sut.shouldCrawl(URI.create("http://host/base"), URI.create("http://host/outside")));
-    }
-
-
-    @Test
-    public void shouldAllowUriInsideBaseEvenIfDiscoveredOutsideBase() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host/base"));
-        assertTrue(sut.shouldCrawl(BASE, URI.create("http://host/base/inside")));
-    }
-
-
-    @Test
-    public void shouldAllowHttps() {
-        assertTrue(sut.shouldCrawl(BASE, URI.create("https://host/")));
+        //we don't care about external broken links for now
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://differentHost")));
     }
 
     @Test
     public void shouldBeAbleToDealWithNullPath() {
-        BasicUriFilter sut = new BasicUriFilter(URI.create("http://host/base"));
-        assertFalse(sut.shouldCrawl(URI.create("http://host/outside"), URI.create("mailto:info@host")));
+        BasicUriFilter sut = new BasicUriFilter(create("http://host/base"));
+        assertFalse(sut.shouldCrawl(create("http://host/outside"), create("mailto:info@host")));
     }
 
     @Test
     public void shouldOnlyAllowValidSchemes() {
-        assertFalse(sut.shouldCrawl(BASE, URI.create("mailto:info@host")));
-        assertFalse(sut.shouldCrawl(BASE, URI.create("ftp://host")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("mailto:info@host")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("ftp://host")));
         //wrong scheme
-        assertFalse(sut.shouldCrawl(BASE, URI.create("ftp//host")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("ftp//host")));
     }
 
     @Test
     public void hostIsCaseInsensitive() {
-        assertTrue(sut.shouldCrawl(BASE, URI.create("http://HOST/")));
+        assertTrue(sutHttp.shouldCrawl(BASE_HTTP, create("http://HOST/")));
     }
 }
