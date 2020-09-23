@@ -11,6 +11,10 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 public class SitemapReader {
+    /*
+     * There are sitemaps with millions of entries.
+     * allowedPaths make sure we only fetch the sitemap indexes we need.
+     * */
     public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrl, List<String> allowedPaths) {
         log.info("Fetching {} sitemap for {} with allowed paths: {}. Urls: {}", sitemapsUrl.size(), origin, allowedPaths, sitemapsUrl);
         List<URI> sitemapSeeds = new SiteMap(origin, sitemapsUrl, allowedPaths)
@@ -21,6 +25,7 @@ public class SitemapReader {
                 .collect(Collectors.toList());
 
         log.info("Found {} seeds from sitemap for {}", sitemapSeeds.size(), origin);
+        log.debug("{} seeds: {}", origin, sitemapSeeds);
         return sitemapSeeds;
     }
 

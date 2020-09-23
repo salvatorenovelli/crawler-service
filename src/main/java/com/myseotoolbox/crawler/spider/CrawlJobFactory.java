@@ -33,7 +33,7 @@ public class CrawlJobFactory {
         List<String> allowedPaths = configuration.getAllowedPaths();
 
         RobotsTxt robotsTxt = configuration.getRobotsTxt();
-
+        //any changes to this filter needs to be duplicated in the sitemap filtering (for now is duplicated logic)
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths, robotsTxt);
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), configuration.getMaxConcurrentConnections());

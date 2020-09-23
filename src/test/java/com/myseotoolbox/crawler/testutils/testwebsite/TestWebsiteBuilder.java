@@ -87,17 +87,27 @@ public class TestWebsiteBuilder {
         return this;
     }
 
-    public URI buildTestUri(String uri) {
+    public URI buildTestUri(String path) {
+        return buildTestUri("", path);
+    }
+
+    public URI buildTestUri(String subDomain, String pathStr) {
+
         if (!server.isStarted()) {
             throw new IllegalStateException("Sorry, you'll need to start the server before asking for URI. (At the moment the server port is not known)");
         }
-        Optional<URI> uri1 = PageLinksHelper.toValidUri(uri);
-        return URI.create(getBaseUriAsString()).resolve(uri1.get());
+        Optional<URI> path = PageLinksHelper.toValidUri(pathStr);
+        return URI.create(getBaseUriAsString(subDomain)).resolve(path.get());
     }
 
     public String getBaseUriAsString() {
+        return getBaseUriAsString("");
+    }
+
+    public String getBaseUriAsString(String subDomain) {
         int localPort = ((ServerConnector) server.getConnectors()[0]).getLocalPort();
-        return "http://localhost:" + localPort;
+        String possibleSubDomain = subDomain.isEmpty() ? "" : subDomain + ".";
+        return "http://" + possibleSubDomain + "localhost:" + localPort;
     }
 
     public TestWebsite save() {

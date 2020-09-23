@@ -13,12 +13,14 @@ import org.springframework.boot.logging.LoggingSystem;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
@@ -44,6 +46,18 @@ public class SiteMapTest {
     @After
     public void tearDown() throws Exception {
         testWebsiteBuilder.tearDown();
+    }
+
+    @Test
+    public void shouldAllowWWWButNotOtherSubdomains() throws UnknownHostException {
+        givenAWebsite()
+                .withSitemapOn("/")
+                .havingUrls(testUri("api", "/locationApi").toString(), testUri("www", "/locationWww").toString(), "/location2")
+                .build();
+
+        List<String> urls = siteMap.fetchUris();
+
+        assertThat(urls, containsInAnyOrder(uri("www", "/locationWww"), uri("/location2")));
     }
 
     @Test
@@ -292,12 +306,21 @@ public class SiteMapTest {
         return testUri(s).toString();
     }
 
+    private String uri(String subDomain, String path) {
+        return testUri(subDomain, path).toString();
+    }
+
     private List<String> uris(String... s) {
         return Arrays.stream(s).map(this::testUri).map(URI::toString).collect(toList());
     }
 
+
     private URI testUri(String url) {
-        return testWebsiteBuilder.buildTestUri(url);
+        return testWebsiteBuilder.buildTestUri("", url);
+    }
+
+    private URI testUri(String subDomain, String url) {
+        return testWebsiteBuilder.buildTestUri(subDomain, url);
     }
 
     private TestWebsiteBuilder givenAWebsite() {

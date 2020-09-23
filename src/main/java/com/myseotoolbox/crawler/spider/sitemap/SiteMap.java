@@ -25,7 +25,7 @@ public class SiteMap {
 
     private final URI origin;
     private final PathFilter pathFilter;
-    private final List<URL> siteMapsUrls;
+    private final List<URL> siteMaps;
 
     private SiteMapParser siteMapParser = new SiteMapParser(false);
 
@@ -35,12 +35,12 @@ public class SiteMap {
 
     public SiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
         this.origin = origin;
-        this.siteMapsUrls = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
+        this.siteMaps = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
         this.pathFilter = new PathFilter(allowedPaths);
     }
 
     public List<String> fetchUris() {
-        return this.siteMapsUrls
+        return this.siteMaps
                 .stream()
                 .flatMap(url -> fetch(url).stream())
                 .filter(this::isSameDomain)
@@ -77,7 +77,7 @@ public class SiteMap {
 
     private boolean shouldFetch(URL url) {
         try {
-            return isSameDomain(url) && (this.siteMapsUrls.contains(url) || pathFilter.shouldCrawl(URI.create(url.toString()), URI.create(url.toString())));
+            return isSameDomain(url) && (this.siteMaps.contains(url) || pathFilter.shouldCrawl(URI.create(url.toString()), URI.create(url.toString())));
         } catch (IllegalArgumentException e) {
             log.warn("Unable to fetch sitemap on {}. {}", url, e.toString());
             return false;
@@ -85,7 +85,7 @@ public class SiteMap {
     }
 
     private boolean isSameDomain(String url) {
-        return isHostMatching(UriCreator.create(url), origin);
+        return isHostMatching(UriCreator.create(url), origin, false);
     }
 
     private boolean isSameDomain(URL url) {
