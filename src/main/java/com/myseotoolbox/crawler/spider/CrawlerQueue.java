@@ -23,10 +23,8 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 @ThreadSafe
 class CrawlerQueue implements Consumer<CrawlResult> {
 
-    private final Set<URI> visited = new HashSet<>();
-    private final Set<URI> inProgress = new HashSet<>();
+    private final CrawlStatus crawlStatus = new CrawlStatus();
     private final List<URI> seeds = new ArrayList<>();
-
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
     private final CrawlEventDispatch dispatch;
@@ -51,7 +49,6 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     @Override
     public void accept(CrawlResult result) {
-
         if (!result.isBlockedChain()) {
             notifyPageCrawled(result);
         } else {
@@ -69,16 +66,11 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         return links;
     }
 
-    private synchronized void onScanCompleted(CrawlResult crawlResult) {
-
+    private void onScanCompleted(CrawlResult crawlResult) {
         URI baseUri = URI.create(crawlResult.getUri());
 
         assertAbsolute(baseUri);
-        if (!inProgress.remove(baseUri))
-            throw new IllegalStateException("Completing snapshot of not in progress URI:" + baseUri + " (could be already completed or never submitted)");
-        if (!visited.add(baseUri))
-            throw new IllegalStateException("Already visited: " + baseUri);
-
+        crawlStatus.markAsCrawled(baseUri);
         enqueueDiscoveredLinks(crawlResult);
 
         if (crawlCompleted()) {
@@ -86,7 +78,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         }
     }
 
-    private synchronized void enqueueDiscoveredLinks(CrawlResult crawlResult) {
+    private void enqueueDiscoveredLinks(CrawlResult crawlResult) {
 
         if (crawlResult.isBlockedChain()) return;
 
@@ -114,10 +106,10 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     }
 
-    private synchronized void submitTasks(List<URI> seeds) {
+    private void submitTasks(List<URI> seeds) {
         List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
         if (allowedSeeds.size() > 0) {
-            inProgress.addAll(allowedSeeds);
+            crawlStatus.addToInProgress(allowedSeeds);
             allowedSeeds.stream()
                     .map(uri -> new SnapshotTask(uri, this))
                     .forEach(crawlersPool::accept);
@@ -126,7 +118,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private List<URI> calculateAllowedSeeds(List<URI> seeds) {
 
-        int totUrlEnqueued = inProgress.size() + visited.size();
+        int totUrlEnqueued = crawlStatus.getTotalEnqueued();
 
         if (totUrlEnqueued >= this.maxCrawls) {
             LoggingUtils.logWarningOnce(this, log, "Unable to enqueue more URL. Max size exceeded for " + this.queueName);
@@ -143,7 +135,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized boolean alreadyVisited(URI uri) {
-        return visited.contains(uri) || inProgress.contains(uri);
+        return crawlStatus.isAlreadyVisited(uri);
     }
 
     private static URI toAbsolute(URI sourceUri, URI uri) {
@@ -181,7 +173,6 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized boolean crawlCompleted() {
-        return inProgress.size() == 0;
+        return crawlStatus.isCrawlCompleted();
     }
 }
-

@@ -1,0 +1,47 @@
+package com.myseotoolbox.crawler.spider;
+
+import javax.annotation.concurrent.ThreadSafe;
+import java.net.URI;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+
+@ThreadSafe
+class CrawlStatus {
+    private final Set<String> visited = new HashSet<>();
+    private final Set<String> inProgress = new HashSet<>();
+
+    public synchronized void addToInProgress(List<URI> uri) {
+        inProgress.addAll(toString(uri));
+    }
+
+    public synchronized void markAsCrawled(URI uri) {
+        if (!inProgress.remove(toString(uri)))
+            throw new IllegalStateException("Completing snapshot of not in progress URI:" + uri + " (could be already completed or never submitted)");
+        if (!visited.add(toString(uri)))
+            throw new IllegalStateException("Already visited: " + uri);
+    }
+
+    public synchronized boolean isAlreadyVisited(URI uri) {
+        return visited.contains(toString(uri)) || inProgress.contains(toString(uri));
+    }
+
+    public synchronized int getTotalEnqueued() {
+        return inProgress.size() + visited.size();
+    }
+
+    public synchronized boolean isCrawlCompleted() {
+        return inProgress.size() == 0;
+    }
+
+    private String toString(URI uri) {
+        return uri.toASCIIString();
+    }
+
+    private Collection<String> toString(Collection<URI> uris) {
+        return uris.stream().map(URI::toASCIIString).collect(Collectors.toSet());
+    }
+}
