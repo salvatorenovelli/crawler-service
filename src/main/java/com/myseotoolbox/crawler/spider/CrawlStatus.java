@@ -1,5 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
+import lombok.extern.slf4j.Slf4j;
+
 import javax.annotation.concurrent.ThreadSafe;
 import java.net.URI;
 import java.util.Collection;
@@ -9,16 +11,19 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 
+@Slf4j
 @ThreadSafe
 class CrawlStatus {
     private final Set<String> visited = new HashSet<>();
     private final Set<String> inProgress = new HashSet<>();
 
-    public synchronized void addToInProgress(List<URI> uri) {
-        inProgress.addAll(toString(uri));
+    public synchronized void addToInProgress(List<URI> uris) {
+        log.debug("Adding to in progress: {}", uris);
+        inProgress.addAll(toString(uris));
     }
 
     public synchronized void markAsCrawled(URI uri) {
+        log.debug("Marking as crawled: {}", uri);
         if (!inProgress.remove(toString(uri)))
             throw new IllegalStateException("Completing snapshot of not in progress URI:" + uri + " (could be already completed or never submitted)");
         if (!visited.add(toString(uri)))

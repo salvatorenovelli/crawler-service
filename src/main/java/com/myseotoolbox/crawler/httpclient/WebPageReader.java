@@ -57,7 +57,6 @@ public class WebPageReader {
 
     }
 
-
     private boolean scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
 
         HttpResponse response = httpRequestFactory.buildGetFor(currentURI).execute();

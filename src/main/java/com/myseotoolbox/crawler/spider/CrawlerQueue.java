@@ -58,15 +58,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         onScanCompleted(result);
     }
 
-    private List<URI> discoverLinks(PageSnapshot snapshot) {
-        List<URI> links = helper.filterValidLinks(snapshot.getLinks());
-
-        if (isCanonicalizedToDifferentUri(snapshot))
-            links.addAll(helper.filterValidLinks(snapshot.getCanonicals()));
-        return links;
-    }
-
-    private void onScanCompleted(CrawlResult crawlResult) {
+    private synchronized void onScanCompleted(CrawlResult crawlResult) {
         URI baseUri = URI.create(crawlResult.getUri());
 
         assertAbsolute(baseUri);
@@ -78,7 +70,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         }
     }
 
-    private void enqueueDiscoveredLinks(CrawlResult crawlResult) {
+    private synchronized void enqueueDiscoveredLinks(CrawlResult crawlResult) {
 
         if (crawlResult.isBlockedChain()) return;
 
@@ -106,7 +98,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     }
 
-    private void submitTasks(List<URI> seeds) {
+    private synchronized void submitTasks(List<URI> seeds) {
         List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
         if (allowedSeeds.size() > 0) {
             crawlStatus.addToInProgress(allowedSeeds);
@@ -114,6 +106,14 @@ class CrawlerQueue implements Consumer<CrawlResult> {
                     .map(uri -> new SnapshotTask(uri, this))
                     .forEach(crawlersPool::accept);
         }
+    }
+
+    private List<URI> discoverLinks(PageSnapshot snapshot) {
+        List<URI> links = helper.filterValidLinks(snapshot.getLinks());
+
+        if (isCanonicalizedToDifferentUri(snapshot))
+            links.addAll(helper.filterValidLinks(snapshot.getCanonicals()));
+        return links;
     }
 
     private List<URI> calculateAllowedSeeds(List<URI> seeds) {
@@ -160,7 +160,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         if (!uri.isAbsolute()) throw new IllegalStateException("URI should be absolute or we risk to visit it twice.");
     }
 
-    private void notifyPageCrawled(CrawlResult crawlResult) {
+    private synchronized void notifyPageCrawled(CrawlResult crawlResult) {
         dispatch.pageCrawled(crawlResult);
     }
 
