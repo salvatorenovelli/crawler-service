@@ -23,8 +23,8 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 @ThreadSafe
 class CrawlerQueue implements Consumer<CrawlResult> {
 
-    private final Set<URI> visited = new HashSet<>();
-    private final Set<URI> inProgress = new HashSet<>();
+    private final Set<String> visitedUri = new HashSet<>();
+    private final Set<String> inProgressUri = new HashSet<>();
     private final List<URI> seeds = new ArrayList<>();
 
     private final CrawlersPool crawlersPool;
@@ -74,9 +74,9 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         URI baseUri = URI.create(crawlResult.getUri());
 
         assertAbsolute(baseUri);
-        if (!inProgress.remove(baseUri))
+        if (!inProgressUri.remove(toString(baseUri)))
             throw new IllegalStateException("Completing snapshot of not in progress URI:" + baseUri + " (could be already completed or never submitted)");
-        if (!visited.add(baseUri))
+        if (!visitedUri.add(toString(baseUri)))
             throw new IllegalStateException("Already visited: " + baseUri);
 
         enqueueDiscoveredLinks(crawlResult);
@@ -117,7 +117,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     private synchronized void submitTasks(List<URI> seeds) {
         List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
         if (allowedSeeds.size() > 0) {
-            inProgress.addAll(allowedSeeds);
+            inProgressUri.addAll(toString(allowedSeeds));
             allowedSeeds.stream()
                     .map(uri -> new SnapshotTask(uri, this))
                     .forEach(crawlersPool::accept);
@@ -126,7 +126,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private List<URI> calculateAllowedSeeds(List<URI> seeds) {
 
-        int totUrlEnqueued = inProgress.size() + visited.size();
+        int totUrlEnqueued = inProgressUri.size() + visitedUri.size();
 
         if (totUrlEnqueued >= this.maxCrawls) {
             LoggingUtils.logWarningOnce(this, log, "Unable to enqueue more URL. Max size exceeded for " + this.queueName);
@@ -143,7 +143,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized boolean alreadyVisited(URI uri) {
-        return visited.contains(uri) || inProgress.contains(uri);
+        return visitedUri.contains(toString(uri)) || inProgressUri.contains(toString(uri));
     }
 
     private static URI toAbsolute(URI sourceUri, URI uri) {
@@ -181,7 +181,16 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized boolean crawlCompleted() {
-        return inProgress.size() == 0;
+        return inProgressUri.size() == 0;
+    }
+
+
+    private String toString(URI uri) {
+        return uri.toASCIIString();
+    }
+
+    private Collection<String> toString(Collection<URI> uris) {
+        return uris.stream().map(URI::toASCIIString).collect(Collectors.toSet());
     }
 }
 
