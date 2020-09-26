@@ -68,7 +68,9 @@ public class WorkspaceCrawlerTest {
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
                     CrawlJobConfiguration configuration = invocation.getArgument(0);
-                    mockJobs.add(Tuple.of(configuration, mock));
+                    synchronized (this) {
+                        mockJobs.add(Tuple.of(configuration, mock));
+                    }
                     return mock;
                 }
         );
@@ -317,7 +319,8 @@ public class WorkspaceCrawlerTest {
     public void shouldNotStartMoreCrawlsThanAllowed() throws InterruptedException {
         ConcurrentCrawlsSemaphore semaphore = new ConcurrentCrawlsSemaphore(MAX_CONCURRENT_CRAWLS);
 
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, Executors.newFixedThreadPool(MAX_CONCURRENT_CRAWLS * 2), semaphore);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory,
+                robotsAggregation, Executors.newFixedThreadPool(MAX_CONCURRENT_CRAWLS * 2), semaphore);
 
 
         for (int i = 0; i < MAX_CONCURRENT_CRAWLS * 2; i++) {
@@ -339,7 +342,7 @@ public class WorkspaceCrawlerTest {
         crawlStartedForOriginWithSeeds(addTrailingSlashIfMissing(origin), singletonList(origin));
     }
 
-    private void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
+    private synchronized void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
         List<URI> expectedSeeds = seeds.stream().map(URI::create).collect(toList());
 
         try {
@@ -356,7 +359,7 @@ public class WorkspaceCrawlerTest {
         }
     }
 
-    private void verifyNoMoreCrawls() {
+    private synchronized void verifyNoMoreCrawls() {
         try {
             verifyNoMoreInteractions(crawlJobFactory);
             mockJobs.stream().map(Tuple2::_2).forEach(Mockito::verifyNoMoreInteractions);
