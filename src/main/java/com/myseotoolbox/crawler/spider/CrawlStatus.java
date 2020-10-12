@@ -24,8 +24,9 @@ class CrawlStatus {
 
     public synchronized void markAsCrawled(URI uri) {
         log.debug("Marking as crawled: {}", uri);
-        if (!inProgress.remove(toString(uri)))
-            throw new IllegalStateException("Completing snapshot of not in progress URI:" + uri + " (could be already completed or never submitted)");
+        if (!inProgress.remove(toString(uri))) {
+            throw new IllegalStateException("Completing snapshot of not in progress URI: '" + uri + "' Visited: " + visited.contains(toString(uri)));
+        }
         if (!visited.add(toString(uri)))
             throw new IllegalStateException("Already visited: " + uri);
     }
@@ -47,6 +48,6 @@ class CrawlStatus {
     }
 
     private Collection<String> toString(Collection<URI> uris) {
-        return uris.stream().map(URI::toASCIIString).collect(Collectors.toSet());
+        return uris.stream().map(this::toString).collect(Collectors.toSet());
     }
 }

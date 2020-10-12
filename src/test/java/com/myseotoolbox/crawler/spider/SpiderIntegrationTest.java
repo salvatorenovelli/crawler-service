@@ -63,7 +63,7 @@ public class SpiderIntegrationTest {
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
     @MockBean PubSubEventDispatch eventDispatch;
-    @Mock private SitemapReader sitemapReader;
+    private final SitemapReader sitemapReader = new SitemapReader();
     @Autowired CrawlEventDispatchFactory factory;
     @Autowired MonitoredUriRepository monitoredUriRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
@@ -101,6 +101,34 @@ public class SpiderIntegrationTest {
 
         verify(dispatchSpy, atMost(3)).pageCrawled(any());
 
+    }
+
+    @Test
+    public void urlsWithFragmentsShouldBeNormalized() {
+        givenAWebsite()
+                .havingPage("/").withLinksTo("/another-page", "/another-page#reviews")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/another-page"));
+        verify(dispatchSpy, atMost(2)).pageCrawled(any());
+    }
+
+    @Test
+    public void sitemapUrlsWithFragmentShouldBeNormalized() {
+        givenAWebsite()
+                .withSitemapOn("/").havingUrls("/another-page", "/another-page#reviews").and()
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/another-page"));
+        verify(dispatchSpy, atMost(2)).pageCrawled(any());
     }
 
     @Test

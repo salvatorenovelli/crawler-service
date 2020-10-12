@@ -40,7 +40,12 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         this.uriFilter = filter;
         this.maxCrawls = maxCrawls;
         this.dispatch = dispatch;
-        this.seeds.addAll(seeds.stream().distinct().collect(Collectors.toList()));
+        List<URI> validSeeds = helper
+                .filterValidLinks(seeds.stream().map(URI::toString).collect(Collectors.toList()))
+                .stream()
+                .distinct()
+                .collect(Collectors.toList());
+        this.seeds.addAll(validSeeds);
     }
 
     public synchronized void start() {
