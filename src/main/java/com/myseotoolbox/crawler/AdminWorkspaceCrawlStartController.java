@@ -12,7 +12,10 @@ import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,13 +84,24 @@ public class AdminWorkspaceCrawlStartController {
                 .withConcurrentConnections(numConnections)
                 .withSeeds(seeds);
 
-        if (ignoreRobots) {
-            builder.withRobotsTxt(EmptyRobotsTxt.instance());
-        } else {
-            builder.withDefaultRobotsTxt(client);
-        }
+        RobotsTxt robotsTxt = buildRobotsTxt(origin, ignoreRobots);
+
+        builder.withRobotsTxt(robotsTxt);
 
         return builder.build();
+    }
+
+    private RobotsTxt buildRobotsTxt(URI origin, boolean ignoreRobots) {
+        try {
+            String content = client.get(origin.resolve("/robots.txt"));
+            if (ignoreRobots) {
+                return new IgnoredRobotsTxt(origin.toString(), content.getBytes());
+            } else {
+                return new DefaultRobotsTxt(origin.toString(), content.getBytes());
+            }
+        } catch (IOException e) {
+            return new EmptyRobotsTxt(origin);
+        }
     }
 
 

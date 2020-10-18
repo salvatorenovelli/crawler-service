@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,19 +28,18 @@ public class RobotsTxtAggregation {
 
 
     public RobotsTxt mergeConfigurations(Collection<Workspace> workspaces) {
+        Workspace workspace0 = new ArrayList<>(workspaces).get(0);
+        URI origin = WebsiteOriginUtils.extractOrigin(URI.create(workspace0.getWebsiteUrl()));
+
         try {
-            Workspace workspace0 = new ArrayList<>(workspaces).get(0);
-
-            if (anyWorkspaceIgnoreRobots(workspaces))
-                return EmptyRobotsTxt.instance();
-
-
-            URI origin = WebsiteOriginUtils.extractOrigin(URI.create(workspace0.getWebsiteUrl()));
             String content = httpClient.get(origin.resolve("/robots.txt"));
+            if (anyWorkspaceIgnoreRobots(workspaces))
+                return new IgnoredRobotsTxt(origin.toString(), content.getBytes());
+
             return new DefaultRobotsTxt(origin.toString(), content.getBytes());
         } catch (IOException e) {
-            log.warn("Unable to build RobotsTxt for {}. {}", workspaces, e.toString());
-            return EmptyRobotsTxt.instance();
+            log.info("Unable to fetch RobotsTxt for {}. {}", workspaces, e.toString());
+            return new EmptyRobotsTxt(origin);
         }
     }
 

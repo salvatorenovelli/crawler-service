@@ -118,6 +118,20 @@ public class SpiderIntegrationTest {
     }
 
     @Test
+    public void websiteWithoutRobotsCanHaveSitemap() {
+        givenAWebsite()
+                .withSitemapOn("/").havingUrls("/link1", "/link2").build()
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(dispatchSpy).pageCrawled(uri("/"));
+        verify(dispatchSpy).pageCrawled(uri("/link1"));
+        verify(dispatchSpy).pageCrawled(uri("/link2"));
+    }
+
+    @Test
     public void sitemapUrlsWithFragmentShouldBeNormalized() {
         givenAWebsite()
                 .withSitemapOn("/").havingUrls("/another-page", "/another-page#reviews").and()

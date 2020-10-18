@@ -5,17 +5,20 @@ import java.util.Collections;
 import java.util.List;
 
 public class EmptyRobotsTxt implements RobotsTxt {
-    private static final RobotsTxt INSTANCE = new EmptyRobotsTxt();
 
-    private EmptyRobotsTxt() {}
+    private final List<String> sitemaps;
 
-    public static RobotsTxt instance() {
-        return INSTANCE;
+    public EmptyRobotsTxt(URI websiteOrigin) {
+        if (websiteOrigin == null) {
+            sitemaps = Collections.emptyList();
+        } else {
+            sitemaps = Collections.singletonList(websiteOrigin.resolve("/sitemap.xml").toString());
+        }
     }
 
     @Override
     public List<String> getSitemaps() {
-        return Collections.emptyList();
+        return sitemaps;
     }
 
     @Override

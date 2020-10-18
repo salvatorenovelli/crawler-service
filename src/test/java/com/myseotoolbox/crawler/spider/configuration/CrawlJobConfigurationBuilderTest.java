@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
+import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import org.junit.Test;
@@ -8,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.io.IOException;
 import java.net.URI;
 
 import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
@@ -20,7 +22,7 @@ import static org.mockito.Mockito.when;
 public class CrawlJobConfigurationBuilderTest {
 
 
-    private RobotsTxt provided = EmptyRobotsTxt.instance();
+    private RobotsTxt provided = new EmptyRobotsTxt(null);
 
     private static final URI TEST_ORIGIN = URI.create("http://testhost");
     private CrawlJobConfiguration.Builder sut = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withRobotsTxt(provided);
@@ -42,9 +44,14 @@ public class CrawlJobConfigurationBuilderTest {
     @Test
     public void shouldFetchRobotsTxtIfDefaultIsRequired() throws Exception {
         when(httpClient.get(any())).thenReturn("User-agent: *\n" + "Disallow: /disabled\n");
-        CrawlJobConfiguration conf = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withDefaultRobotsTxt(httpClient).build();
+        CrawlJobConfiguration conf = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withRobotsTxt(getDefault(TEST_ORIGIN)).build();
         assertThat(conf.getRobotsTxt().shouldCrawl(null, TEST_ORIGIN.resolve("/disabled")), is(false));
         assertThat(conf.getRobotsTxt().shouldCrawl(null, TEST_ORIGIN.resolve("/something")), is(true));
+    }
+
+    public RobotsTxt getDefault(URI origin) throws IOException {
+        String s = httpClient.get(origin.resolve("/robots.txt"));
+        return new DefaultRobotsTxt(origin.toString(), s.getBytes());
     }
 
     @Test(expected = IllegalArgumentException.class)

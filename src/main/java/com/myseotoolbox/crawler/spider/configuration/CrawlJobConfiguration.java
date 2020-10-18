@@ -18,7 +18,8 @@ import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.*;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 
-@Getter@ToString
+@Getter
+@ToString
 public class CrawlJobConfiguration {
 
 
@@ -89,13 +90,6 @@ public class CrawlJobConfiguration {
             return new CrawlJobConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit, robotsTxt);
         }
 
-        public Builder withDefaultRobotsTxt(HTTPClient httpClient) throws IOException {
-
-            String s = httpClient.get(origin.resolve("/robots.txt"));
-            this.robotsTxt = new DefaultRobotsTxt(origin.toString(), s.getBytes());
-
-            return this;
-        }
     }
 
 }

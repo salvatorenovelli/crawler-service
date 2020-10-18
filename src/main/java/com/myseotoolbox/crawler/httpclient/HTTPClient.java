@@ -7,7 +7,9 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -20,6 +22,9 @@ public class HTTPClient {
         try (CloseableHttpClient httpclient = HttpClients.createDefault()) {
             HttpGet httpget = new HttpGet(uri);
             CloseableHttpResponse response = httpclient.execute(httpget);
+            if (response.getStatusLine().getStatusCode() != 200) {
+                throw new IOException(new ResponseStatusException(HttpStatus.resolve(response.getStatusLine().getStatusCode())));
+            }
             final HttpEntity entity = response.getEntity();
             return IOUtils.toString(entity.getContent(), Charsets.UTF_8);
         }

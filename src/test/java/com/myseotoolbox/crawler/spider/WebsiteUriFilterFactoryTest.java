@@ -33,7 +33,7 @@ public class WebsiteUriFilterFactoryTest {
 
         URI origin = URI.create("http://testhost/subpath/");
         URI allowed = origin.resolve("/allowed/");
-        UriFilter build = sut.build(origin, extractAllowedPathFromSeeds(Collections.singletonList(allowed)), EmptyRobotsTxt.instance());
+        UriFilter build = sut.build(origin, extractAllowedPathFromSeeds(Collections.singletonList(allowed)), new EmptyRobotsTxt(null));
 
         assertTrue(build.shouldCrawl(allowed, origin.resolve("/salve")));
         assertFalse(build.shouldCrawl(origin.resolve("/outside"), origin.resolve("/salve1")));
@@ -43,7 +43,7 @@ public class WebsiteUriFilterFactoryTest {
     public void shouldNotCrawlOtherDomains() {
         URI origin = URI.create("http://testhost/subpath/");
         URI allowed = origin.resolve("/allowed");
-        UriFilter build = sut.build(origin, extractAllowedPathFromSeeds(Collections.singletonList(allowed)), EmptyRobotsTxt.instance());
+        UriFilter build = sut.build(origin, extractAllowedPathFromSeeds(Collections.singletonList(allowed)), new EmptyRobotsTxt(null));
 
         assertFalse(build.shouldCrawl(allowed, URI.create("http://another-host").resolve("/allowed")));
     }

@@ -146,7 +146,7 @@ public class CrawlerQueueTest {
             sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1/dst"))));
         } catch (IllegalStateException e) {
             //success!!
-            assertThat(e.getMessage(), containsString("never submitted"));
+            assertThat(e.getMessage(), containsString("Completing snapshot of not in progress URI: 'http://host1/dst' Visited: false"));
             return;
         }
 
@@ -162,7 +162,7 @@ public class CrawlerQueueTest {
             sut.accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(("http://host1"))));
         } catch (IllegalStateException e) {
             //success!!
-            assertThat(e.getMessage(), containsString("already completed"));
+            assertThat(e.getMessage(), containsString("Completing snapshot of not in progress URI: 'http://host1' Visited: true"));
             return;
         }
 

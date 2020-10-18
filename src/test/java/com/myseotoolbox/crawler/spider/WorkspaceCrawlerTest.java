@@ -76,7 +76,7 @@ public class WorkspaceCrawlerTest {
         );
 
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
-        when(robotsAggregation.mergeConfigurations(any())).thenReturn(EmptyRobotsTxt.instance());
+        when(robotsAggregation.mergeConfigurations(any())).thenReturn(new EmptyRobotsTxt(null));
     }
 
     @Test
