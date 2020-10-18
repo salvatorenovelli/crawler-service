@@ -3,36 +3,39 @@ package com.myseotoolbox.crawler.testutils.testwebsite;
 import org.apache.commons.codec.Charsets;
 import org.apache.commons.io.IOUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class RobotsTxtBuilder {
+public class TestRobotsTxtBuilder {
     private final TestWebsiteBuilder parent;
     private final Consumer<String> contentConsumer;
     private String currentUserAgent = "*";
     private Map<String, List<String>> rules = new HashMap<>();
+    private List<String> sitemaps = new ArrayList<>();
 
-    public RobotsTxtBuilder(TestWebsiteBuilder parent) {
+    public TestRobotsTxtBuilder(TestWebsiteBuilder parent) {
         this.parent = parent;
         this.contentConsumer = null;
     }
 
-    public RobotsTxtBuilder(Consumer<String> contentConsumer) {
+    public TestRobotsTxtBuilder(Consumer<String> contentConsumer) {
         this.contentConsumer = contentConsumer;
         this.parent = null;
     }
 
-    public RobotsTxtBuilder userAgent(String userAgent) {
+    public TestRobotsTxtBuilder userAgent(String userAgent) {
         this.currentUserAgent = userAgent;
         return this;
     }
 
-    public RobotsTxtBuilder disallow(String path) {
+    public TestRobotsTxtBuilder disallow(String path) {
         this.rules.computeIfAbsent(currentUserAgent, s -> new ArrayList<>()).add("Disallow: " + path);
+        return this;
+    }
+
+    public TestRobotsTxtBuilder reportingSitemapOn(String ...locations) {
+        this.sitemaps.addAll(Arrays.asList(locations));
         return this;
     }
 
@@ -47,14 +50,19 @@ public class RobotsTxtBuilder {
 
 
     public String render() {
-        return rules.entrySet().stream().map(stringListEntry -> {
+        String rulesTxt = rules.entrySet().stream().map(stringListEntry -> {
             String userAgent = "User-agent: " + stringListEntry.getKey() + "\n";
             String rules = stringListEntry.getValue().stream().map(s -> s + "\n").collect(Collectors.joining());
             return userAgent + rules;
         }).collect(Collectors.joining());
+
+        String sitemapsTxt = sitemaps.stream().map(s -> "Sitemap: " + s).collect(Collectors.joining("\n"));
+
+
+        return rulesTxt + "\n" + sitemapsTxt;
     }
 
-    public RobotsTxtBuilder and() {
+    public TestRobotsTxtBuilder and() {
         return this;
     }
 }

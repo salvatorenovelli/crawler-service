@@ -11,8 +11,8 @@ import java.io.IOException;
 import java.net.URI;
 
 import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_NAME;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.*;
 
 public class DefaultRobotsTxtTest {
 
@@ -74,6 +74,17 @@ public class DefaultRobotsTxtTest {
 
         DefaultRobotsTxt sut = buildSut();
         assertFalse(sut.shouldCrawl(null, testUri("/order")));
+    }
+
+    @Test
+    public void shouldServeSitemaps() throws IOException {
+        givenAWebsite()
+                .withRobotsTxt()
+                .reportingSitemapOn("http://host/non-standard-sitemap0.xml", "http://host/non-standard-sitemap1.xml").build();
+
+        DefaultRobotsTxt sut = buildSut();
+
+        assertThat(sut.getSitemaps(), containsInAnyOrder("http://host/non-standard-sitemap0.xml", "http://host/non-standard-sitemap1.xml"));
     }
 
     private URI testUri(String url) {

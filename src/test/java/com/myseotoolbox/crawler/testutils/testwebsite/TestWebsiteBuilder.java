@@ -149,8 +149,8 @@ public class TestWebsiteBuilder {
         return this;
     }
 
-    public RobotsTxtBuilder withRobotsTxt() {
-        return new RobotsTxtBuilder(this);
+    public TestRobotsTxtBuilder withRobotsTxt() {
+        return new TestRobotsTxtBuilder(this);
     }
 
     public TestWebsiteBuilder withRobotsTxt(InputStream stream) {
