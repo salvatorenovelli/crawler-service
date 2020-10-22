@@ -86,6 +86,12 @@ public class SpiderIntegrationTest {
     }
 
     @Test
+    public void name() {
+        CrawlJob job = buildForSeeds(Collections.singletonList(URI.create("https://www.197designstore.com")));
+        job.start();
+    }
+
+    @Test
     public void basicLinkFollowing() {
 
         givenAWebsite()
