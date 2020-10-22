@@ -89,6 +89,28 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     @Test
+    public void shouldPersistParameters() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://domain/index?param=true", "http://domain/index?param=false","http://domain/index");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/index?param=true", "/index?param=false","/index"));
+        });
+    }
+
+    @Test
+    public void shouldPersistParametersForExternalDomains() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://externaldomain/index.php?param=true", "http://externaldomain/index.php?param=false");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://externaldomain/index.php?param=true", "http://externaldomain/index.php?param=false"));
+        });
+    }
+
+    @Test
     public void shouldDedupPagesWithFragments() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://host/hello", "http://host/hello#fragment");
 

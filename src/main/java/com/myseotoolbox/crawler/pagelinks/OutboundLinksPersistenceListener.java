@@ -28,7 +28,6 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
     @Override
     public void accept(CrawlResult crawlResult) {
-
         HashMap<LinkType, List<String>> linkTypeListHashMap = new HashMap<>();
         linkTypeListHashMap.put(LinkType.AHREF, getLinks(crawlResult));
 
@@ -39,7 +38,6 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
         List<String> links = crawlResult.getPageSnapshot().getLinks();
         if (links == null || links.isEmpty()) return Collections.emptyList();
         return links.stream()
-                .map(this::removeFragment)
                 .map(PageLinksHelper::toValidUri)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -53,12 +51,12 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
         try {
 
-            URI pageUrlUri = UriCreator.create(pageUrl);
+            URI pageUri = UriCreator.create(pageUrl);
 
             if (isRelativeUrl(linkUri) || hostMatches(linkUri)) {
-                URI resolved = pageUrlUri.resolve(linkUri);
-                if (hostMatches(pageUrlUri)) {
-                    return resolved.getRawPath();
+                URI resolved = pageUri.resolve(linkUri);
+                if (hostMatches(pageUri)) {
+                    return resolved.getRawPath() + getRawQuery(resolved)+ getRawFragment(resolved);
                 } else {
                     return resolved.toString();
                 }
@@ -69,6 +67,21 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
         }
 
         return linkUri.toString();
+    }
+
+    private String getRawQuery(URI resolved) {
+        String rawQuery = resolved.getRawQuery();
+        if (isInvalid(rawQuery)) return "";
+        return "?" + rawQuery;
+    }
+    private String getRawFragment(URI resolved) {
+        String rawFragment = resolved.getRawFragment();
+        if (isInvalid(rawFragment)) return "";
+        return "#" + rawFragment;
+    }
+
+    private boolean isInvalid(String value) {
+        return value==null || value.isEmpty();
     }
 
     private boolean isRelativeUrl(URI linkUri) {
@@ -83,9 +96,4 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
         return Objects.equals(origin.getScheme(), linkUri.getScheme());
     }
 
-    private String removeFragment(String url) {
-        if (url.equals("#")) return "" ;
-        if (!url.contains("#")) return url;
-        return url.split("#")[0];
-    }
 }
