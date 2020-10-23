@@ -29,19 +29,32 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
     @Override
     public void accept(CrawlResult crawlResult) {
         HashMap<LinkType, List<String>> linkTypeListHashMap = new HashMap<>();
-        linkTypeListHashMap.put(LinkType.AHREF, getLinks(crawlResult));
+        String destUri = getDestinationUriString(crawlResult.getPageSnapshot());
+
+        linkTypeListHashMap.put(LinkType.AHREF, getLinks(crawlResult, destUri));
+        linkTypeListHashMap.put(LinkType.CANONICAL, getCanonicals(crawlResult, destUri));
 
         repository.save(new OutboundLinks(null, crawlId, crawlResult.getUri(), LocalDateTime.now(), URI.create(crawlResult.getUri()).getHost(), linkTypeListHashMap));
     }
 
-    private List<String> getLinks(CrawlResult crawlResult) {
+    private List<String> getCanonicals(CrawlResult crawlResult, String destUri) {
+        List<String> canonicals = crawlResult.getPageSnapshot().getCanonicals();
+        if (canonicals == null || canonicals.isEmpty()) return Collections.emptyList();
+        return normalize(destUri, canonicals);
+    }
+
+    private List<String> getLinks(CrawlResult crawlResult, String destUri) {
         List<String> links = crawlResult.getPageSnapshot().getLinks();
         if (links == null || links.isEmpty()) return Collections.emptyList();
+        return normalize(destUri, links);
+    }
+
+    private List<String> normalize(String destUri, List<String> links) {
         return links.stream()
                 .map(PageLinksHelper::toValidUri)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
-                .map(link -> relativize(getDestinationUriString(crawlResult.getPageSnapshot()), link))
+                .map(link -> relativize(destUri, link))
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
@@ -56,7 +69,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
             if (isRelativeUrl(linkUri) || hostMatches(linkUri)) {
                 URI resolved = pageUri.resolve(linkUri);
                 if (hostMatches(pageUri)) {
-                    return resolved.getRawPath() + getRawQuery(resolved)+ getRawFragment(resolved);
+                    return resolved.getRawPath() + getRawQuery(resolved) + getRawFragment(resolved);
                 } else {
                     return resolved.toString();
                 }
@@ -74,6 +87,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
         if (isInvalid(rawQuery)) return "";
         return "?" + rawQuery;
     }
+
     private String getRawFragment(URI resolved) {
         String rawFragment = resolved.getRawFragment();
         if (isInvalid(rawFragment)) return "";
@@ -81,7 +95,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
     }
 
     private boolean isInvalid(String value) {
-        return value==null || value.isEmpty();
+        return value == null || value.isEmpty();
     }
 
     private boolean isRelativeUrl(URI linkUri) {

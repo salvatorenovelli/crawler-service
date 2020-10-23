@@ -90,12 +90,12 @@ public class OutboundLinksPersistenceListenerTest {
 
     @Test
     public void shouldPersistParameters() {
-        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://domain/index?param=true", "http://domain/index?param=false","http://domain/index");
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://domain/index?param=true", "http://domain/index?param=false", "http://domain/index");
 
         sut.accept(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
-            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/index?param=true", "/index?param=false","/index"));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/index?param=true", "/index?param=false", "/index"));
         });
     }
 
@@ -107,6 +107,29 @@ public class OutboundLinksPersistenceListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://externaldomain/index.php?param=true", "http://externaldomain/index.php?param=false"));
+        });
+    }
+
+
+    @Test
+    public void shouldNotMergeLeadingSlashWithNon() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://domain/index", "http://domain/index/");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/index", "/index/"));
+        });
+    }
+
+    @Test
+    public void shouldPersistCanonicals() {
+        CrawlResult crawlResult = givenCrawlResultForPageWithCanonicals("http://domain/it/canonical1", "http://domain/it/canonical2");
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.CANONICAL), containsInAnyOrder("/it/canonical1", "/it/canonical2"));
         });
     }
 
@@ -331,6 +354,13 @@ public class OutboundLinksPersistenceListenerTest {
             return true;
         }));
     }
+
+    private CrawlResult givenCrawlResultForPageWithCanonicals(String... canonicals) {
+        return CrawlResult.forSnapshot(aTestPageSnapshotForUri(TEST_ORIGIN)
+                .withRedirectChainElements(new RedirectChainElement(TEST_ORIGIN, 200, TEST_ORIGIN))
+                .withCanonicals(canonicals).build());
+    }
+
 
     private CrawlResult givenCrawlResultForPageWithLinks(String... links) {
         return givenCrawlResultForUrlWithPageWithLinks(TEST_ORIGIN, links);
