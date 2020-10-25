@@ -105,6 +105,21 @@ public class WorkspaceCrawlerIntegrationTest {
 
 
     @Test
+    public void shouldNotCrawlNoFollow() {
+        givenAWorkspace().withWebsiteUrl(testUri("/").toString()).build();
+        givenAWebsite()
+                .havingRootPage()
+                .withLinksTo("/page1")
+                .withNoFollowLinksTo("/page2").save();
+
+        sut.crawlAllWorkspaces();
+
+        verify(dispatch).pageCrawled(crawlResultFor("/"));
+        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
+        verify(dispatch, atMost(2)).pageCrawled(any());
+    }
+
+    @Test
     public void shouldDisableRobotsTxt() {
 
         givenAWorkspace().withWebsiteUrl(testUri("/").toString())

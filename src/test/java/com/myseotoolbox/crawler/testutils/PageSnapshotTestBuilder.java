@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.testutils;
 
 
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 
@@ -11,15 +12,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.StandardMetaTagValues.*;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
+import static java.util.Collections.*;
 
 public class PageSnapshotTestBuilder {
     private PageSnapshot cur = new PageSnapshot();
 
     public PageSnapshotTestBuilder(String uri) {
         cur.setUri(uri);
-        cur.setRedirectChainElements(buildRedirectChainElementsFor(uri,200));
+        cur.setRedirectChainElements(buildRedirectChainElementsFor(uri, 200));
         cur.setCreateDate(new Date());
     }
 
@@ -95,8 +95,13 @@ public class PageSnapshotTestBuilder {
         return this;
     }
 
-    public PageSnapshotTestBuilder withLinks(String ...links) {
+    public PageSnapshotTestBuilder withLinks(PageLink... links) {
         cur.setLinks(Arrays.asList(links));
+        return this;
+    }
+
+    public PageSnapshotTestBuilder withLinks(String... links) {
+        cur.setLinks(Arrays.stream(links).map(s -> new PageLink(s, emptyMap())).collect(Collectors.toList()));
         return this;
     }
 

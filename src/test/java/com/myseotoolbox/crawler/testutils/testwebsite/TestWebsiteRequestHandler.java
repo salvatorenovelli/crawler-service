@@ -16,6 +16,7 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.utils.IsRedirect.isRedirect;
 
@@ -88,10 +89,13 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
         sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
 
-        if (siteMap.isSiteMapIndex()) {
-            renderSitemapIndex(sb, siteMap);
-        } else {
-            renderSitemap(sb, siteMap);
+        if (siteMap != null) {
+
+            if (siteMap.isSiteMapIndex()) {
+                renderSitemapIndex(sb, siteMap);
+            } else {
+                renderSitemap(sb, siteMap);
+            }
         }
 
 
@@ -196,8 +200,10 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
     }
 
     private void addLinks(StringBuffer sb, Page page) {
-        for (String href : page.getLinks()) {
-            sb.append("        <a href='").append(href).append("'").append(">link</a>");
+        for (Link link : page.getLinks()) {
+            sb.append("        <a href='").append(link.getUrl()).append("'")
+                    .append(" ").append(link.getAttributes()).append(" ")
+                    .append(">link</a>");
         }
     }
 

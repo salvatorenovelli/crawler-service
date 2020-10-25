@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.google.common.escape.Escaper;
 import com.google.common.net.UrlEscapers;
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.utils.RemoveUrlFragment;
 import com.myseotoolbox.crawler.utils.UrlDecoder;
 import lombok.extern.slf4j.Slf4j;
@@ -11,9 +12,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,22 +25,45 @@ public class PageLinksHelper {
     public static final int MAX_URL_LEN = 1000;
     private static final Escaper ESCAPER = UrlEscapers.urlFragmentEscaper();
 
-    public List<URI> filterValidLinks(List<String> links) {
+    public static List<PageLink> filterFollowablePageLinks(List<PageLink> links) {
+        return links.stream().filter(PageLinksHelper::isFollowable).collect(Collectors.toList());
+    }
+
+    public static List<URI> filterValidPageLinks(List<PageLink> links) {
+
+        if (links == null) return Collections.emptyList();
+
+        List<String> followableLinks = links.stream()
+                .filter(PageLinksHelper::isFollowable)
+                .map(PageLink::getDestination)
+                .collect(Collectors.toList());
+
+        return filterValidUrls(followableLinks);
+    }
+
+    public static List<URI> filterValidUrls(List<String> urls) {
         List<URI> filtered = new ArrayList<>();
 
-        if (links != null) {
-            filtered = links
+        if (urls != null) {
+            filtered = urls
                     .stream()
                     .map(PageLinksHelper::toValidUri)
-                    .flatMap(this::stream)
+                    .flatMap(PageLinksHelper::stream)
                     .collect(Collectors.toList());
         }
 
         return filtered;
     }
 
-    private <T> Stream<T> stream(Optional<T> opt) {
+    private static <T> Stream<T> stream(Optional<T> opt) {
         return opt.map(Stream::of).orElseGet(Stream::empty);
+    }
+
+    private static boolean isFollowable(PageLink pageLink) {
+        Map<String, String> attributes = pageLink.getAttributes();
+        if (attributes != null && "nofollow".equals(attributes.get("rel"))) return false;
+
+        return true;
     }
 
     public static Optional<URI> toValidUri(String str) {
@@ -60,7 +82,7 @@ public class PageLinksHelper {
             URI uri = new URI(transCoded);
             if (isEmptyLink(uri)) return Optional.empty();
 
-            return Optional.ofNullable(uri);
+            return Optional.of(uri);
         } catch (URISyntaxException e) {
             log.debug("Invalid link: '{}'. {}", str, e.getMessage());
             return Optional.empty();
@@ -68,7 +90,6 @@ public class PageLinksHelper {
 
 
     }
-
 
     private static boolean isEmptyLink(@Nullable URI uri) {
         if (uri == null) return false;

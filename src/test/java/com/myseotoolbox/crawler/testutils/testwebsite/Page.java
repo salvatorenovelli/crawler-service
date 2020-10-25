@@ -1,11 +1,14 @@
 package com.myseotoolbox.crawler.testutils.testwebsite;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Getter
@@ -18,7 +21,7 @@ class Page {
     private Map<String, List<String>> tags = new HashMap<>();
     private String redirectUri;
     private String mimeType = "text/html";
-    private List<String> links = new ArrayList<>();
+    private List<Link> links = new ArrayList<>();
     private boolean charsetFieldPresent;
 
 
@@ -32,8 +35,8 @@ class Page {
         this.redirectUri = dstUri;
     }
 
-    public void addLinks(String... links) {
-        this.links.addAll(Arrays.asList(links));
+    public void addLinks(List<String> links, String linkAttributes) {
+        this.links.addAll(links.stream().map(s -> new Link(s, linkAttributes)).collect(Collectors.toList()));
     }
 
     public void addTag(String tagName, String content) {
@@ -41,4 +44,13 @@ class Page {
                 .computeIfAbsent(tagName, k -> new ArrayList<>())
                 .add(content);
     }
+
+}
+
+
+@RequiredArgsConstructor
+@Getter
+class Link {
+    private final String url;
+    private final String attributes;
 }

@@ -11,8 +11,6 @@ import java.util.Set;
 @NoArgsConstructor
 @Data
 public class Workspace {
-
-
     @Id private String id;
     private Integer seqNumber;
     private String name;
@@ -21,9 +19,6 @@ public class Workspace {
 
     private String countryCode;
     private String websiteUrl;
-    private AnalyticsSettings analyticsSettings;
     private CrawlerSettings crawlerSettings;
-
-
 }
 

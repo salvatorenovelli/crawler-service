@@ -1,9 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.model.CrawlResult;
-import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.model.RedirectChain;
-import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.model.*;
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;
@@ -12,7 +10,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.lang.management.ManagementFactory;
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +18,8 @@ import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
@@ -58,7 +57,6 @@ public class CrawlerQueueTest {
         verify(pool).accept(taskForUri("http://host1"));
     }
 
-
     @Test
     public void shouldNotVisitTheSameUrlTwice() {
         whenCrawling("http://host1").discover("http://host1");
@@ -71,6 +69,14 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").discover("http://host1/dst");
         sut.start();
         verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+    }
+
+    @Test
+    public void shouldNotVisitNoFollow() {
+        whenCrawling("http://host1").discover(Collections.singletonList(new PageLink("http://host1/dst", singletonMap("rel", "nofollow"))));
+        sut.start();
+        verify(pool).accept(taskForUri("http://host1"));
+        verify(pool,atMost(1)).accept(any());
     }
 
     @Test
@@ -534,11 +540,15 @@ public class CrawlerQueueTest {
         }
 
         void discover(String... discoveredUris) {
+            discover(Arrays.stream(discoveredUris).map(s -> new PageLink(s, emptyMap())).collect(Collectors.toList()));
+        }
+
+        void discover(List<PageLink> links) {
             doAnswer(invocation -> {
                 SnapshotTask task = invocation.getArgument(0);
                 String sourceUri = task.getUri().toString();
                 PageSnapshot t = aPageSnapshotWithStandardValuesForUri(sourceUri);
-                t.setLinks(Arrays.asList(discoveredUris));
+                t.setLinks(links);
                 if (redirectUrl != null) {
                     t.setRedirectChainElements(Arrays.asList(
                             new RedirectChainElement(sourceUri, 301, this.redirectUrl),

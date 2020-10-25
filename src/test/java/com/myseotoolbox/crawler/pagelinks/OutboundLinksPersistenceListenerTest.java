@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -130,6 +131,22 @@ public class OutboundLinksPersistenceListenerTest {
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.CANONICAL), containsInAnyOrder("/it/canonical1", "/it/canonical2"));
+        });
+    }
+
+    @Test
+    public void shouldNotPersistNoFollow() {
+
+        PageLink notFollowable = new PageLink("/notFollowable", singletonMap("rel", "nofollow"));
+        PageLink followable = new PageLink("/followable", singletonMap("rel", "nex"));
+
+        CrawlResult crawlResult = givenCrawlResultForPageWithNoFollowLinks(notFollowable, followable);
+
+        sut.accept(crawlResult);
+
+        verifySavedLinks(outboundLinks -> {
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), hasSize(1));
+            assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF).get(0), is("/followable"));
         });
     }
 
@@ -361,6 +378,14 @@ public class OutboundLinksPersistenceListenerTest {
                 .withCanonicals(canonicals).build());
     }
 
+    private CrawlResult givenCrawlResultForPageWithNoFollowLinks(PageLink... links) {
+        return CrawlResult.forSnapshot(
+                aTestPageSnapshotForUri(TEST_ORIGIN)
+                        .withRedirectChainElements(new RedirectChainElement(TEST_ORIGIN, 200, TEST_ORIGIN))
+                        .withLinks(links)
+                        .build()
+        );
+    }
 
     private CrawlResult givenCrawlResultForPageWithLinks(String... links) {
         return givenCrawlResultForUrlWithPageWithLinks(TEST_ORIGIN, links);

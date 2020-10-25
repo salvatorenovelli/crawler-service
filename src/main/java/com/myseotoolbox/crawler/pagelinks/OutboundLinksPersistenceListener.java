@@ -44,9 +44,10 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
     }
 
     private List<String> getLinks(CrawlResult crawlResult, String destUri) {
-        List<String> links = crawlResult.getPageSnapshot().getLinks();
+        List<PageLink> links = crawlResult.getPageSnapshot().getLinks();
         if (links == null || links.isEmpty()) return Collections.emptyList();
-        return normalize(destUri, links);
+        List<PageLink> followableLinks = PageLinksHelper.filterFollowablePageLinks(links);
+        return normalize(destUri, PageLinkMapper.toLinkUrls(followableLinks));
     }
 
     private List<String> normalize(String destUri, List<String> links) {

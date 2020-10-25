@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.model;
 
 
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -35,7 +36,7 @@ public class PageSnapshot {
     private List<String> metaDescriptions;
     private List<String> canonicals;
 
-    @Transient private List<String> links;
+    @Transient private List<PageLink> links;
 
     private String crawlStatus;
 

@@ -75,7 +75,12 @@ public class TestWebsiteBuilder {
     }
 
     public TestWebsiteBuilder withLinksTo(String... links) {
-        this.curPage.addLinks(links);
+        this.curPage.addLinks(Arrays.asList(links), "");
+        return this;
+    }
+
+    public TestWebsiteBuilder withNoFollowLinksTo(String... links) {
+        this.curPage.addLinks(Arrays.asList(links), "rel=\"nofollow\"");
         return this;
     }
 

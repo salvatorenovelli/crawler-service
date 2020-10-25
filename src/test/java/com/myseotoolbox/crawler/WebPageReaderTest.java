@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.spider.UriFilter;
@@ -20,6 +21,8 @@ import org.junit.Test;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_NAME;
 import static com.myseotoolbox.crawler.httpclient.HttpGetRequest.BOT_VERSION;
@@ -126,8 +129,26 @@ public class WebPageReaderTest {
         PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
 
         assertThat(snapshot.getLinks(), hasSize(2));
-        assertThat(snapshot.getLinks().get(0), is("/dst1"));
-        assertThat(snapshot.getLinks().get(1), is("/dst2"));
+        assertThat(snapshot.getLinks().get(0).getDestination(), is("/dst1"));
+        assertThat(snapshot.getLinks().get(1).getDestination(), is("/dst2"));
+    }
+
+    @Test
+    public void shouldMapLinkAttributes() throws Exception {
+        givenAWebsite().havingRootPage()
+                .withNoFollowLinksTo("/dst")
+                .run();
+
+        PageSnapshot snapshot = sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH)).getPageSnapshot();
+
+        assertThat(snapshot.getLinks(), hasSize(1));
+        PageLink link0 = snapshot.getLinks().get(0);
+
+        Set<Map.Entry<String, String>> attributes = link0.getAttributes().entrySet();
+        assertThat(attributes, hasSize(1));
+        Map.Entry<String, String> attribute = attributes.iterator().next();
+        assertThat(attribute.getKey(), is("rel"));
+        assertThat(attribute.getValue(), is("nofollow"));
     }
 
     @Test
@@ -190,7 +211,6 @@ public class WebPageReaderTest {
                 .havingPage("/dst2").redirectingTo(301, "/start")
                 .run();
 
-
         try {
             sut.snapshotPage(testUri("/start"));
         } catch (SnapshotException e) {
@@ -205,8 +225,6 @@ public class WebPageReaderTest {
         }
 
         fail("Expected exception");
-
-
     }
 
     @Test

@@ -15,6 +15,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
+import static com.myseotoolbox.crawler.spider.PageLinksHelper.*;
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
 import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUri;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
@@ -28,7 +29,6 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
     private final CrawlEventDispatch dispatch;
-    private final PageLinksHelper helper = new PageLinksHelper();
 
     private final int maxCrawls;
     private final String queueName;
@@ -40,8 +40,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         this.uriFilter = filter;
         this.maxCrawls = maxCrawls;
         this.dispatch = dispatch;
-        List<URI> validSeeds = helper
-                .filterValidLinks(seeds.stream().map(URI::toString).collect(Collectors.toList()))
+        List<URI> validSeeds = filterValidUrls(seeds.stream().map(URI::toString).collect(Collectors.toList()))
                 .stream()
                 .distinct()
                 .collect(Collectors.toList());
@@ -114,11 +113,11 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private List<URI> discoverLinks(PageSnapshot snapshot) {
-        List<URI> links = helper.filterValidLinks(snapshot.getLinks());
+        List<URI> ret = new ArrayList<>(filterValidPageLinks(snapshot.getLinks()));
 
         if (isCanonicalizedToDifferentUri(snapshot))
-            links.addAll(helper.filterValidLinks(snapshot.getCanonicals()));
-        return links;
+            ret.addAll(filterValidUrls(snapshot.getCanonicals()));
+        return ret;
     }
 
     private List<URI> calculateAllowedSeeds(List<URI> seeds) {

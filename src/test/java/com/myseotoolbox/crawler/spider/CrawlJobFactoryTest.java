@@ -3,6 +3,7 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
@@ -128,7 +129,7 @@ public class CrawlJobFactoryTest {
     private CrawlResult buildSnapshotForUri(InvocationOnMock invocation) {
         String uri = invocation.getArgument(0).toString();
         PageSnapshot snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(uri);
-        snapshot.setLinks(Arrays.asList(TEST_FILTERED_LINK.toString()));
+        snapshot.setLinks(Collections.singletonList(new PageLink(TEST_FILTERED_LINK.toString(), Collections.emptyMap())));
         return CrawlResult.forSnapshot(snapshot);
     }
 
