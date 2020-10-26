@@ -9,9 +9,11 @@ import java.util.concurrent.Semaphore;
 public class ConcurrentCrawlsSemaphore {
 
     private final Semaphore semaphore;
+    private final int maxConcurrentCrawls;
 
     public ConcurrentCrawlsSemaphore(int maxConcurrentCrawls) {
         log.info("Initializing crawl semaphore with {} concurrent crawls", maxConcurrentCrawls);
+        this.maxConcurrentCrawls = maxConcurrentCrawls;
         this.semaphore = new Semaphore(maxConcurrentCrawls);
     }
 
@@ -19,11 +21,14 @@ public class ConcurrentCrawlsSemaphore {
     public void acquire() {
         log.info("Acquiring crawl permit...");
         semaphore.acquire();
-        log.info("Crawl permit Acquired. Available: ~{}, Queue: ~{}", semaphore.availablePermits(), semaphore.getQueueLength());
+        log.info("Crawl permit Acquired. Available: {}, Queue: ~{}", semaphore.availablePermits(), semaphore.getQueueLength());
     }
 
-    public void release() {
-        log.info("Releasing crawl permit. Available: {}, Queue: {}", semaphore.availablePermits(), semaphore.getQueueLength());
-        semaphore.release();
+    public synchronized void release() {
+        log.info("Releasing crawl permit. Available: {}, Queue: ~{}", semaphore.availablePermits(), semaphore.getQueueLength());
+
+        if (semaphore.availablePermits() < maxConcurrentCrawls) {
+            semaphore.release();
+        }
     }
 }
