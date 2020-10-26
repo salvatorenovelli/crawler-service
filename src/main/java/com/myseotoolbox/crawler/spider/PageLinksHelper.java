@@ -83,7 +83,7 @@ public class PageLinksHelper {
             if (isEmptyLink(uri)) return Optional.empty();
 
             return Optional.of(uri);
-        } catch (URISyntaxException e) {
+        } catch (URISyntaxException  e) {
             log.debug("Invalid link: '{}'. {}", str, e.getMessage());
             return Optional.empty();
         }

@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.pagelinks;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
+import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.spider.PageLinksHelper;
 import com.myseotoolbox.crawlercommons.UriCreator;
 import org.bson.types.ObjectId;
@@ -28,6 +29,17 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
     @Override
     public void accept(CrawlResult crawlResult) {
+        if (isValid(crawlResult)) {
+            processCrawlResult(crawlResult);
+        }
+    }
+
+    private boolean isValid(CrawlResult crawlResult) {
+        List<RedirectChainElement> redirectChainElements = crawlResult.getPageSnapshot().getRedirectChainElements();
+        return redirectChainElements != null && redirectChainElements.size() > 0;
+    }
+
+    private void processCrawlResult(CrawlResult crawlResult) {
         HashMap<LinkType, List<String>> linkTypeListHashMap = new HashMap<>();
         String destUri = getDestinationUriString(crawlResult.getPageSnapshot());
 

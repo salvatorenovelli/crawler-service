@@ -85,6 +85,11 @@ public class PageSnapshotTestBuilder {
         return this;
     }
 
+    public PageSnapshotTestBuilder withEmptyRedirectChain() {
+        cur.setRedirectChainElements(emptyList());
+        return this;
+    }
+
     public PageSnapshotTestBuilder withRedirectChainElements(int... statusCodes) {
         cur.setRedirectChainElements(buildRedirectChainElementsFor(cur.getUri(), statusCodes));
         return this;

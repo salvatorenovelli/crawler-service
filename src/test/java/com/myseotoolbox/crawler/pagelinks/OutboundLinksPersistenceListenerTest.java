@@ -79,6 +79,18 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     @Test
+    public void shouldSkipFailedCrawls() {
+        CrawlResult crawlResult = CrawlResult.forSnapshot(
+                aTestPageSnapshotForUri("http://testuri")
+                        .withEmptyRedirectChain()
+                        .build());
+
+        sut.accept(crawlResult);
+
+        Mockito.verify(repository, Mockito.never()).save(ArgumentMatchers.any(OutboundLinks.class));
+    }
+
+    @Test
     public void shouldNotPersistFragments() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("#this-is-a-fragment", "http://absoluteLink/hello#fragment");
 
