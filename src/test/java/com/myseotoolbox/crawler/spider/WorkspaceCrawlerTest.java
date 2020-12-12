@@ -24,7 +24,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static java.net.URI.create;
@@ -54,7 +53,6 @@ public class WorkspaceCrawlerTest {
     @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
     @Mock private RobotsTxtAggregation robotsAggregation;
     @Mock private CrawlEventDispatchFactory dispatchFactory;
-    @Mock private ConcurrentCrawlsSemaphore semaphore;
 
     WorkspaceCrawler sut;
     @Spy private Executor executor = new CurrentThreadTestExecutorService();
@@ -62,15 +60,13 @@ public class WorkspaceCrawlerTest {
     @Before
     public void setUp() {
 
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor, semaphore);
+        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
 
         when(crawlJobFactory.build(any(), any())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
                     CrawlJobConfiguration configuration = invocation.getArgument(0);
-                    synchronized (this) {
-                        mockJobs.add(Tuple.of(configuration, mock));
-                    }
+                    mockJobs.add(Tuple.of(configuration, mock));
                     return mock;
                 }
         );
@@ -315,24 +311,6 @@ public class WorkspaceCrawlerTest {
 
     }
 
-    @Test(timeout = 1000)
-    public void shouldNotStartMoreCrawlsThanAllowed() throws InterruptedException {
-        ConcurrentCrawlsSemaphore semaphore = new ConcurrentCrawlsSemaphore(MAX_CONCURRENT_CRAWLS);
-
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory,
-                robotsAggregation, Executors.newFixedThreadPool(MAX_CONCURRENT_CRAWLS * 2), semaphore);
-
-
-        for (int i = 0; i < MAX_CONCURRENT_CRAWLS * 2; i++) {
-            givenAWorkspace().withWebsiteUrl("http://host" + i).build();
-        }
-
-
-        sut.crawlAllWorkspaces();
-        Thread.sleep(300);
-
-        assertThat(mockJobs.size(), is(MAX_CONCURRENT_CRAWLS));
-    }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
         verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());

@@ -35,22 +35,19 @@ public class WorkspaceCrawler {
     private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
-    private final ConcurrentCrawlsSemaphore concurrentCrawlsSemaphore;
 
     public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
                             CrawlJobFactory crawlJobFactory,
                             WebsiteCrawlLogRepository websiteCrawlLogRepository,
                             CrawlEventDispatchFactory crawlEventDispatchFactory,
                             RobotsTxtAggregation robotsTxtAggregation,
-                            @Qualifier("crawl-job-init-executor") Executor executor,
-                            ConcurrentCrawlsSemaphore concurrentCrawlsSemaphore) {
+                            @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
         this.crawlEventDispatchFactory = crawlEventDispatchFactory;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
-        this.concurrentCrawlsSemaphore = concurrentCrawlsSemaphore;
     }
 
 
@@ -65,7 +62,6 @@ public class WorkspaceCrawler {
         workspacesByOrigin.forEach((origin, workspaces) ->
                 executor.execute(() ->
                         runOrLogWarning(() -> {
-                            concurrentCrawlsSemaphore.acquire();
                             Set<URI> seeds = extractSeeds(workspaces);
 
                             log.info("Starting crawl for {} with seeds: {}", origin, seeds);
