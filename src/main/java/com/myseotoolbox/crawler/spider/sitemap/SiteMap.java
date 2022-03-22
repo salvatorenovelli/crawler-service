@@ -62,10 +62,16 @@ public class SiteMap {
             AbstractSiteMap asm = siteMapParser.parseSiteMap(url);
             if (asm instanceof SiteMapIndex) {
                 SiteMapIndex smi = (SiteMapIndex) asm;
-                return smi.getSitemaps().stream().flatMap(sm -> fetch(sm.getUrl()).stream()).distinct().collect(Collectors.toList());
+                return smi.getSitemaps().stream()
+                        .flatMap(sm -> fetch(sm.getUrl()).stream())
+                        .distinct()
+                        .collect(Collectors.toList());
             } else {
                 crawlercommons.sitemaps.SiteMap sm = (crawlercommons.sitemaps.SiteMap) asm;
-                return sm.getSiteMapUrls().stream().map(siteMapURL -> siteMapURL.getUrl().toString()).distinct().collect(Collectors.toList());
+                return sm.getSiteMapUrls().stream()
+                        .map(siteMapURL -> siteMapURL.getUrl().toString())
+                        .distinct()
+                        .collect(Collectors.toList());
             }
         } catch (UnknownFormatException | IOException e) {
             log.warn("Error while fetching sitemap for {}. Error: {}", url, e.toString());

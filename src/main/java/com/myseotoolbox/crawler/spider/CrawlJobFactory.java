@@ -24,7 +24,6 @@ public class CrawlJobFactory {
     private final SitemapReader sitemapReader;
 
 
-
     public CrawlJob build(CrawlJobConfiguration configuration, CrawlEventDispatch dispatch) {
 
         URI origin = configuration.getOrigin();
@@ -38,6 +37,7 @@ public class CrawlJobFactory {
         WebPageReader webPageReader = webPageReaderFactory.build(uriFilter);
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), configuration.getMaxConcurrentConnections());
 
+        log.info("robots.txt provided {} sitemaps", robotsTxt.getSitemaps().size());
         List<URI> seedsFromSitemap = sitemapReader.getSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), allowedPaths);
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);

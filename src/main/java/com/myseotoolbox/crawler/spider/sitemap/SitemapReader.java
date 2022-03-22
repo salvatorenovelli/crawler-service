@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
+import com.myseotoolbox.crawler.spider.PathMatcher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -13,11 +14,18 @@ import java.util.stream.Collectors;
 public class SitemapReader {
     /*
      * There are sitemaps with millions of entries.
-     * allowedPaths make sure we only fetch the sitemap indexes we need.
+     * @param allowedPaths: make sure we only fetch the sitemap indexes we need (for discovered sitemaps), and filters the ones provided in the sitemapUrls (that come from robots.txt)
+     *
      * */
-    public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrl, List<String> allowedPaths) {
-        log.info("Fetching {} sitemap for {} with allowed paths: {}. Urls: {}", sitemapsUrl.size(), origin, allowedPaths, sitemapsUrl);
-        List<URI> sitemapSeeds = new SiteMap(origin, sitemapsUrl, allowedPaths)
+    public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrls, List<String> allowedPaths) {
+
+        List<String> filteredSitemapUrls = sitemapsUrls.stream()
+                .filter(sitemapUrl -> PathMatcher.isSubPath(allowedPaths, URI.create(sitemapUrl).getPath()))
+                .collect(Collectors.toList());
+
+        log.info("Fetching {} sitemap for {} with allowed paths: {}. Urls: {}", filteredSitemapUrls.size(), origin, allowedPaths, filteredSitemapUrls);
+
+        List<URI> sitemapSeeds = new SiteMap(origin, filteredSitemapUrls, allowedPaths)
                 .fetchUris()
                 .stream()
                 .map(this::toValidUri)
