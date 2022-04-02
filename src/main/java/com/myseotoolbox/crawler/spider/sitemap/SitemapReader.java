@@ -17,7 +17,7 @@ public class SitemapReader {
      * @param allowedPaths: make sure we only fetch the sitemap indexes we need (for discovered sitemaps), and filters the ones provided in the sitemapUrls (that come from robots.txt)
      *
      * */
-    public List<URI> getSeedsFromSitemaps(URI origin, List<String> sitemapsUrls, List<String> allowedPaths) {
+    public List<URI> fetchSeedsFromSitemaps(URI origin, List<String> sitemapsUrls, List<String> allowedPaths) {
 
         List<String> filteredSitemapUrls = sitemapsUrls.stream()
                 .filter(sitemapUrl -> PathMatcher.isSubPath(allowedPaths, URI.create(sitemapUrl).getPath()))

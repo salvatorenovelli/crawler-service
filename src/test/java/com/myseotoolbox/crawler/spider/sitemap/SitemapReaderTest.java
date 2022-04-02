@@ -43,7 +43,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/outside/shouldnotaddthis")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -55,7 +55,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/should not add this")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -67,7 +67,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "http://another-domain/")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -82,7 +82,7 @@ public class SitemapReaderTest {
                 .havingUrls("/it/it/2", "/en/gb/3")
                 .build();
 
-        List<URI> uris = sut.getSeedsFromSitemaps(testUri("/"),
+        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"),
                 testUris("/en/gb/sitemap.xml", "/it/it/sitemap.xml"), Collections.singletonList("/en/gb/"));
 
         // note that allowedPaths is not intended to filter the discovered URLS in the sitemaps but only the sitemap links provided by the sitemapsUrls and the ones discovered recursively
