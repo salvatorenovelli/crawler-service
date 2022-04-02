@@ -37,6 +37,9 @@ public class SiteMap {
         this.origin = origin;
         this.siteMaps = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
         this.pathFilter = new PathFilter(allowedPaths);
+
+        boolean anyNonCrawlable = sitemaps.stream().anyMatch(it -> !pathFilter.shouldCrawl(origin, URI.create(it)));
+        if (anyNonCrawlable) throw new IllegalArgumentException("Provided sitemaps should be within allowedPaths");
     }
 
     public List<String> fetchUris() {

@@ -117,7 +117,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = new SiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -138,7 +138,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(origin, uris("/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = new SiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -157,7 +157,7 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(origin.resolve("/it/"), uris("/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = new SiteMap(origin.resolve("/it/"), testUris("/sitemap.xml"), Collections.singletonList("/it/"));
         siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());
@@ -200,6 +200,15 @@ public class SiteMapTest {
     }
 
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfPassedSitemapsOutsidePath() {
+        // for example allowed path is /en/gb: intended usage is that it would receive /en/gb/A/sitemap.xml but it might receive /it/it which not intended
+        // should it warn or abort/throw?
+
+        new SiteMap(origin, testUris("/it/it/sitemap.xml"), Collections.singletonList("/en/gb"));
+
+    }
+
     @Test
     public void shouldFetchMultipleSitemaps() {
         givenAWebsite()
@@ -209,7 +218,7 @@ public class SiteMapTest {
                 .withSitemapOn("/two/")
                 .havingUrls("/two/1", "/two/2").build();
 
-        SiteMap siteMap = new SiteMap(origin, uris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
+        SiteMap siteMap = new SiteMap(origin, testUris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
         List<String> uris = siteMap.fetchUris();
 
 
@@ -227,7 +236,7 @@ public class SiteMapTest {
                 .withSitemapOn("/sitemap_two.xml")
                 .havingUrls("/1", "/3").build();
 
-        SiteMap siteMap = new SiteMap(origin, uris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
         List<String> uris = siteMap.fetchUris();
 
 
@@ -310,7 +319,7 @@ public class SiteMapTest {
         return testUri(subDomain, path).toString();
     }
 
-    private List<String> uris(String... s) {
+    private List<String> testUris(String... s) {
         return Arrays.stream(s).map(this::testUri).map(URI::toString).collect(toList());
     }
 
