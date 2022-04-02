@@ -4,7 +4,6 @@ import org.springframework.util.AntPathMatcher;
 
 import java.util.List;
 
-import static com.myseotoolbox.crawler.spider.configuration.AllowedPathFromSeeds.extractAllowedPathFromSeed;
 
 public class PathMatcher {
     private static final AntPathMatcher matcher = new AntPathMatcher();
@@ -14,7 +13,7 @@ public class PathMatcher {
         if (allowedPath.length() == 0) allowedPath = "/";
         if (possibleSubPath.length() == 0) possibleSubPath = "/";
 
-        return matcher.match(toAntFilter(extractAllowedPathFromSeed(allowedPath)), possibleSubPath);
+        return matcher.match(toAntFilter(removeFilename(allowedPath)), possibleSubPath);
     }
 
     public static boolean isSubPath(List<String> allowedPaths, String possibleSubPath) {
@@ -23,6 +22,11 @@ public class PathMatcher {
 
     private static String toAntFilter(String s) {
         return s + "**";
+    }
+
+    private static String removeFilename(String path) {
+        if (path.endsWith("/")) return path;
+        return path.substring(0, path.lastIndexOf("/") + 1);
     }
 
 }
