@@ -15,9 +15,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 public class SitemapReaderTest {
 
@@ -43,7 +43,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/outside/shouldnotaddthis")
                 .build();
 
-        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -55,7 +55,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/should not add this")
                 .build();
 
-        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -67,7 +67,7 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "http://another-domain/")
                 .build();
 
-        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"), testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), Collections.singletonList("/"));
 
         assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
     }
@@ -82,8 +82,8 @@ public class SitemapReaderTest {
                 .havingUrls("/it/it/2", "/en/gb/3")
                 .build();
 
-        List<URI> uris = sut.fetchSeedsFromSitemaps(testUri("/"),
-                testUris("/en/gb/sitemap.xml", "/it/it/sitemap.xml"), Collections.singletonList("/en/gb/"));
+        List<URI> uris = fetchSeeds(testUris("/en/gb/sitemap.xml", "/it/it/sitemap.xml"), Collections.singletonList("/en/gb/"));
+
 
         // note that allowedPaths is not intended to filter the discovered URLS in the sitemaps but only the sitemap links provided by the sitemapsUrls and the ones discovered recursively
         // however, this is only the current implementation, and I'm not sure what would be the impact of filtering the URLS at this level
@@ -91,6 +91,11 @@ public class SitemapReaderTest {
 
         assertThat(uris, Matchers.contains(testUri("/en/gb/1"), testUri("/en/gb/2"), testUri("/it/it/1")));
 
+    }
+
+
+    private List<URI> fetchSeeds(List<String> sitemapUrls, List<String> allowedPaths) {
+        return sut.fetchSeedsFromSitemaps(testUri("/"), sitemapUrls, allowedPaths, DEFAULT_MAX_URL_PER_CRAWL);
     }
 
     private URI testUri(String s) {

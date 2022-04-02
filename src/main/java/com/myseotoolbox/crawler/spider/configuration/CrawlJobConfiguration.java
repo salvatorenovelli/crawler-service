@@ -1,20 +1,17 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
-import com.myseotoolbox.crawler.httpclient.HTTPClient;
-import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang.Validate;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import static com.myseotoolbox.crawler.spider.configuration.AllowedPathFromSeeds.extractAllowedPathFromSeeds;
-import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.*;
+import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.*;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 
@@ -90,6 +87,10 @@ public class CrawlJobConfiguration {
             return new CrawlJobConfiguration(origin, seeds, maxConcurrentConnections, crawledPageLimit, robotsTxt);
         }
 
+        public Builder withMaxPagesCrawledLimit(int crawledPageLimit) {
+            this.crawledPageLimit = crawledPageLimit;
+            return this;
+        }
     }
 
 }

@@ -5,7 +5,7 @@ import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
-import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
+import com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
-import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
+import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -43,7 +43,7 @@ public class WorkspaceCrawlerTest {
 
     private static final int YESTERDAY = -1;
     private static final int TWO_DAYS_AGO = -2;
-    public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = CrawlerSettings.MIN_CRAWL_INTERVAL;
+    public static final int DEFAULT_CRAWL_VALUE_WHEN_MISSING = DefaultCrawlerSettings.MIN_CRAWL_INTERVAL;
     public static final int MAX_CONCURRENT_CRAWLS = 3;
     private final List<Tuple2<CrawlJobConfiguration, CrawlJob>> mockJobs = new ArrayList<>();
     private final List<Workspace> allWorkspaces = new ArrayList<>();

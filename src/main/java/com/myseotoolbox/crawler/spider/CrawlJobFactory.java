@@ -38,7 +38,7 @@ public class CrawlJobFactory {
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), configuration.getMaxConcurrentConnections());
 
         log.info("robots.txt provided {} sitemaps", robotsTxt.getSitemaps().size());
-        List<URI> seedsFromSitemap = sitemapReader.fetchSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), allowedPaths);
+        List<URI> seedsFromSitemap = sitemapReader.fetchSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), allowedPaths, configuration.getCrawledPageLimit());
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 

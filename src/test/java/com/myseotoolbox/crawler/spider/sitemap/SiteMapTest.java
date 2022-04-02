@@ -17,7 +17,9 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
+import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
 import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertTrue;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -40,13 +42,29 @@ public class SiteMapTest {
         LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
         testWebsite = testWebsiteBuilder.run();
         origin = testUri("/");
-        siteMap = new SiteMap(origin, uri("/sitemap.xml"));
+        siteMap = new SiteMap(origin, Collections.singletonList(uri("/sitemap.xml")), Collections.singletonList("/"), DEFAULT_MAX_URL_PER_CRAWL);
     }
 
     @After
     public void tearDown() throws Exception {
         testWebsiteBuilder.tearDown();
     }
+
+    @Test
+    public void shouldLimitTheSize() {
+        String[] tooManyUrls = IntStream.range(0, 200).mapToObj(i -> testUri("/" + i).toString()).toArray(String[]::new);
+        givenAWebsite()
+                .withSitemapOn("/")
+                .havingUrls(tooManyUrls)
+                .build();
+
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), Collections.singletonList("/"), 100);
+
+        List<String> urls = siteMap.fetchUris();
+
+        assertThat(urls, hasSize(100));
+    }
+
 
     @Test
     public void shouldAllowWWWButNotOtherSubdomains() throws UnknownHostException {
@@ -117,7 +135,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -138,7 +156,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -157,7 +175,7 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/")
                 .havingUrls("/uk/1", "/uk/2").build();
 
-        SiteMap siteMap = new SiteMap(origin.resolve("/it/"), testUris("/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = testSiteMap(origin.resolve("/it/"), testUris("/sitemap.xml"), Collections.singletonList("/it/"));
         siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());
@@ -205,7 +223,7 @@ public class SiteMapTest {
         // for example allowed path is /en/gb: intended usage is that it would receive /en/gb/A/sitemap.xml but it might receive /it/it which not intended
         // should it warn or abort/throw?
 
-        new SiteMap(origin, testUris("/it/it/sitemap.xml"), Collections.singletonList("/en/gb"));
+        testSiteMap(origin, testUris("/it/it/sitemap.xml"), Collections.singletonList("/en/gb"));
 
     }
 
@@ -218,7 +236,7 @@ public class SiteMapTest {
                 .withSitemapOn("/two/")
                 .havingUrls("/two/1", "/two/2").build();
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
         List<String> uris = siteMap.fetchUris();
 
 
@@ -236,7 +254,7 @@ public class SiteMapTest {
                 .withSitemapOn("/sitemap_two.xml")
                 .havingUrls("/1", "/3").build();
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
         List<String> uris = siteMap.fetchUris();
 
 
@@ -283,7 +301,7 @@ public class SiteMapTest {
         TestWebsite wrongWebsite = wrongWebsiteBuilder.withSitemapOn("/").havingUrls("/wrong-domain-url").build().run();
 
 
-        SiteMap sut = new SiteMap(testUri("/"), Collections.singletonList(wrongWebsiteBuilder.buildTestUri("/sitemap.xml").toString()), Collections.singletonList("/"));
+        SiteMap sut = testSiteMap(testUri("/"), Collections.singletonList(wrongWebsiteBuilder.buildTestUri("/sitemap.xml").toString()), Collections.singletonList("/"));
         List<String> uris = sut.fetchUris();
 
 
@@ -304,7 +322,7 @@ public class SiteMapTest {
                 .withSitemapOn("/correct/sitemap.xml").havingUrls("/correct/correct-domain-url").build();
 
 
-        SiteMap sut = new SiteMap(testUri("/"), Collections.singletonList(testUri("/sitemap.xml").toString()), Collections.singletonList("/"));
+        SiteMap sut = testSiteMap(testUri("/"), Collections.singletonList(testUri("/sitemap.xml").toString()), Collections.singletonList("/"));
         List<String> uris = sut.fetchUris();
 
         assertThat(wrongWebsite.getRequestsReceived().size(), is(0));
@@ -334,6 +352,11 @@ public class SiteMapTest {
 
     private TestWebsiteBuilder givenAWebsite() {
         return testWebsiteBuilder;
+    }
+
+
+    private SiteMap testSiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
+        return new SiteMap(origin, sitemaps, allowedPaths, DEFAULT_MAX_URL_PER_CRAWL);
     }
 
 }

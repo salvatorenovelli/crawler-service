@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.net.URI;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Executor;
@@ -73,6 +74,7 @@ public class WorkspaceCrawler {
                                     .withSeeds(seeds)
                                     .withConcurrentConnections(seeds.size())
                                     .withRobotsTxt(mergedConfiguration)
+                                    .withMaxPagesCrawledLimit(getHigherPageCrawledLimit(workspaces))
                                     .build();
 
                             CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));
@@ -84,6 +86,10 @@ public class WorkspaceCrawler {
                         }, "Error while starting crawl for: " + origin))
         );
 
+    }
+
+    private int getHigherPageCrawledLimit(Collection<Workspace> workspaces) {
+        return workspaces.stream().mapToInt(workspace -> workspace.getCrawlerSettings().getCrawledPageLimit()).max().orElse(0);
     }
 
     private Map<URI, Set<Workspace>> groupWorkspacesByOrigin() {

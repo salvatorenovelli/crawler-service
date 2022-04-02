@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
 import static org.mockito.Mockito.when;
 
 public class TestWorkspaceBuilder {
@@ -25,7 +26,7 @@ public class TestWorkspaceBuilder {
         this.allWorkspaces = workspacesOut;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
         this.curWorkspace = new Workspace();
-        this.curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true, 1, filterConf));
+        this.curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true, 1, filterConf, DEFAULT_MAX_URL_PER_CRAWL));
     }
 
     public TestWorkspaceBuilder withWebsiteUrl(String s) {
@@ -47,13 +48,13 @@ public class TestWorkspaceBuilder {
 
     public TestWorkspaceBuilder withCrawlingDisabled() {
         CrawlerSettings s = curWorkspace.getCrawlerSettings();
-        curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), false, s.getCrawlIntervalDays(), filterConf));
+        curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), false, s.getCrawlIntervalDays(), filterConf, DEFAULT_MAX_URL_PER_CRAWL));
         return this;
     }
 
     public TestWorkspaceBuilder withCrawlingIntervalOf(int days) {
         CrawlerSettings s = curWorkspace.getCrawlerSettings();
-        curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), s.isCrawlEnabled(), days, filterConf));
+        curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), s.isCrawlEnabled(), days, filterConf, DEFAULT_MAX_URL_PER_CRAWL));
         return this;
     }
 
@@ -90,7 +91,7 @@ public class TestWorkspaceBuilder {
         }
 
         public TestWorkspaceBuilder and() {
-            CrawlerSettings crawlerSettings = new CrawlerSettings(maxConcurrentConnections, crawlEnabled, crawlIntervalDays, new FilterConfiguration(ignoreRobotsTxt));
+            CrawlerSettings crawlerSettings = new CrawlerSettings(maxConcurrentConnections, crawlEnabled, crawlIntervalDays, new FilterConfiguration(ignoreRobotsTxt), DEFAULT_MAX_URL_PER_CRAWL);
             testWorkspaceBuilder.withCrawlerSettings(crawlerSettings);
             return testWorkspaceBuilder;
         }

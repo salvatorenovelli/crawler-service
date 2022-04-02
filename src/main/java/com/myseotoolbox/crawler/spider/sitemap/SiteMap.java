@@ -25,18 +25,17 @@ public class SiteMap {
 
     private final URI origin;
     private final PathFilter pathFilter;
+    private final int crawledPageLimit;
     private final List<URL> siteMaps;
 
     private SiteMapParser siteMapParser = new SiteMapParser(false);
 
-    SiteMap(URI origin, String sitemapUrl) {
-        this(origin, Collections.singletonList(sitemapUrl), Collections.singletonList("/"));
-    }
 
-    public SiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
+    public SiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths, int crawledPageLimit) {
         this.origin = origin;
         this.siteMaps = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
         this.pathFilter = new PathFilter(allowedPaths);
+        this.crawledPageLimit = crawledPageLimit;
 
         boolean anyNonCrawlable = sitemaps.stream().anyMatch(it -> !pathFilter.shouldCrawl(origin, URI.create(it)));
         if (anyNonCrawlable) throw new IllegalArgumentException("Provided sitemaps should be within allowedPaths");

@@ -92,7 +92,7 @@ public class CrawlJobFactoryTest {
     public void shouldTakeSeedsFromSitemap() throws SnapshotException {
 
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
-        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
+        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), anyList(),anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
 
         CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
@@ -106,7 +106,7 @@ public class CrawlJobFactoryTest {
     @Test
     public void shouldNormalizeSeedsWIthEmptyPathToRootPath() {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
-        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), anyList())).thenReturn(Collections.singletonList(linkFromSitemap));
+        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), anyList(), anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
 
         CrawlJobConfiguration conf = testConf.withSeeds(Collections.singletonList(URI.create("http://host"))).build();
 
