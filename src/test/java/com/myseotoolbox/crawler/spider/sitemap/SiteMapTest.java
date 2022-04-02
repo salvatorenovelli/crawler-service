@@ -67,6 +67,27 @@ public class SiteMapTest {
 
 
     @Test
+    public void shouldStopRecursiveFetchIfAboveLimit() {
+        String[] tooManyUrls = IntStream.range(0, 222).mapToObj(i -> testUri("/" + i).toString()).toArray(String[]::new);
+        givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/it/", "/uk/").and()
+                .withSitemapOn("/it/")
+                .havingUrls(tooManyUrls).and()
+                .withSitemapOn("/uk/")
+                .havingUrls(tooManyUrls)
+                .build();
+
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), Collections.singletonList("/"), 100);
+
+        siteMap.fetchUris();
+
+        assertThat(testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList()),
+                containsInAnyOrder("/sitemap.xml", "/it/sitemap.xml"));
+    }
+
+
+    @Test
     public void shouldAllowWWWButNotOtherSubdomains() throws UnknownHostException {
         givenAWebsite()
                 .withSitemapOn("/")

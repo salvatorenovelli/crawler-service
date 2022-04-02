@@ -30,6 +30,8 @@ public class SiteMap {
 
     private SiteMapParser siteMapParser = new SiteMapParser(false);
 
+    private int currentUriCount = 0;
+
 
     public SiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths, int crawledPageLimit) {
         this.origin = origin;
@@ -58,6 +60,10 @@ public class SiteMap {
         if (!shouldFetch(url)) {
             return Collections.emptyList();
         }
+        if (currentUriCount >= crawledPageLimit) {
+            log.warn("Sitemap {} was stopped from fetching {} as it's exceeding limit of {} urls. Current: {}", origin, url, crawledPageLimit, currentUriCount);
+            return Collections.emptyList();
+        }
 
         try {
             log.debug("Fetching sitemap on {}", url.toString());
@@ -70,10 +76,18 @@ public class SiteMap {
                         .collect(Collectors.toList());
             } else {
                 crawlercommons.sitemaps.SiteMap sm = (crawlercommons.sitemaps.SiteMap) asm;
-                return sm.getSiteMapUrls().stream()
+                List<String> uriList = sm.getSiteMapUrls().stream()
                         .map(siteMapURL -> siteMapURL.getUrl().toString())
                         .distinct()
                         .collect(Collectors.toList());
+
+                if (currentUriCount + uriList.size() > crawledPageLimit) {
+                    log.warn("Sitemap {}->{} contains more urls than the allowed limit {}/{}", origin, url, currentUriCount + uriList.size(), crawledPageLimit);
+                    uriList = uriList.stream().limit(crawledPageLimit - currentUriCount).collect(Collectors.toList());
+                }
+
+                currentUriCount += uriList.size();
+                return uriList;
             }
         } catch (UnknownFormatException | IOException e) {
             log.warn("Error while fetching sitemap for {}. Error: {}", url, e.toString());
