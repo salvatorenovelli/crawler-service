@@ -43,7 +43,7 @@ public class WebPageReader {
                 return CrawlResult.forSnapshot(snapshot);
             }
 
-            return CrawlResult.forBlockedChain( chain);
+            return CrawlResult.forBlockedChain(chain);
 
 
         } catch (Exception e) {

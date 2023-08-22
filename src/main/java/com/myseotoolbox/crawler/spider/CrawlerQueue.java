@@ -104,7 +104,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private synchronized void submitTasks(List<URI> seeds) {
         List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
-        if (allowedSeeds.size() > 0) {
+        if (!allowedSeeds.isEmpty()) {
             crawlStatus.addToInProgress(allowedSeeds);
             allowedSeeds.stream()
                     .map(uri -> new SnapshotTask(uri, this))

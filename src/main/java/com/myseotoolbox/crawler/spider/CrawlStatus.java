@@ -40,7 +40,7 @@ class CrawlStatus {
     }
 
     public synchronized boolean isCrawlCompleted() {
-        return inProgress.size() == 0;
+        return inProgress.isEmpty();
     }
 
     private String toString(URI uri) {

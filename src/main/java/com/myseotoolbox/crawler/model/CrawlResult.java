@@ -28,8 +28,4 @@ public class CrawlResult {
         return new CrawlResult(chain.getElements().get(0).getSourceURI(), true, null, chain);
     }
 
-    public String getUri() {
-        return uri;
-    }
-
 }
