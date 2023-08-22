@@ -38,20 +38,12 @@ public class CrawlJobConfiguration {
         return new Builder(origin);
     }
 
-    public URI getOrigin() {
-        return origin;
-    }
-
     public Collection<URI> getSeeds() {
         return Collections.unmodifiableCollection(seeds);
     }
 
     public List<String> getAllowedPaths() {
         return Collections.unmodifiableList(extractAllowedPathFromSeeds(seeds));
-    }
-
-    public RobotsTxt getRobotsTxt() {
-        return robotsTxt;
     }
 
     public static class Builder {
