@@ -36,7 +36,7 @@ public class OutboundLinksPersistenceListener implements Consumer<CrawlResult> {
 
     private boolean isValid(CrawlResult crawlResult) {
         List<RedirectChainElement> redirectChainElements = crawlResult.getPageSnapshot().getRedirectChainElements();
-        return redirectChainElements != null && redirectChainElements.size() > 0;
+        return redirectChainElements != null && !redirectChainElements.isEmpty();
     }
 
     private void processCrawlResult(CrawlResult crawlResult) {
