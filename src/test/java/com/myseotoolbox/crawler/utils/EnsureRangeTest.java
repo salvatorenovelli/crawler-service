@@ -17,5 +17,4 @@ public class EnsureRangeTest {
         assertEquals(5, EnsureRange.ensureRange(5, null, null));
         assertEquals(0, EnsureRange.ensureRange(null, null, null));
     }
-
 }
