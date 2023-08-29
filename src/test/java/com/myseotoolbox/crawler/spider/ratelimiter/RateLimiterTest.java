@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider.ratelimiter;
 
 
-import com.myseotoolbox.crawler.spider.ClockUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,16 +49,5 @@ public class RateLimiterTest {
 
 
     // Mock time source for testing
-    private static class TestClockUtils extends ClockUtils {
-        private long currentTime = 0;
 
-        public long currentTimeMillis() {
-            return currentTime;
-        }
-
-        public void sleep(long delayMillis) {
-            currentTime += delayMillis;
-        }
-
-    }
 }

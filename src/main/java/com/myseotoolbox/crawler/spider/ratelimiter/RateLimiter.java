@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.spider.ratelimiter;
 
-import com.myseotoolbox.crawler.spider.ClockUtils;
+import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 
 import javax.annotation.concurrent.ThreadSafe;
 
