@@ -27,6 +27,16 @@ public class RateLimiterTest {
     }
 
     @Test
+    public void testRateLimitingWithMultipleRequests() throws InterruptedException {
+        rateLimiter.throttle();  // immediate, as it's the first call
+        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
+        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
+        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
+        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
+        assertEquals(2000, testClockUtils.currentTimeMillis());
+    }
+
+    @Test
     public void testRateLimiterInitialization() {
         assertEquals(0, testClockUtils.currentTimeMillis());
     }

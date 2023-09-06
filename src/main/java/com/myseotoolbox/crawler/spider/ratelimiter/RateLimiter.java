@@ -26,6 +26,6 @@ public class RateLimiter {
             long delay = nextAvailableTime - currentTime;
             clockUtils.sleep(delay);
         }
-        nextAvailableTime = currentTime + minDelayMillis;
+        nextAvailableTime = clockUtils.currentTimeMillis() + minDelayMillis;
     }
 }
