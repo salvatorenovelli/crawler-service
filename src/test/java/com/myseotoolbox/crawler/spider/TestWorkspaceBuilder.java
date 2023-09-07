@@ -11,6 +11,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.myseotoolbox.crawler.spider.CrawlerSettingsBuilder.*;
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
 import static org.mockito.Mockito.when;
 
@@ -26,7 +27,7 @@ public class TestWorkspaceBuilder {
         this.allWorkspaces = workspacesOut;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
         this.curWorkspace = new Workspace();
-        this.curWorkspace.setCrawlerSettings(new CrawlerSettings(1, true, 1, filterConf, DEFAULT_MAX_URL_PER_CRAWL));
+        this.curWorkspace.setCrawlerSettings(CrawlerSettingsBuilder.defaultSettings().build());
     }
 
     public TestWorkspaceBuilder withWebsiteUrl(String s) {
@@ -47,14 +48,18 @@ public class TestWorkspaceBuilder {
     }
 
     public TestWorkspaceBuilder withCrawlingDisabled() {
-        CrawlerSettings s = curWorkspace.getCrawlerSettings();
-        curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), false, s.getCrawlIntervalDays(), filterConf, DEFAULT_MAX_URL_PER_CRAWL));
+        CrawlerSettings settings = from(curWorkspace.getCrawlerSettings())
+                .withCrawlEnabled(false)
+                .build();
+        curWorkspace.setCrawlerSettings(settings);
         return this;
     }
 
     public TestWorkspaceBuilder withCrawlingIntervalOf(int days) {
-        CrawlerSettings s = curWorkspace.getCrawlerSettings();
-        curWorkspace.setCrawlerSettings(new CrawlerSettings(s.getMaxConcurrentConnections(), s.isCrawlEnabled(), days, filterConf, DEFAULT_MAX_URL_PER_CRAWL));
+        CrawlerSettings settings = from(curWorkspace.getCrawlerSettings())
+                .withCrawlIntervalDays(days)
+                .build();
+        curWorkspace.setCrawlerSettings(settings);
         return this;
     }
 
@@ -69,14 +74,19 @@ public class TestWorkspaceBuilder {
     }
 
 
-    public CrawlerSettingsInnerBuilder havingCrawlerSettings() {
-        return new CrawlerSettingsInnerBuilder(this);
+    public TestWorkspaceBuilder withCrawlDelayMillis(long crawlDelayMillis) {
+        CrawlerSettings settings = from(curWorkspace.getCrawlerSettings())
+                .withCrawlDelayMillis(crawlDelayMillis)
+                .build();
+        curWorkspace.setCrawlerSettings(settings);
+        return this;
     }
 
     public class CrawlerSettingsInnerBuilder {
 
         private final TestWorkspaceBuilder testWorkspaceBuilder;
         private int crawlIntervalDays = 1;
+        private long crawlDelayMillis = 0;
         private boolean ignoreRobotsTxt = false;
         private int maxConcurrentConnections = 1;
         private boolean crawlEnabled = true;
@@ -91,7 +101,7 @@ public class TestWorkspaceBuilder {
         }
 
         public TestWorkspaceBuilder and() {
-            CrawlerSettings crawlerSettings = new CrawlerSettings(maxConcurrentConnections, crawlEnabled, crawlIntervalDays, new FilterConfiguration(ignoreRobotsTxt), DEFAULT_MAX_URL_PER_CRAWL);
+            CrawlerSettings crawlerSettings = new CrawlerSettings(maxConcurrentConnections, crawlEnabled, crawlIntervalDays, crawlDelayMillis, new FilterConfiguration(ignoreRobotsTxt), DEFAULT_MAX_URL_PER_CRAWL);
             testWorkspaceBuilder.withCrawlerSettings(crawlerSettings);
             return testWorkspaceBuilder;
         }

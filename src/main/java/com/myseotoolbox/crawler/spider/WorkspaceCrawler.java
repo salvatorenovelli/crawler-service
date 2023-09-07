@@ -75,6 +75,7 @@ public class WorkspaceCrawler {
                                     .withConcurrentConnections(seeds.size())
                                     .withRobotsTxt(mergedConfiguration)
                                     .withMaxPagesCrawledLimit(getHigherPageCrawledLimit(workspaces))
+                                    .withMinDelayMillis(getHigherCrawlDelayMillis(workspaces))
                                     .build();
 
                             CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));
@@ -86,6 +87,11 @@ public class WorkspaceCrawler {
                         }, "Error while starting crawl for: " + origin))
         );
 
+    }
+
+
+    private long getHigherCrawlDelayMillis(Collection<Workspace> workspaces){
+        return workspaces.stream().mapToLong(workspace -> workspace.getCrawlerSettings().getCrawlDelayMillis()).max().orElse(0);
     }
 
     private int getHigherPageCrawledLimit(Collection<Workspace> workspaces) {

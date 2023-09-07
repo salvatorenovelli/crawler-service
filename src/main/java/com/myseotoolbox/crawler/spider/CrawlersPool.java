@@ -50,7 +50,7 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
 
     public void shutDown() {
         log.info("Shutting down executor {}", executor);
-        if (executor.getQueue().size() > 0) throw new IllegalStateException("Crawler terminated with pending tasks!");
+        if (!executor.getQueue().isEmpty()) throw new IllegalStateException("Crawler terminated with pending tasks!");
         executor.shutdown();
     }
 }

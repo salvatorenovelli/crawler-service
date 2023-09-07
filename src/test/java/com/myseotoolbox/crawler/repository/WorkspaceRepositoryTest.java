@@ -53,7 +53,7 @@ public class WorkspaceRepositoryTest {
     @Test
     public void shouldSanitizeCrawlerSettingsMins() {
         Workspace workspace = new Workspace();
-        CrawlerSettings crawlerSettings = new CrawlerSettings(-100, true, -10, null, DEFAULT_MAX_URL_PER_CRAWL);
+        CrawlerSettings crawlerSettings = new CrawlerSettings(-100, true, -10, 0L, null, DEFAULT_MAX_URL_PER_CRAWL);
         workspace.setCrawlerSettings(crawlerSettings);
 
 
@@ -67,7 +67,7 @@ public class WorkspaceRepositoryTest {
     @Test
     public void shouldSanitizeCrawlerSettingsMaxs() {
         Workspace workspace = new Workspace();
-        CrawlerSettings crawlerSettings = new CrawlerSettings(559849351, true, 578749, null, DEFAULT_MAX_URL_PER_CRAWL);
+        CrawlerSettings crawlerSettings = new CrawlerSettings(559849351, true, 578749, 0L, null, DEFAULT_MAX_URL_PER_CRAWL);
         workspace.setCrawlerSettings(crawlerSettings);
 
 

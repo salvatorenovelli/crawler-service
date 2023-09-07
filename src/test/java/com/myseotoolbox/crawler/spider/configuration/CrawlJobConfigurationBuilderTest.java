@@ -42,6 +42,12 @@ public class CrawlJobConfigurationBuilderTest {
     }
 
     @Test
+    public void shouldLimitCrawlFrequency() {
+        CrawlJobConfiguration build = sut.withMinDelayMillis(500).build();
+        assertThat(build.minDelayMillis(), is(500L));
+    }
+
+    @Test
     public void shouldFetchRobotsTxtIfDefaultIsRequired() throws Exception {
         when(httpClient.get(any())).thenReturn("User-agent: *\n" + "Disallow: /disabled\n");
         CrawlJobConfiguration conf = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withRobotsTxt(getDefault(TEST_ORIGIN)).build();

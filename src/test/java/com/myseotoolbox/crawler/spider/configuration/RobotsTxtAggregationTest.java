@@ -18,7 +18,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.myseotoolbox.crawler.spider.configuration.CrawlerSettingsBuilder.defaultSettings;
+import static com.myseotoolbox.crawler.spider.CrawlerSettingsBuilder.defaultSettings;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.Assert.assertFalse;

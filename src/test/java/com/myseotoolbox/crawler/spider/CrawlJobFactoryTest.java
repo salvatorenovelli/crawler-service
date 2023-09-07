@@ -3,13 +3,13 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
-import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
-import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
+import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,7 +22,6 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -73,6 +72,19 @@ public class CrawlJobFactoryTest {
     }
 
     @Test
+    public void shouldOnlyCrawlUpToMax() {
+
+        CrawlJobConfiguration configuration = testConf
+                .withMaxPagesCrawledLimit(3)
+                .withSeeds(seeds("/path1", "/path2", "/path3", "/path4", "/path5", "/path6"))
+                .build();
+        CrawlJob job = sut.build(configuration, dispatch);
+        job.start();
+
+        verify(dispatch, times(3)).pageCrawled(any());
+    }
+
+    @Test
     public void shouldNotifyMonitoredUriUpdater() {
         CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
@@ -117,14 +129,6 @@ public class CrawlJobFactoryTest {
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);
     }
 
-    //Execute in the test thread instead of spawning a new one
-    private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
-
-        @Override
-        public ThreadPoolExecutor buildExecutor(String namePostfix, int concurrentConnections) {
-            return new CurrentThreadTestExecutorService();
-        }
-    }
 
     private CrawlResult buildSnapshotForUri(InvocationOnMock invocation) {
         String uri = invocation.getArgument(0).toString();
@@ -135,9 +139,9 @@ public class CrawlJobFactoryTest {
 
     private WebPageReaderFactory mockWebPageReaderFactory() {
 
-        return new WebPageReaderFactory(null) {
+        return new WebPageReaderFactory(null, null) {
             @Override
-            public WebPageReader build(UriFilter uriFilter) {
+            public WebPageReader build(UriFilter uriFilter, long minDelayMillis) {
                 return reader;
             }
         };

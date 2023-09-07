@@ -7,4 +7,6 @@ public class DefaultCrawlerSettings {
     public static final int MAX_CONCURRENT_CONNECTIONS = 5;
     public static final int DEFAULT_MAX_URL_PER_CRAWL = 10000;
     public static final int DEFAULT_CONCURRENT_CONNECTIONS = 1;
+    public static final long MIN_CRAWL_DELAY_MILLIS = 0;
+    public static final long MAX_CRAWL_DELAY_MILLIS = 60000;
 }

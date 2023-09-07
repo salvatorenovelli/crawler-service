@@ -9,6 +9,8 @@ import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.spider.UriFilter;
+import com.myseotoolbox.crawler.spider.ratelimiter.RateLimiter;
+import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
@@ -43,10 +45,12 @@ public class WebPageReaderTest {
     private WebPageReader sut;
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(new HttpURLConnectionFactory());
+    private final TestClockUtils testClockUtils = new TestClockUtils();
+    private RateLimiter testRateLimiter = new RateLimiter(500, testClockUtils);
 
     @Before
     public void setUp() {
-        sut = new WebPageReader(ALLOW_ALL_URI, httpRequestFactory);
+        sut = new WebPageReader(ALLOW_ALL_URI, httpRequestFactory, testRateLimiter);
     }
 
     @After
@@ -328,7 +332,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldReturnBlockedSnapshotIfUrlIsDisallowed() throws Exception {
 
-        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory, testRateLimiter);
 
         givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
@@ -351,7 +355,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldNotFetchDisallowedUri() throws Exception {
 
-        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory);
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory, testRateLimiter);
 
         TestWebsite website = givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
@@ -378,6 +382,32 @@ public class WebPageReaderTest {
         PageSnapshot pageSnapshot = sut.snapshotPage(testUri("/link withspaces")).getPageSnapshot();
 
         assertThat(getDestinationUri(pageSnapshot), is(testUri("/link%20withspaces").toString()));
+    }
+
+    @Test
+    public void shouldUseRateLimiter() throws Exception {
+        givenAWebsite().havingRootPage().run();
+
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+
+        assertThat(testClockUtils.currentTimeMillis(), is(2000L));
+
+    }
+
+    @Test
+    public void shouldThrottleRedirect() throws Exception {
+        givenAWebsite()
+                .havingPage("/").redirectingTo(301, "/dst1").and()
+                .havingPage("/dst1").redirectingTo(301, "/dst2").and()
+                .havingPage("/dst2")
+                .run();
+
+        sut.snapshotPage(testUri(TEST_ROOT_PAGE_PATH));
+        assertThat(testClockUtils.currentTimeMillis(), is(1000L));
     }
 
     private String getDestinationUri(PageSnapshot pageSnapshot) {

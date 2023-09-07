@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.ratelimiter;
 
 import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
+import lombok.SneakyThrows;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -19,7 +20,8 @@ public class RateLimiter {
         this.nextAvailableTime = clockUtils.currentTimeMillis();
     }
 
-    public synchronized void throttle() throws InterruptedException {
+    @SneakyThrows
+    public synchronized void throttle() {
         if (minDelayMillis == 0) return;
         long currentTime = clockUtils.currentTimeMillis();
         if (currentTime < nextAvailableTime) {

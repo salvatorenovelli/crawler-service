@@ -6,11 +6,13 @@ import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.configuration.CrawlerSettingsBuilder;
+import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
+import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,20 +23,22 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ThreadPoolExecutor;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
 public class WorkspaceCrawlerIntegrationTest {
 
+    private ClockUtils testClockUtils = new TestClockUtils();
 
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     private Executor executor = new CurrentThreadTestExecutorService();
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
-    private WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()));
+    private WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()), testClockUtils);
     private WebsiteUriFilterFactory uriFilterFactory = new WebsiteUriFilterFactory();
     private SitemapReader sitemapReader = new SitemapReader();
     private RobotsTxtAggregation robotsAggregation = new RobotsTxtAggregation(new HTTPClient());
@@ -61,7 +65,7 @@ public class WorkspaceCrawlerIntegrationTest {
 
 
     public void crawlSingleUrlExploratory() {
-        WebPageReader build = webPageReaderFactory.build((sourceUri, discoveredLink) -> true);
+        WebPageReader build = webPageReaderFactory.build((sourceUri, discoveredLink) -> true, 0);
 
         CrawlResult crawlResult = null;
         try {
@@ -152,7 +156,7 @@ public class WorkspaceCrawlerIntegrationTest {
         verify(dispatch).pageCrawled(crawlResultFor("/path/first"));
         verify(dispatch).pageCrawled(crawlResultFor("/path/subpath/second"));
         verify(dispatch).pageCrawled(crawlResultFor("/outside/something"));//still crawl this as the link originates on a page where we want to check for broken links, for example
-        verify(dispatch, atMost(4)).pageCrawled(any());
+        verify(dispatch, times(4)).pageCrawled(any());
 
     }
 
@@ -170,17 +174,29 @@ public class WorkspaceCrawlerIntegrationTest {
         verify(dispatch, atMost(2)).pageCrawled(any());
     }
 
+    @Test
+    public void shouldCrawlWithinMaxFrequency() {
+        givenAWorkspace()
+                .withWebsiteUrl(testUri("/").toString())
+                .withCrawlDelayMillis(500)
+                .build();
+
+        givenAWebsite()
+                .havingRootPage()
+                .withLinksTo("/page1", "/page2", "/page3", "/page4")
+                .save();
+
+        sut.crawlAllWorkspaces();
+
+        assertThat(testClockUtils.currentTimeMillis(), is(2000L));
+    }
+
+
     private CrawlResult crawlResultFor(String s) {
         return argThat(snapshot -> snapshot.getUri().equals(testUri(s).toString()));
     }
 
 
-    private class CurrentThreadCrawlExecutorFactory extends CrawlExecutorFactory {
-        @Override
-        public ThreadPoolExecutor buildExecutor(String namePostfix, int concurrentConnections) {
-            return new CurrentThreadTestExecutorService();
-        }
-    }
 
     private URI testUri(String url) {
         return testWebsiteBuilder.buildTestUri(url);
