@@ -52,7 +52,7 @@ public class AdminWorkspaceCrawlStartController {
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
 
-        CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true);
+        CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true, 0L);
 
 
         CrawlJob job = factory.build(configuration, getCrawlEventsListener(origin));
@@ -65,7 +65,7 @@ public class AdminWorkspaceCrawlStartController {
         Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
-        CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws));
+        CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
         CrawlJob job = factory.build(conf, getCrawlEventsListener(origin));
 
         job.start();
@@ -78,10 +78,11 @@ public class AdminWorkspaceCrawlStartController {
         return "Started on " + new Date() + "\n";
     }
 
-    private CrawlJobConfiguration getConfiguration(URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots) throws IOException {
+    private CrawlJobConfiguration getConfiguration(URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots, Long crawlDelayMillis) {
         CrawlJobConfiguration.Builder builder = CrawlJobConfiguration
                 .newConfiguration(origin)
                 .withConcurrentConnections(numConnections)
+                .withCrawlDelayMillis(crawlDelayMillis)
                 .withSeeds(seeds);
 
         RobotsTxt robotsTxt = buildRobotsTxt(origin, ignoreRobots);

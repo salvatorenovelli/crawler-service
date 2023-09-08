@@ -43,8 +43,8 @@ public class CrawlJobConfigurationBuilderTest {
 
     @Test
     public void shouldLimitCrawlFrequency() {
-        CrawlJobConfiguration build = sut.withMinDelayMillis(500).build();
-        assertThat(build.minDelayMillis(), is(500L));
+        CrawlJobConfiguration build = sut.withCrawlDelayMillis(500).build();
+        assertThat(build.crawlDelayMillis(), is(500L));
     }
 
     @Test

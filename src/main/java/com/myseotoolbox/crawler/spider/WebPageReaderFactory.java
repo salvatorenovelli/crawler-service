@@ -14,7 +14,7 @@ public class WebPageReaderFactory {
         this.clockUtils = clockUtils;
     }
 
-    public WebPageReader build(UriFilter uriFilter, long minDelayMillis) {
-        return new WebPageReader(uriFilter, httpRequestFactory, new RateLimiter(minDelayMillis, clockUtils));
+    public WebPageReader build(UriFilter uriFilter, long crawlDelayMillis) {
+        return new WebPageReader(uriFilter, httpRequestFactory, new RateLimiter(crawlDelayMillis, clockUtils));
     }
 }

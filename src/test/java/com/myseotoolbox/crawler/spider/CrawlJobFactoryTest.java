@@ -141,7 +141,7 @@ public class CrawlJobFactoryTest {
 
         return new WebPageReaderFactory(null, null) {
             @Override
-            public WebPageReader build(UriFilter uriFilter, long minDelayMillis) {
+            public WebPageReader build(UriFilter uriFilter, long crawlDelayMillis) {
                 return reader;
             }
         };

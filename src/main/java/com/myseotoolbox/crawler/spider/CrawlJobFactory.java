@@ -36,7 +36,7 @@ public class CrawlJobFactory {
         RobotsTxt robotsTxt = configuration.getRobotsTxt();
         //any changes to this filter needs to be duplicated in the sitemap filtering (for now is duplicated logic)
         UriFilter uriFilter = uriFilterFactory.build(origin, allowedPaths, robotsTxt);
-        WebPageReader webPageReader = webPageReaderFactory.build(uriFilter, configuration.minDelayMillis());
+        WebPageReader webPageReader = webPageReaderFactory.build(uriFilter, configuration.crawlDelayMillis());
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), configuration.getMaxConcurrentConnections());
 
         log.info("robots.txt provided {} sitemaps", robotsTxt.getSitemaps().size());

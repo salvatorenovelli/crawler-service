@@ -75,7 +75,7 @@ public class WorkspaceCrawler {
                                     .withConcurrentConnections(seeds.size())
                                     .withRobotsTxt(mergedConfiguration)
                                     .withMaxPagesCrawledLimit(getHigherPageCrawledLimit(workspaces))
-                                    .withMinDelayMillis(getHigherCrawlDelayMillis(workspaces))
+                                    .withCrawlDelayMillis(getHigherCrawlDelayMillis(workspaces))
                                     .build();
 
                             CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));

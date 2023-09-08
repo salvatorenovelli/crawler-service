@@ -4,7 +4,7 @@ plugins {
 }
 
 group = 'com.myseotoolbox'
-version = '1.12.24'
+version = '1.12.25'
 sourceCompatibility = 1.8
 
 apply plugin: 'io.spring.dependency-management'

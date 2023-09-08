@@ -9,28 +9,28 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 @Slf4j
 public class RateLimiter {
-    private final long minDelayMillis;
+    private final long crawlDelayMillis;
     private long nextAvailableTime;
     private final ClockUtils clockUtils;
 
-    public RateLimiter(long minDelayMillis, ClockUtils clockUtils) {
-        if (minDelayMillis < 0) {
+    public RateLimiter(long crawlDelayMillis, ClockUtils clockUtils) {
+        if (crawlDelayMillis < 0) {
             throw new IllegalArgumentException("Rate must be at least 0");
         }
-        this.minDelayMillis = minDelayMillis;
+        this.crawlDelayMillis = crawlDelayMillis;
         this.clockUtils = clockUtils;
         this.nextAvailableTime = clockUtils.currentTimeMillis();
     }
 
     @SneakyThrows
     public synchronized void throttle() {
-        if (minDelayMillis == 0) return;
+        if (crawlDelayMillis == 0) return;
         long currentTime = clockUtils.currentTimeMillis();
         if (currentTime < nextAvailableTime) {
             long delay = nextAvailableTime - currentTime;
             log.trace("Throttling for {} ms", delay);
             clockUtils.sleep(delay);
         }
-        nextAvailableTime = clockUtils.currentTimeMillis() + minDelayMillis;
+        nextAvailableTime = clockUtils.currentTimeMillis() + crawlDelayMillis;
     }
 }
