@@ -26,6 +26,8 @@ public class CrawlJobFactory {
 
     public CrawlJob build(CrawlJobConfiguration configuration, CrawlEventDispatch dispatch) {
 
+        log.debug("Building configuration for {}", configuration);
+
         URI origin = configuration.getOrigin();
 
         Collection<URI> seeds = configuration.getSeeds();
