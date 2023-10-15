@@ -9,11 +9,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 
-public class CrawlStatusTest {
+public class CrawlStateTest {
 
     public static final URI URI = java.net.URI.create("http://host/uri/");
     public static final URI URI_WITH_FRAGMENT = java.net.URI.create("http://host/uri/#fragment");
-    CrawlStatus sut = new CrawlStatus();
+    CrawlState sut = new CrawlState();
 
 
     @Test

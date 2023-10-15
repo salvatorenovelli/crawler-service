@@ -24,7 +24,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 @ThreadSafe
 class CrawlerQueue implements Consumer<CrawlResult> {
 
-    private final CrawlStatus crawlStatus = new CrawlStatus();
+    private final CrawlState crawlStatus = new CrawlState();
     private final List<URI> seeds = new ArrayList<>();
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
