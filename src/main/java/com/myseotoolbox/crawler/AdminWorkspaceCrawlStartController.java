@@ -16,6 +16,7 @@ import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -55,7 +56,7 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true, 0L);
 
 
-        CrawlJob job = factory.build(configuration, getCrawlEventsListener(origin));
+        CrawlJob job = factory.build(configuration, getCrawlEventsListener(configuration.getWebsiteCrawl()));
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
@@ -66,7 +67,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
-        CrawlJob job = factory.build(conf, getCrawlEventsListener(origin));
+        CrawlJob job = factory.build(conf, getCrawlEventsListener(conf.getWebsiteCrawl()));
 
         job.start();
         return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date() + "\n";
@@ -112,7 +113,7 @@ public class AdminWorkspaceCrawlStartController {
                 crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
     }
 
-    private CrawlEventDispatch getCrawlEventsListener(URI origin) {
-        return crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), Collections.emptyList()));
+    private CrawlEventDispatch getCrawlEventsListener(WebsiteCrawl crawl) {
+        return crawlEventDispatchFactory.get(crawl);
     }
 }

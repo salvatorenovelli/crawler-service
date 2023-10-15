@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -63,5 +64,13 @@ public class CrawlJobConfigurationBuilderTest {
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionIfRobotsTxtIsNotConfigured() {
         CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).build();
+    }
+
+    @Test
+    public void shouldBuildWebsiteCrawl() {
+        CrawlJobConfiguration build = sut.build();
+        assertThat(build.getWebsiteCrawl().getOrigin(), is(TEST_ORIGIN.toString()));
+        //just a simple way to check that it's generating a new bson objectID
+        assertThat(build.getWebsiteCrawl().getId().getMachineIdentifier(), is(new ObjectId().getMachineIdentifier()));
     }
 }

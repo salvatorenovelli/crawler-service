@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.Getter;
 import lombok.ToString;
 import org.apache.commons.lang.Validate;
@@ -13,6 +14,7 @@ import java.util.List;
 import static com.myseotoolbox.crawler.spider.configuration.AllowedPathFromSeeds.extractAllowedPathFromSeeds;
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.*;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
+import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 
 
 @Getter
@@ -26,6 +28,7 @@ public class CrawlJobConfiguration {
     private final int crawledPageLimit;
     private final RobotsTxt robotsTxt;
     private final long crawlDelayMillis;
+    private final WebsiteCrawl websiteCrawl;
 
     private CrawlJobConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, long crawlDelayMillis, int crawledPageLimit, RobotsTxt robotsTxt) {
         this.origin = origin;
@@ -34,6 +37,7 @@ public class CrawlJobConfiguration {
         this.crawlDelayMillis = crawlDelayMillis;
         this.crawledPageLimit = crawledPageLimit;
         this.robotsTxt = robotsTxt;
+        this.websiteCrawl = newWebsiteCrawlFor(origin.toString(), seeds);
     }
 
     public static Builder newConfiguration(URI origin) {
