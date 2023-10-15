@@ -16,9 +16,9 @@ import static com.myseotoolbox.crawler.utils.IsRedirect.isRedirect;
 
 public class HttpGetRequest {
 
-    public static final String BOT_NAME = "MySeoToolboxSpider" ;
-    public static final String BOT_VERSION = "1.0" ;
-    public static final String USER_AGENT = "Mozilla/5.0 (compatible; " + BOT_NAME + "/" + BOT_VERSION + ")" ;
+    public static final String BOT_NAME = "MySeoToolboxSpider";
+    public static final String BOT_VERSION = "1.0";
+    public static final String USER_AGENT = "Mozilla/5.0 (compatible; " + BOT_NAME + "/" + BOT_VERSION + ")";
     public static final int DEFAULT_CONNECTION_TIMEOUT = 30000;
 
     private static final Logger logger = LoggerFactory.getLogger(HttpGetRequest.class);
@@ -39,7 +39,7 @@ public class HttpGetRequest {
         connection.setInstanceFollowRedirects(false);
         connection.setConnectTimeout(DEFAULT_CONNECTION_TIMEOUT);
         connection.setRequestProperty("User-Agent", USER_AGENT);
-
+        logger.trace("Connecting to {}...", uri.toASCIIString());
         connection.connect();
         URI dstURI = uri;
 
