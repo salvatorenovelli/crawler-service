@@ -50,4 +50,12 @@ class QueueState {
     private Collection<String> toString(Collection<URI> uris) {
         return uris.stream().map(this::toString).collect(Collectors.toSet());
     }
+
+    public int getVisitedCount() {
+        return visited.size();
+    }
+
+    public int getInProgressCount() {
+        return inProgress.size();
+    }
 }

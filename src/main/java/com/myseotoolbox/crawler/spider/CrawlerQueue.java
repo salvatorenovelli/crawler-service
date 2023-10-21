@@ -68,6 +68,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         assertAbsolute(baseUri);
         queueState.markAsCrawled(baseUri);
         enqueueDiscoveredLinks(crawlResult);
+        dispatch.crawlStatusUpdate(new CrawlStatusUpdateEvent(queueState.getVisitedCount(), queueState.getInProgressCount()));
 
         if (crawlCompleted()) {
             shutdown();

@@ -65,26 +65,11 @@ public class CrawlerQueueTest {
     }
 
     @Test
-    public void shouldNotifyListenersWithSnapshotResult() {
-        whenCrawling("http://host1").discover("http://host1/dst");
-        sut.start();
-        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
-    }
-
-    @Test
     public void shouldNotVisitNoFollow() {
         whenCrawling("http://host1").discover(Collections.singletonList(new PageLink("http://host1/dst", singletonMap("rel", "nofollow"))));
         sut.start();
         verify(pool).accept(taskForUri("http://host1"));
-        verify(pool,atMost(1)).accept(any());
-    }
-
-    @Test
-    public void shouldNotifyListenerWithResultHavingUnicodeUri() {
-        whenCrawling("http://host1").discover("http://host1/linkWithUnicode\u200B  \u200B");
-        sut.start();
-        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
-        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1/linkWithUnicode%E2%80%8B%20%20%E2%80%8B")));
+        verify(pool, atMost(1)).accept(any());
     }
 
     @Test
@@ -392,15 +377,6 @@ public class CrawlerQueueTest {
 
 
     @Test
-    public void shouldNotNotifyListenersForBlockedRedirectChains() {
-        whenCrawling("http://host1").redirectToBlockedUrl("http://host1/blockedByRobots");
-
-        sut.start();
-        verify(dispatch).crawlEnded();
-        verifyNoMoreInteractions(dispatch);
-    }
-
-    @Test
     public void shouldShutdownPoolWhenFinished() {
 
         whenCrawling("http://host1").discover("http://host1/path0");
@@ -414,12 +390,6 @@ public class CrawlerQueueTest {
         inOrder.verify(pool, times(5)).accept(any());
         inOrder.verify(pool).shutDown();
         verifyNoMoreInteractions(pool);
-    }
-
-    @Test
-    public void shouldDispatchCrawlEndedWhenFinished() {
-        sut.start();
-        verify(dispatch).crawlEnded();
     }
 
     @Test
@@ -503,6 +473,47 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").returnEmptyRedirectChain();
         sut.start();
         verify(pool).accept(taskForUri("http://host1"));
+    }
+
+    @Test
+    public void shouldDispatchCrawlEndedWhenFinished() {
+        sut.start();
+        verify(dispatch).crawlEnded();
+    }
+
+    @Test
+    public void shouldNotNotifyListenersForBlockedRedirectChains() {
+        whenCrawling("http://host1").redirectToBlockedUrl("http://host1/blockedByRobots");
+
+        sut.start();
+        verify(dispatch).crawlEnded();
+        verifyNoMoreInteractions(dispatch);
+    }
+
+    @Test
+    public void shouldNotifyListenerWithResultHavingUnicodeUri() {
+        whenCrawling("http://host1").discover("http://host1/linkWithUnicode\u200B  \u200B");
+        sut.start();
+        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1/linkWithUnicode%E2%80%8B%20%20%E2%80%8B")));
+    }
+
+    @Test
+    public void shouldNotifyListenersWithSnapshotResult() {
+        whenCrawling("http://host1").discover("http://host1/dst");
+        sut.start();
+        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+    }
+
+    @Test
+    public void shouldNotifyStatusUpdate() {
+        whenCrawling("http://host1").discover(); //discover nothing
+        sut.start();
+
+        verify(dispatch).crawlStatusUpdate(argThat(argument -> {
+            return argument.getVisited() == 1 && argument.getPending() == 0;
+        }));
+
     }
 
     private List<URI> uris(String... s) {
