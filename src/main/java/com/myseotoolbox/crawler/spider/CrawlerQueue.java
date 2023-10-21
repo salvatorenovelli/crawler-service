@@ -24,7 +24,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 @ThreadSafe
 class CrawlerQueue implements Consumer<CrawlResult> {
 
-    private final CrawlState crawlStatus = new CrawlState();
+    private final QueueState queueState = new QueueState();
     private final List<URI> seeds = new ArrayList<>();
     private final CrawlersPool crawlersPool;
     private final UriFilter uriFilter;
@@ -59,14 +59,14 @@ class CrawlerQueue implements Consumer<CrawlResult> {
             log.debug("Skipping crawl notification for {} because result is blockedChain: {}", result.getUri(), result.getChain());
         }
 
-        onScanCompleted(result);
+        onPageCrawlCompleted(result);
     }
 
-    private synchronized void onScanCompleted(CrawlResult crawlResult) {
+    private synchronized void onPageCrawlCompleted(CrawlResult crawlResult) {
         URI baseUri = URI.create(crawlResult.getUri());
 
         assertAbsolute(baseUri);
-        crawlStatus.markAsCrawled(baseUri);
+        queueState.markAsCrawled(baseUri);
         enqueueDiscoveredLinks(crawlResult);
 
         if (crawlCompleted()) {
@@ -105,7 +105,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     private synchronized void submitTasks(List<URI> seeds) {
         List<URI> allowedSeeds = calculateAllowedSeeds(seeds);
         if (!allowedSeeds.isEmpty()) {
-            crawlStatus.addToInProgress(allowedSeeds);
+            queueState.addToInProgress(allowedSeeds);
             allowedSeeds.stream()
                     .map(uri -> new SnapshotTask(uri, this))
                     .forEach(crawlersPool::accept);
@@ -122,7 +122,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
 
     private List<URI> calculateAllowedSeeds(List<URI> seeds) {
 
-        int totUrlEnqueued = crawlStatus.getTotalEnqueued();
+        int totUrlEnqueued = queueState.getTotalEnqueued();
 
         if (totUrlEnqueued >= this.maxCrawls) {
             LoggingUtils.logWarningOnce(this, log, "Unable to enqueue more URL. Max size exceeded for " + this.queueName);
@@ -139,7 +139,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized boolean alreadyVisited(URI uri) {
-        return crawlStatus.isAlreadyVisited(uri);
+        return queueState.isAlreadyVisited(uri);
     }
 
     private static URI toAbsolute(URI sourceUri, URI uri) {
@@ -177,6 +177,6 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized boolean crawlCompleted() {
-        return crawlStatus.isCrawlCompleted();
+        return queueState.isCrawlCompleted();
     }
 }

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @ThreadSafe
-class CrawlState {
+class QueueState {
     private final Set<String> visited = new HashSet<>();
     private final Set<String> inProgress = new HashSet<>();
 
