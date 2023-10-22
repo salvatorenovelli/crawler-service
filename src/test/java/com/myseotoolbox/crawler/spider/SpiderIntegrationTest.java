@@ -46,8 +46,7 @@ import static org.hamcrest.core.IsCollectionContaining.hasItems;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.atMost;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 /**
  * NOTE!!! PLEASE READ
@@ -101,6 +100,18 @@ public class SpiderIntegrationTest {
 
         verify(dispatchSpy, atMost(3)).pageCrawled(any());
 
+    }
+
+    @Test
+    public void shouldEmitStatusUpdate() {
+        givenAWebsite()
+                .havingPage("/").withLinksTo("/abc", "/cde")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(dispatchSpy, atLeastOnce()).crawlStatusUpdate(argThat(argument -> argument.getPending() == 0 && argument.getVisited() == 3));
     }
 
     @Test
