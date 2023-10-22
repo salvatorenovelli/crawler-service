@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.model.*;
 import com.myseotoolbox.crawler.pagelinks.PageLink;
+import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import org.junit.Before;
 import org.junit.Test;

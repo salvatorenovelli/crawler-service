@@ -3,6 +3,8 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
+import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
+import com.myseotoolbox.crawler.spider.event.CrawlStatusUpdateEvent;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import com.myseotoolbox.crawler.utils.LinkResolver;
 import com.myseotoolbox.crawler.utils.LoggingUtils;

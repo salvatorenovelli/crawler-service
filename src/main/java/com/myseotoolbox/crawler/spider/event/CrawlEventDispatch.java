@@ -1,9 +1,10 @@
-package com.myseotoolbox.crawler.spider;
+package com.myseotoolbox.crawler.spider.event;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.monitoreduri.MonitoredUriUpdater;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinksPersistenceListener;
+import com.myseotoolbox.crawler.spider.PubSubEventDispatch;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlRepository;

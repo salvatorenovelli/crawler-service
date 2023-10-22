@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.spider;
+package com.myseotoolbox.crawler.spider.event;
 
 import lombok.Data;
 

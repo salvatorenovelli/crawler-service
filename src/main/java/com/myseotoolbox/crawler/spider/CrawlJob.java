@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
+import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import lombok.extern.slf4j.Slf4j;
