@@ -12,9 +12,9 @@ import static org.mockito.Mockito.verify;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class OutboundLinkPersistenceEventListenerTest {
+public class PageCrawledEventPubSubListenerTest {
 
-    @InjectMocks OutboundLinkPersistenceEventListener sut;
+    @InjectMocks PageCrawledEventPubSubListener sut;
     @Mock private PubSubEventDispatch pubSubEventDispatch;
 
     @Test

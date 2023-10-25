@@ -14,7 +14,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @RequiredArgsConstructor
 @Slf4j
 @Component
-public class OutboundLinkPersistenceEventListener {
+public class PageCrawledEventPubSubListener {
     private final PubSubEventDispatch pubSubEventDispatch;
 
     @EventListener
