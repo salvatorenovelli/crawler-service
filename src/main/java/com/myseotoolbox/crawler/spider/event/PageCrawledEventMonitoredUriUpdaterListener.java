@@ -13,7 +13,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MonitoredUriUpdatedListener {
+public class PageCrawledEventMonitoredUriUpdaterListener {
     private final MonitoredUriUpdater monitoredUriUpdater;
 
     @EventListener

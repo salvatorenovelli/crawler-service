@@ -11,9 +11,9 @@ import static com.myseotoolbox.crawler.spider.event.PageCrawledEventTestBuilder.
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class MonitoredUriUpdatedListenerTest {
+public class PageCrawledEventMonitoredUriUpdaterListenerTest {
 
-    @InjectMocks MonitoredUriUpdatedListener sut;
+    @InjectMocks PageCrawledEventMonitoredUriUpdaterListener sut;
     @Mock private MonitoredUriUpdater monitoredUriUpdater;
 
 
