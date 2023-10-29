@@ -77,18 +77,10 @@ public class CrawlJobTest {
 
     @Test
     public void shouldNotifyForCrawlStarted() {
-
         String[] seeds = {"http://domain1/a", "http://domain1/b"};
         CrawlJob sut = initSut().withSeeds(seeds).build();
-
-
         sut.start();
-
-        verify(dispatch).crawlStarted(argThat(conf -> {
-            assertThat(conf.getOrigin(), is(TEST_ORIGIN.toString()));
-            assertThat(conf.getSeeds(), containsInAnyOrder(seeds));
-            return true;
-        }));
+        verify(dispatch).onCrawlStarted();
     }
 
 
