@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider.event;
 
-import com.myseotoolbox.crawler.spider.PubSubEventDispatch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -15,7 +14,7 @@ import static org.mockito.Mockito.verify;
 public class PageCrawledEventPubSubListenerTest {
 
     @InjectMocks PageCrawledEventPubSubListener sut;
-    @Mock private PubSubEventDispatch pubSubEventDispatch;
+    @Mock private MessageBrokerEventDispatch pubSubEventDispatch;
 
     @Test
     public void onPageCrawledEventShouldPersistOutboundLink() {

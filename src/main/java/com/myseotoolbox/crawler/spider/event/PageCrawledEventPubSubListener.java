@@ -1,7 +1,6 @@
 package com.myseotoolbox.crawler.spider.event;
 
 import com.myseotoolbox.crawler.model.PageSnapshot;
-import com.myseotoolbox.crawler.spider.PubSubEventDispatch;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +14,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @Slf4j
 @Component
 public class PageCrawledEventPubSubListener {
-    private final PubSubEventDispatch pubSubEventDispatch;
+    private final MessageBrokerEventDispatch pubSubEventDispatch;
 
     @EventListener
     public void onPageCrawledEvent(PageCrawledEvent event) {
