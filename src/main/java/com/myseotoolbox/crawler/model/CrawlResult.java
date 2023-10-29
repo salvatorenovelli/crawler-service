@@ -1,11 +1,9 @@
 package com.myseotoolbox.crawler.model;
 
 
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
 
-@Getter
-@ToString
+@Data
 public class CrawlResult {
 
     private final String uri;
