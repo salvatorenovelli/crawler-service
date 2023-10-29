@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
+import com.myseotoolbox.crawler.spider.event.MessageBrokerEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
@@ -23,7 +24,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -62,7 +62,7 @@ public class SpiderIntegrationTest {
 
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
-    @MockBean PubSubEventDispatch eventDispatch;
+    @MockBean MessageBrokerEventDispatch eventDispatch;
     private final SitemapReader sitemapReader = new SitemapReader();
     @Autowired CrawlEventDispatchFactory factory;
     @Autowired MonitoredUriRepository monitoredUriRepository;
@@ -95,11 +95,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/abc"));
-        verify(dispatchSpy).pageCrawled(uri("/cde"));
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/abc"));
+        verify(dispatchSpy).onPageCrawled(uri("/cde"));
 
-        verify(dispatchSpy, atMost(3)).pageCrawled(any());
+        verify(dispatchSpy, atMost(3)).onPageCrawled(any());
 
     }
 
@@ -124,9 +124,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/another-page"));
-        verify(dispatchSpy, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/another-page"));
+        verify(dispatchSpy, atMost(2)).onPageCrawled(any());
     }
 
     @Test
@@ -138,9 +138,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/link1"));
-        verify(dispatchSpy).pageCrawled(uri("/link2"));
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/link1"));
+        verify(dispatchSpy).onPageCrawled(uri("/link2"));
     }
 
     @Test
@@ -152,9 +152,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/another-page"));
-        verify(dispatchSpy, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/another-page"));
+        verify(dispatchSpy, atMost(2)).onPageCrawled(any());
     }
 
     @Test
@@ -168,12 +168,12 @@ public class SpiderIntegrationTest {
         job.start();
 
 
-        verify(dispatchSpy).pageCrawled(uri("/base/"));
-        verify(dispatchSpy).pageCrawled(uri("/base/abc"));
-        verify(dispatchSpy).pageCrawled(uri("/base/cde"));
-        verify(dispatchSpy).pageCrawled(uri("/outside/fgh"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/abc"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/cde"));
+        verify(dispatchSpy).onPageCrawled(uri("/outside/fgh"));
 
-        verify(dispatchSpy, atMost(4)).pageCrawled(any());
+        verify(dispatchSpy, atMost(4)).onPageCrawled(any());
     }
 
 
@@ -187,11 +187,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/base/"));
-        verify(dispatchSpy).pageCrawled(uri("/outside"));
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/"));
+        verify(dispatchSpy).onPageCrawled(uri("/outside"));
 
-        verify(dispatchSpy, atMost(3)).pageCrawled(any());
+        verify(dispatchSpy, atMost(3)).onPageCrawled(any());
     }
 
     @Test
@@ -206,14 +206,14 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base/", "/base2/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/base/"));
-        verify(dispatchSpy).pageCrawled(uri("/base2/"));
-        verify(dispatchSpy).pageCrawled(uri("/base/abc"));
-        verify(dispatchSpy).pageCrawled(uri("/base/cde"));
-        verify(dispatchSpy).pageCrawled(uri("/base2/fgh"));
-        verify(dispatchSpy).pageCrawled(uri("/outside/a"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/"));
+        verify(dispatchSpy).onPageCrawled(uri("/base2/"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/abc"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/cde"));
+        verify(dispatchSpy).onPageCrawled(uri("/base2/fgh"));
+        verify(dispatchSpy).onPageCrawled(uri("/outside/a"));
 
-        verify(dispatchSpy, atMost(6)).pageCrawled(any());
+        verify(dispatchSpy, atMost(6)).onPageCrawled(any());
 
 
     }
@@ -228,11 +228,11 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/base"));
-        verify(dispatchSpy).pageCrawled(uri("/base2"));
-        verify(dispatchSpy).pageCrawled(uri("/base/abc"));
+        verify(dispatchSpy).onPageCrawled(uri("/base"));
+        verify(dispatchSpy).onPageCrawled(uri("/base2"));
+        verify(dispatchSpy).onPageCrawled(uri("/base/abc"));
 
-        verify(dispatchSpy, atMost(3)).pageCrawled(any());
+        verify(dispatchSpy, atMost(3)).onPageCrawled(any());
     }
 
     @Test
@@ -260,9 +260,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/dst1"));
-        verify(dispatchSpy, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/dst1"));
+        verify(dispatchSpy, atMost(2)).onPageCrawled(any());
     }
 
 
@@ -273,7 +273,7 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(argThat(snapshot -> {
+        verify(dispatchSpy).onPageCrawled(argThat(snapshot -> {
             assertThat(snapshot.getPageSnapshot().getTitle(), is("This has leading spaces"));
             return true;
         }));
@@ -287,9 +287,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/dst1"));
-        verify(dispatchSpy, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/dst1"));
+        verify(dispatchSpy, atMost(2)).onPageCrawled(any());
     }
 
     @Test
@@ -301,8 +301,8 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy, atMost(1)).pageCrawled(any());
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy, atMost(1)).onPageCrawled(any());
     }
 
     @Test
@@ -314,9 +314,9 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy).pageCrawled(uri("/"));
-        verify(dispatchSpy).pageCrawled(uri("/link%20withspaces/relative"));
-        verify(dispatchSpy, atMost(2)).pageCrawled(any());
+        verify(dispatchSpy).onPageCrawled(uri("/"));
+        verify(dispatchSpy).onPageCrawled(uri("/link%20withspaces/relative"));
+        verify(dispatchSpy, atMost(2)).onPageCrawled(any());
     }
 
     @Test

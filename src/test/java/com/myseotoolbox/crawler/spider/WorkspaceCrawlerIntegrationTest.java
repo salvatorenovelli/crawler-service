@@ -86,10 +86,10 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(crawlResultFor("/"));
-        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
-        verify(dispatch).pageCrawled(crawlResultFor("/page2"));
-        verify(dispatch, atMost(3)).pageCrawled(any());
+        verify(dispatch).onPageCrawled(crawlResultFor("/"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/page1"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/page2"));
+        verify(dispatch, atMost(3)).onPageCrawled(any());
 
     }
 
@@ -102,9 +102,9 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(crawlResultFor("/"));
-        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        verify(dispatch).onPageCrawled(crawlResultFor("/"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/page1"));
+        verify(dispatch, atMost(2)).onPageCrawled(any());
     }
 
 
@@ -118,9 +118,9 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(crawlResultFor("/"));
-        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        verify(dispatch).onPageCrawled(crawlResultFor("/"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/page1"));
+        verify(dispatch, atMost(2)).onPageCrawled(any());
     }
 
     @Test
@@ -135,10 +135,10 @@ public class WorkspaceCrawlerIntegrationTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatch).pageCrawled(crawlResultFor("/"));
-        verify(dispatch).pageCrawled(crawlResultFor("/page1"));
-        verify(dispatch).pageCrawled(crawlResultFor("/page2"));
-        verify(dispatch, atMost(3)).pageCrawled(any());
+        verify(dispatch).onPageCrawled(crawlResultFor("/"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/page1"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/page2"));
+        verify(dispatch, atMost(3)).onPageCrawled(any());
 
     }
 
@@ -153,11 +153,11 @@ public class WorkspaceCrawlerIntegrationTest {
         sut.crawlAllWorkspaces();
 
 
-        verify(dispatch).pageCrawled(crawlResultFor("/path/"));
-        verify(dispatch).pageCrawled(crawlResultFor("/path/first"));
-        verify(dispatch).pageCrawled(crawlResultFor("/path/subpath/second"));
-        verify(dispatch).pageCrawled(crawlResultFor("/outside/something"));//still crawl this as the link originates on a page where we want to check for broken links, for example
-        verify(dispatch, times(4)).pageCrawled(any());
+        verify(dispatch).onPageCrawled(crawlResultFor("/path/"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/path/first"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/path/subpath/second"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/outside/something"));//still crawl this as the link originates on a page where we want to check for broken links, for example
+        verify(dispatch, times(4)).onPageCrawled(any());
 
     }
 
@@ -170,9 +170,9 @@ public class WorkspaceCrawlerIntegrationTest {
         sut.crawlAllWorkspaces();
 
 
-        verify(dispatch).pageCrawled(crawlResultFor("/path/index.html"));
-        verify(dispatch).pageCrawled(crawlResultFor("/path/first"));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        verify(dispatch).onPageCrawled(crawlResultFor("/path/index.html"));
+        verify(dispatch).onPageCrawled(crawlResultFor("/path/first"));
+        verify(dispatch, atMost(2)).onPageCrawled(any());
     }
 
     @Test
