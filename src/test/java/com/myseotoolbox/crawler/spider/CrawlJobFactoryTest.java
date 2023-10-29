@@ -82,14 +82,14 @@ public class CrawlJobFactoryTest {
         CrawlJob job = sut.build(configuration, dispatch);
         job.start();
 
-        verify(dispatch, times(3)).pageCrawled(any());
+        verify(dispatch, times(3)).onPageCrawled(any());
     }
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
         CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
-        verify(dispatch).pageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
+        verify(dispatch).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test

@@ -47,23 +47,23 @@ public class CrawlJobTest {
     public void shouldFilterOutSeedsFromOutsideOrigin() {
         CrawlJob sut = initSut().withSeeds("http://domain1", "http://domain2").build();
         sut.start();
-        Mockito.verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://domain1")));
+        Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1")));
     }
 
     @Test
     public void shouldNotifySubscribers() {
         CrawlJob sut = initSut().build();
         sut.start();
-        Mockito.verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://domain1")));
+        Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1")));
     }
 
     @Test
     public void shouldOnlyVisitSeedsNotTheRoot() {
         CrawlJob sut = initSut().withSeeds("http://domain1/path1", "http://domain1/path2").build();
         sut.start();
-        Mockito.verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path1")));
-        Mockito.verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path2")));
-        verify(dispatch, atMost(2)).pageCrawled(any());
+        Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path1")));
+        Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path2")));
+        verify(dispatch, atMost(2)).onPageCrawled(any());
 
     }
 

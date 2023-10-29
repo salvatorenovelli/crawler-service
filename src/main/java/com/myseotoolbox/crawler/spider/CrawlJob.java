@@ -3,7 +3,6 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
-import com.myseotoolbox.crawler.websitecrawl.CrawlStartedEvent;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -50,8 +49,7 @@ public class CrawlJob {
     }
 
     private void notifyCrawlStart() {
-        List<String> collect = seeds.subList(0, Math.min(seeds.size(), 20)).stream().map(URI::toString).collect(Collectors.toList());
-        dispatch.crawlStarted(new CrawlStartedEvent(crawlOrigin.toString(), collect));
+        dispatch.onCrawlStarted();
     }
 
 }

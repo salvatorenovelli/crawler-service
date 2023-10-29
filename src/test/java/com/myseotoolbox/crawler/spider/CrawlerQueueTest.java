@@ -479,7 +479,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldDispatchCrawlEndedWhenFinished() {
         sut.start();
-        verify(dispatch).crawlEnded();
+        verify(dispatch).onCrawlCompleted();
     }
 
     @Test
@@ -488,7 +488,7 @@ public class CrawlerQueueTest {
 
         sut.start();
         verify(dispatch).crawlStatusUpdate(any());
-        verify(dispatch).crawlEnded();
+        verify(dispatch).onCrawlCompleted();
         verifyNoMoreInteractions(dispatch);
     }
 
@@ -496,15 +496,15 @@ public class CrawlerQueueTest {
     public void shouldNotifyListenerWithResultHavingUnicodeUri() {
         whenCrawling("http://host1").discover("http://host1/linkWithUnicode\u200B  \u200B");
         sut.start();
-        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
-        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1/linkWithUnicode%E2%80%8B%20%20%E2%80%8B")));
+        verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+        verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://host1/linkWithUnicode%E2%80%8B%20%20%E2%80%8B")));
     }
 
     @Test
     public void shouldNotifyListenersWithSnapshotResult() {
         whenCrawling("http://host1").discover("http://host1/dst");
         sut.start();
-        verify(dispatch).pageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
+        verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://host1")));
     }
 
     @Test

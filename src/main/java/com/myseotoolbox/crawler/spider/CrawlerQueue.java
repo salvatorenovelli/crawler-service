@@ -168,14 +168,14 @@ class CrawlerQueue implements Consumer<CrawlResult> {
     }
 
     private synchronized void notifyPageCrawled(CrawlResult crawlResult) {
-        dispatch.pageCrawled(crawlResult);
+        dispatch.onPageCrawled(crawlResult);
     }
 
     private synchronized void shutdown() {
         if (!crawlShutdownInvoked) {
             crawlShutdownInvoked = true;
             crawlersPool.shutDown();
-            dispatch.crawlEnded();
+            dispatch.onCrawlCompleted();
         }
     }
 
