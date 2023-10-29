@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler.model;
+package com.myseotoolbox.crawler.spider.event;
 
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.AllArgsConstructor;
