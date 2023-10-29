@@ -23,8 +23,4 @@ public class WebsiteCrawl {
         this.createdAt = createdAt;
         this.seeds = seeds;
     }
-
-    public static WebsiteCrawl fromCrawlStartedEvent(ObjectId crawlId, CrawlStartedEvent conf) {
-        return new WebsiteCrawl(crawlId, conf.getOrigin(), LocalDateTime.now(), conf.getSeeds());
-    }
 }
