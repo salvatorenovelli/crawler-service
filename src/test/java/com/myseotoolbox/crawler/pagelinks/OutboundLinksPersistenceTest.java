@@ -3,6 +3,9 @@ package com.myseotoolbox.crawler.pagelinks;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.spider.event.PageCrawledEvent;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
 import org.bson.types.ObjectId;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -17,6 +20,7 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
@@ -25,24 +29,24 @@ import static org.junit.Assert.assertThat;
 
 @SuppressWarnings("CodeBlock2Expr")
 @RunWith(MockitoJUnitRunner.class)
-public class OutboundLinksPersistenceListenerTest {
+public class OutboundLinksPersistenceTest {
 
     private static final String TEST_ORIGIN = "http://domain";
     private static final URI CRAWL_ORIGIN = URI.create(TEST_ORIGIN);
     @Mock OutboundLinkRepository repository;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
-    private OutboundLinksPersistenceListener sut;
+    private OutboundLinksPersistence sut;
 
     @Before
     public void setUp() {
-        sut = new OutboundLinksPersistenceListener(TEST_CRAWL_ID, TEST_ORIGIN, repository);
+        sut = new OutboundLinksPersistence(repository);
     }
 
     @Test
     public void shouldSaveDiscoveredLinks() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("/relativeLink", "http://absoluteLink/hello");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
@@ -56,7 +60,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldNotPersistDuplicateLinks() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("/relativeLink", "/relativeLink", "http://absoluteLink/hello", "http://absoluteLink/hello");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
@@ -69,7 +73,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldBeFineWithNullLinks() {
         CrawlResult crawlResult = CrawlResult.forSnapshot(aTestPageSnapshotForUri("http://testuri").withNullLinks().build());
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
@@ -85,7 +89,7 @@ public class OutboundLinksPersistenceListenerTest {
                         .withEmptyRedirectChain()
                         .build());
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         Mockito.verify(repository, Mockito.never()).save(ArgumentMatchers.any(OutboundLinks.class));
     }
@@ -94,7 +98,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldNotPersistFragments() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("#this-is-a-fragment", "http://absoluteLink/hello#fragment");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://absoluteLink/hello"));
@@ -105,7 +109,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldPersistParameters() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://domain/index?param=true", "http://domain/index?param=false", "http://domain/index");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/index?param=true", "/index?param=false", "/index"));
@@ -116,7 +120,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldPersistParametersForExternalDomains() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://externaldomain/index.php?param=true", "http://externaldomain/index.php?param=false");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://externaldomain/index.php?param=true", "http://externaldomain/index.php?param=false"));
@@ -128,7 +132,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldNotMergeLeadingSlashWithNon() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://domain/index", "http://domain/index/");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/index", "/index/"));
@@ -139,7 +143,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldPersistCanonicals() {
         CrawlResult crawlResult = givenCrawlResultForPageWithCanonicals("http://domain/it/canonical1", "http://domain/it/canonical2");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.CANONICAL), containsInAnyOrder("/it/canonical1", "/it/canonical2"));
@@ -154,7 +158,7 @@ public class OutboundLinksPersistenceListenerTest {
 
         CrawlResult crawlResult = givenCrawlResultForPageWithNoFollowLinks(notFollowable, followable);
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), hasSize(1));
@@ -166,7 +170,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldDedupPagesWithFragments() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("http://host/hello", "http://host/hello#fragment");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://host/hello"));
@@ -177,7 +181,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void canHandleEmptyFragments() {
         CrawlResult crawlResult = givenCrawlResultForPageWithLinks("#", "http://host/page#");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http://host/page"));
@@ -192,7 +196,7 @@ public class OutboundLinksPersistenceListenerTest {
                 "http://domain/some/path/link3",
                 "http://anotherdomain/link1");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "/link2", "/some/path/link3", "http://anotherdomain/link1"));
@@ -204,7 +208,7 @@ public class OutboundLinksPersistenceListenerTest {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
                 "http://domain/link1 with spaces/salve");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1%20with%20spaces/salve"));
@@ -217,7 +221,7 @@ public class OutboundLinksPersistenceListenerTest {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path",
                 "http://domain/linkWithUnicode\u200B  \u200B");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/linkWithUnicode%E2%80%8B%20%20%E2%80%8B"));
@@ -228,7 +232,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldRelativizeBasedOnOrigin() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("https://domain/some/path", "https://domain/link");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("https://domain/link"));
@@ -239,7 +243,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldSaveAbsoluteLinksIfNonSameDomainAsOrigin() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("https://domain/some/path", "/link");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("https://domain/link"));
@@ -250,7 +254,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldPersistLinksWithSpacesAtTheEnd() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain", "http://domain/path ");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/path"));
@@ -262,7 +266,7 @@ public class OutboundLinksPersistenceListenerTest {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/some/path/",
                 "salve");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/some/path/salve"));
@@ -275,7 +279,7 @@ public class OutboundLinksPersistenceListenerTest {
                 "/link1",
                 "https://domain/link2");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "https://domain/link2"));
@@ -286,7 +290,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void linksWithNoSlashAtTheBeginningShouldBeResolvedProperly() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain/subpath/page", "link1");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/subpath/link1"));
@@ -299,7 +303,7 @@ public class OutboundLinksPersistenceListenerTest {
                 "http:-/link1__(this is invalid)__",
                 "https://domain/link2");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("http:-/link1__(this%20is%20invalid)__", "https://domain/link2"));
@@ -310,7 +314,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldPersistDomain() {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://something.domain/some/path", "/link1");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getDomain(), is("something.domain"));
@@ -323,7 +327,7 @@ public class OutboundLinksPersistenceListenerTest {
                 "/link1",
                 "javascript:void(0)");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1"));
@@ -335,7 +339,7 @@ public class OutboundLinksPersistenceListenerTest {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
                 "/c", "/d", "/c", "/b", "http://domain/a", "http://anotherdomain/b", "http://anotherdomain/a");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), Matchers.contains("/a", "/b", "/c", "/d", "http://anotherdomain/a", "http://anotherdomain/b"));
@@ -347,7 +351,7 @@ public class OutboundLinksPersistenceListenerTest {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
                 "/link1/", "/link1");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/link1", "/link1/"));
@@ -359,7 +363,7 @@ public class OutboundLinksPersistenceListenerTest {
         CrawlResult crawlResult = givenCrawlResultForUrlWithPageWithLinks("http://domain",
                 "/link1/", "/link1");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertNotNull(outboundLinks.getCrawledAt());
@@ -370,7 +374,7 @@ public class OutboundLinksPersistenceListenerTest {
     public void shouldResolveLinksBasedOnDestinationUrl() {
         CrawlResult crawlResult = givenCrawlResultWithRedirect("http://domain", "https://domain", "/link1", "/link2");
 
-        sut.accept(crawlResult);
+        processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("https://domain/link1", "https://domain/link2"));
@@ -414,5 +418,10 @@ public class OutboundLinksPersistenceListenerTest {
         return CrawlResult.forSnapshot(aTestPageSnapshotForUri(url)
                 .withRedirectChainElements(new RedirectChainElement(url, 200, url))
                 .withLinks(links).build());
+    }
+
+    private void processCrawlResult(CrawlResult crawlResult) {
+        WebsiteCrawl websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, CRAWL_ORIGIN.toASCIIString(), emptyList());
+        sut.onPageCrawled(new PageCrawledEvent(websiteCrawl, crawlResult));
     }
 }
