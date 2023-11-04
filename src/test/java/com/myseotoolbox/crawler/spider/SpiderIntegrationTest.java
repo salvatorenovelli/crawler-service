@@ -1,23 +1,16 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
-import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.MonitoredUri;
-import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
-import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
-import com.myseotoolbox.crawler.spider.event.MessageBrokerEventDispatch;
-import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
-import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import com.myseotoolbox.utils.ItemMatcher;
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -27,7 +20,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
@@ -38,7 +30,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
 import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -60,23 +51,22 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class SpiderIntegrationTest {
 
-    private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
 
-    @MockBean MessageBrokerEventDispatch eventDispatch;
-    private final SitemapReader sitemapReader = new SitemapReader();
-    @Autowired CrawlEventDispatchFactory factory;
     @Autowired MonitoredUriRepository monitoredUriRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
+    @Autowired private CrawlEventDispatchFactory dispatchFactory;
 
     private CrawlEventDispatch dispatchSpy;
 
 
     TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
+    TestCrawlJobBuilder testCrawlJobBuilder;
 
     @Before
     public void setUp() throws Exception {
         testWebsiteBuilder.run();
-        dispatchSpy = Mockito.spy(factory.get(newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
+        dispatchSpy = Mockito.spy(dispatchFactory.get(newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
+        testCrawlJobBuilder = new TestCrawlJobBuilder(dispatchSpy);
     }
 
     @After
@@ -369,36 +359,6 @@ public class SpiderIntegrationTest {
         return argThat(argument -> argument.getPageSnapshot().getUri().equals(testUri(uri).toString()));
     }
 
-    private CrawlJob buildForSeeds(List<URI> seeds) {
-
-        //mimic WorkspaceCrawler
-
-        URI origin = extractOrigin(seeds.get(0));
-        SpiderConfig spiderConfig = new SpiderConfig();
-
-        CrawlJobFactory crawlJobFactory = spiderConfig
-                .getCrawlJobFactory(testExecutorBuilder, sitemapReader);
-
-        RobotsTxtAggregation robotsTxtAggregation = new RobotsTxtAggregation(new HTTPClient());
-
-        RobotsTxt merged = robotsTxtAggregation.mergeConfigurations(seeds.stream().map(uri -> {
-            Workspace workspace = new Workspace();
-            workspace.setWebsiteUrl(uri.toString());
-            return workspace;
-        }).collect(Collectors.toList()));
-
-        CrawlJobConfiguration conf = CrawlJobConfiguration
-                .newConfiguration(origin)
-                .withSeeds(seeds)
-                .withConcurrentConnections(seeds.size())
-                .withRobotsTxt(merged)
-                .build();
-
-
-        return crawlJobFactory.build(conf, dispatchSpy);
-    }
-
-
     private URI testUri(String url) {
         return testWebsiteBuilder.buildTestUri(url);
     }
@@ -413,5 +373,9 @@ public class SpiderIntegrationTest {
 
     private com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {
         return new TestWorkspaceBuilder(workspaceRepository, seqNumber);
+    }
+
+    private CrawlJob buildForSeeds(List<URI> uris) {
+        return testCrawlJobBuilder.buildForSeeds(uris);
     }
 }
