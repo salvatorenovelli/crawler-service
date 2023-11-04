@@ -18,10 +18,10 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUriString;
 
 @Component
-public class OutboundLinksPersistence {
+public class OutboundLinksPersistenceListener {
     private final OutboundLinkRepository repository;
 
-    public OutboundLinksPersistence(OutboundLinkRepository repository) {
+    public OutboundLinksPersistenceListener(OutboundLinkRepository repository) {
         this.repository = repository;
     }
 

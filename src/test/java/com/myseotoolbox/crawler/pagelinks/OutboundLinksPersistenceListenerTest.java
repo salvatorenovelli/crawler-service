@@ -29,17 +29,17 @@ import static org.junit.Assert.assertThat;
 
 @SuppressWarnings("CodeBlock2Expr")
 @RunWith(MockitoJUnitRunner.class)
-public class OutboundLinksPersistenceTest {
+public class OutboundLinksPersistenceListenerTest {
 
     private static final String TEST_ORIGIN = "http://domain";
     private static final URI CRAWL_ORIGIN = URI.create(TEST_ORIGIN);
     @Mock OutboundLinkRepository repository;
     public static final ObjectId TEST_CRAWL_ID = new ObjectId();
-    private OutboundLinksPersistence sut;
+    private OutboundLinksPersistenceListener sut;
 
     @Before
     public void setUp() {
-        sut = new OutboundLinksPersistence(repository);
+        sut = new OutboundLinksPersistenceListener(repository);
     }
 
     @Test
