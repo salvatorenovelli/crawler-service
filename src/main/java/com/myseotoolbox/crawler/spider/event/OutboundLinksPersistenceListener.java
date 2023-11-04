@@ -1,7 +1,8 @@
-package com.myseotoolbox.crawler.pagelinks;
+package com.myseotoolbox.crawler.spider.event;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.pagelinks.*;
 import com.myseotoolbox.crawler.spider.PageLinksHelper;
 import com.myseotoolbox.crawler.spider.event.PageCrawledEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
