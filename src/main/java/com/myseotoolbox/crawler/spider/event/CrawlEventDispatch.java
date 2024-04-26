@@ -13,9 +13,8 @@ public class CrawlEventDispatch {
     private final WebsiteCrawl websiteCrawl;
     private final ApplicationEventPublisher applicationEventPublisher;
 
-
     public void onPageCrawled(CrawlResult crawlResult) {
-        log.debug("Persisting page crawled: {}", crawlResult.getUri());
+        log.debug("Persisting page crawled: {} for crawl: {}", crawlResult.getUri(), websiteCrawl);
         applicationEventPublisher.publishEvent(new PageCrawledEvent(websiteCrawl, crawlResult));
     }
 
@@ -29,7 +28,8 @@ public class CrawlEventDispatch {
         applicationEventPublisher.publishEvent(new CrawlCompletedEvent(websiteCrawl));
     }
 
-    public void crawlEnded() {
-        pubSubEventDispatch.websiteCrawlCompletedEvent(websiteCrawl);
+    public void onCrawlStatusUpdate(int visited, int pending) {
+        log.trace("Crawl status update event for: {}. visited:{} pending:{}", websiteCrawl, visited, pending);
+        applicationEventPublisher.publishEvent(new CrawlStatusUpdateEvent(visited, pending, websiteCrawl));
     }
 }
