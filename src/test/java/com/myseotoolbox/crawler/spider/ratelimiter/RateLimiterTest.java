@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 public class RateLimiterTest {
 
     private final TestClockUtils clockUtils = new TestClockUtils();
-    private final RateLimiter<String> limiter = new RateLimiter<>(1000, clockUtils);
+    private final RateLimiter limiter = new RateLimiter(1000, clockUtils);
     private final Supplier<String> TEST_TASK = () -> "Executed at " + clockUtils.currentTimeMillis();
 
 

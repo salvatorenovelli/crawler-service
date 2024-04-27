@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 @ThreadSafe
-public class RateLimiter<T> {
+public class RateLimiter {
     private final long intervalMillis;
     private long lastExecutionTime;
     private final ClockUtils clockUtils;
@@ -21,7 +21,7 @@ public class RateLimiter<T> {
         this.lastExecutionTime = clockUtils.currentTimeMillis() - intervalMillis;
     }
 
-    public synchronized Optional<T> process(Supplier<T> task) {
+    public synchronized <T> Optional<T> process(Supplier<T> task) {
         long currentTime = clockUtils.currentTimeMillis();
         if (currentTime - lastExecutionTime >= intervalMillis) {
             lastExecutionTime = currentTime;
