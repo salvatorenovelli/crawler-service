@@ -1,9 +1,11 @@
 package com.myseotoolbox.crawler.spider.event;
 
 import com.myseotoolbox.crawler.model.CrawlResult;
+import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
+import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,56 +13,51 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 
-import java.net.URI;
 import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.verify;
+
 
 @RunWith(MockitoJUnitRunner.class)
 public class CrawlEventDispatchTest {
-    private final static String TEST_URI = "http://example.com";
 
-    private final WebsiteCrawl websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_URI, Collections.singletonList(URI.create(TEST_URI)));
+    public static final String TEST_ORIGIN = "http://origin";
+    public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
+    public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
+    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
+    private static final WebsiteCrawl CRAWL = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, TEST_ORIGIN, Collections.emptyList());
+
     @Mock private ApplicationEventPublisher applicationEventPublisher;
 
-    private CrawlEventDispatch sut;
+    CrawlEventDispatch sut;
 
     @Before
-    public void setUp() throws Exception {
-        sut = new CrawlEventDispatch(websiteCrawl, applicationEventPublisher);
+    public void setUp() {
+        sut = new CrawlEventDispatch(CRAWL, applicationEventPublisher);
     }
 
     @Test
-    public void onPageCrawledShouldPublishPageCrawledEvent() {
-        CrawlResult testCrawlResult = givenTestCrawlResultForUri(TEST_URI);
-        sut.onPageCrawled(testCrawlResult);
-
-        verify(applicationEventPublisher).publishEvent(argThat((PageCrawledEvent event) ->
-                event.getCrawlResult().equals(testCrawlResult)
-        ));
+    public void shouldNotifyPageCrawlListeners() {
+        sut.onPageCrawled(TEST_CRAWL_RESULT);
+        verify(applicationEventPublisher).publishEvent(new PageCrawledEvent(CRAWL, TEST_CRAWL_RESULT));
     }
 
     @Test
-    public void onCrawlStartedShouldPublishCrawlStartedEvent() {
+    public void shouldNotifyCrawlStartedListeners() {
         sut.onCrawlStarted();
-
-        verify(applicationEventPublisher).publishEvent(argThat((CrawlStartedEvent event) ->
-                event.getWebsiteCrawl().equals(websiteCrawl)
-        ));
+        verify(applicationEventPublisher).publishEvent(new CrawlStartedEvent(CRAWL));
     }
 
     @Test
-    public void onCrawlCompletedShouldPublishCrawlCompletedEvent() {
+    public void shouldNotifyCrawlCompletedListeners() {
         sut.onCrawlCompleted();
-
-        verify(applicationEventPublisher).publishEvent(argThat((CrawlCompletedEvent event) ->
-                event.getWebsiteCrawl().getOrigin().equals(websiteCrawl.getOrigin()) && event.getWebsiteCrawl().getId().equals(websiteCrawl.getId().toHexString())
-        ));
+        verify(applicationEventPublisher).publishEvent(new CrawlCompletedEvent(CRAWL));
     }
 
-    private CrawlResult givenTestCrawlResultForUri(String uri) {
-        return CrawlResult.forSnapshot(PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(uri));
+    @Test
+    public void shouldNotifyForStatusUpdates() {
+        sut.onCrawlStatusUpdate(10, 100);
+        verify(applicationEventPublisher).publishEvent(new CrawlStatusUpdateEvent(10, 100, CRAWL));
     }
 
 }
