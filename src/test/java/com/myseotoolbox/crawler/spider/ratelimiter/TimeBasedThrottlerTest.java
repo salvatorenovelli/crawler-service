@@ -9,30 +9,30 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-public class RateLimiterTest {
-    private RateLimiter rateLimiter;
+public class TimeBasedThrottlerTest {
+    private TimeBasedThrottler timeBasedThrottler;
     private TestClockUtils testClockUtils = new TestClockUtils();
 
     @Before
     public void setUp() {
-        rateLimiter = new RateLimiter(500, testClockUtils);  // 1 call per second
+        timeBasedThrottler = new TimeBasedThrottler(500, testClockUtils);  // 1 call per second
     }
 
 
     @Test
     public void testRateLimiting() throws InterruptedException {
-        rateLimiter.throttle();  // immediate, as it's the first call
-        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
+        timeBasedThrottler.throttle();  // immediate, as it's the first call
+        timeBasedThrottler.throttle();  // should wait for about 500 ms in "mock time"
         assertEquals(500, testClockUtils.currentTimeMillis());
     }
 
     @Test
     public void testRateLimitingWithMultipleRequests() throws InterruptedException {
-        rateLimiter.throttle();  // immediate, as it's the first call
-        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
-        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
-        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
-        rateLimiter.throttle();  // should wait for about 500 ms in "mock time"
+        timeBasedThrottler.throttle();  // immediate, as it's the first call
+        timeBasedThrottler.throttle();  // should wait for about 500 ms in "mock time"
+        timeBasedThrottler.throttle();  // should wait for about 500 ms in "mock time"
+        timeBasedThrottler.throttle();  // should wait for about 500 ms in "mock time"
+        timeBasedThrottler.throttle();  // should wait for about 500 ms in "mock time"
         assertEquals(2000, testClockUtils.currentTimeMillis());
     }
 
@@ -44,16 +44,16 @@ public class RateLimiterTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testRateLimiterThrowsExceptionForNegativeDelay() {
-        new RateLimiter(-1, testClockUtils);
+        new TimeBasedThrottler(-1, testClockUtils);
     }
 
     @Test
     public void testThrottleWithZeroMinDelay() throws InterruptedException {
         TestClockUtils spyClockUtils = spy(testClockUtils);
-        rateLimiter = new RateLimiter(0, spyClockUtils);
-        rateLimiter.throttle();
-        rateLimiter.throttle();
-        rateLimiter.throttle();
+        timeBasedThrottler = new TimeBasedThrottler(0, spyClockUtils);
+        timeBasedThrottler.throttle();
+        timeBasedThrottler.throttle();
+        timeBasedThrottler.throttle();
         verify(spyClockUtils, never()).sleep(anyLong());
     }
 
