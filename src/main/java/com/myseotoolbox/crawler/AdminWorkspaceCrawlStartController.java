@@ -17,9 +17,8 @@ import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,9 +27,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
-
 @RestController
+@RequiredArgsConstructor
 public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
@@ -39,13 +37,6 @@ public class AdminWorkspaceCrawlStartController {
     private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final HTTPClient client;
 
-    public AdminWorkspaceCrawlStartController(CrawlJobFactory factory, WorkspaceRepository repository, WorkspaceCrawler workspaceCrawler, CrawlEventDispatchFactory crawlEventDispatchFactory, HTTPClient client) {
-        this.factory = factory;
-        this.repository = repository;
-        this.workspaceCrawler = workspaceCrawler;
-        this.crawlEventDispatchFactory = crawlEventDispatchFactory;
-        this.client = client;
-    }
 
     @GetMapping("/crawl-origin")
     public String crawlOrigin(@RequestParam("seeds") List<String> seeds, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws IOException {
@@ -55,22 +46,21 @@ public class AdminWorkspaceCrawlStartController {
 
         CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true, 0L);
 
-
         CrawlJob job = factory.build(configuration, getCrawlEventsListener(configuration.getWebsiteCrawl()));
         job.start();
         return "Crawling " + seeds + " with " + numConnections + " parallel connections. Started on " + new Date();
     }
 
-    @GetMapping("/crawl-workspace")
-    public String crawlWorkspace(@RequestParam("seqNumber") int seqNumber, @RequestParam(value = "numConnections", defaultValue = "1") int numConnections) throws EntityNotFoundException, IOException {
-        Workspace ws = repository.findTopBySeqNumber(seqNumber).orElseThrow(EntityNotFoundException::new);
+    @PostMapping("/crawl-workspace")
+    public String crawlWorkspace(@RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException, IOException {
+        Workspace ws = repository.findTopBySeqNumber(request.getWorkspaceNumber()).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
-        CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), numConnections, shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
+        CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
         CrawlJob job = factory.build(conf, getCrawlEventsListener(conf.getWebsiteCrawl()));
 
         job.start();
-        return "Crawling " + ws.getWebsiteUrl() + " with " + numConnections + " parallel connections. Started on " + new Date() + "\n";
+        return "Crawling " + ws.getWebsiteUrl() + " with " + request.getNumConnections() + " parallel connections. Started on " + new Date() + "\n";
     }
 
     @GetMapping("/crawl-all-workspaces")
