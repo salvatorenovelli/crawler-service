@@ -11,9 +11,9 @@ import static org.mockito.Mockito.verify;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class PageCrawledEventPubSubListenerTest {
+public class PageCrawledEventMessageBrokerListenerTest {
 
-    @InjectMocks PageCrawledEventPubSubListener sut;
+    @InjectMocks PageCrawledEventMessageBrokerListener sut;
     @Mock private MessageBrokerEventDispatch pubSubEventDispatch;
 
     @Test

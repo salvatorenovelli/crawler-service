@@ -13,7 +13,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @RequiredArgsConstructor
 @Slf4j
 @Component
-public class PageCrawledEventPubSubListener {
+public class PageCrawledEventMessageBrokerListener {
     private final MessageBrokerEventDispatch pubSubEventDispatch;
 
     @EventListener
