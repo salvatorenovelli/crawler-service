@@ -35,6 +35,11 @@ public class TestWorkspaceBuilder {
         return this;
     }
 
+    public TestWorkspaceBuilder withSequenceNumber(int seqNumber) {
+        curWorkspace.setSeqNumber(seqNumber);
+        return this;
+    }
+
     public void build() {
         allWorkspaces.add(curWorkspace);
 

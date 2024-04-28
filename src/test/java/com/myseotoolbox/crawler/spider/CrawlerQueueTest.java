@@ -487,7 +487,7 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").redirectToBlockedUrl("http://host1/blockedByRobots");
 
         sut.start();
-        verify(dispatch).crawlStatusUpdate(any());
+        verify(dispatch).onCrawlStatusUpdate(anyInt(), anyInt());
         verify(dispatch).onCrawlCompleted();
         verifyNoMoreInteractions(dispatch);
     }
@@ -512,9 +512,7 @@ public class CrawlerQueueTest {
         whenCrawling("http://host1").discover(); //discover nothing
         sut.start();
 
-        verify(dispatch).crawlStatusUpdate(argThat(argument -> {
-            return argument.getVisited() == 1 && argument.getPending() == 0;
-        }));
+        verify(dispatch).onCrawlStatusUpdate(1,0);
 
     }
 

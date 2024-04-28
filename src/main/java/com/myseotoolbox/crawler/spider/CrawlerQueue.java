@@ -4,7 +4,6 @@ import com.myseotoolbox.crawler.httpclient.SafeStringEscaper;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
-import com.myseotoolbox.crawler.spider.event.CrawlStatusUpdateEvent;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
 import com.myseotoolbox.crawler.utils.LinkResolver;
 import com.myseotoolbox.crawler.utils.LoggingUtils;
@@ -18,7 +17,6 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.httpclient.SafeStringEscaper.containsUnicodeCharacters;
 import static com.myseotoolbox.crawler.spider.PageLinksHelper.*;
-import static com.myseotoolbox.crawler.spider.PageLinksHelper.MAX_URL_LEN;
 import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUri;
 import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDifferentUri;
 
@@ -70,7 +68,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         assertAbsolute(baseUri);
         queueState.markAsCrawled(baseUri);
         enqueueDiscoveredLinks(crawlResult);
-        dispatch.crawlStatusUpdate(new CrawlStatusUpdateEvent(queueState.getVisitedCount(), queueState.getInProgressCount()));
+        dispatch.onCrawlStatusUpdate(queueState.getVisitedCount(), queueState.getInProgressCount());
 
         if (crawlCompleted()) {
             shutdown();

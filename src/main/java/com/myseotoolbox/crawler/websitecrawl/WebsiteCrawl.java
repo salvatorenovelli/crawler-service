@@ -23,4 +23,9 @@ public class WebsiteCrawl {
         this.createdAt = createdAt;
         this.seeds = seeds;
     }
+
+    @Override
+    public String toString() {
+        return "WebsiteCrawl{id=" + id + ", origin='" + origin + '\'' + ", createdAt=" + createdAt + '}';
+    }
 }

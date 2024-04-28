@@ -9,7 +9,7 @@ import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.spider.UriFilter;
-import com.myseotoolbox.crawler.spider.ratelimiter.RateLimiter;
+import com.myseotoolbox.crawler.spider.ratelimiter.TimeBasedThrottler;
 import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
@@ -46,11 +46,11 @@ public class WebPageReaderTest {
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(new HttpURLConnectionFactory());
     private final TestClockUtils testClockUtils = new TestClockUtils();
-    private RateLimiter testRateLimiter = new RateLimiter(500, testClockUtils);
+    private TimeBasedThrottler testTimeBasedThrottler = new TimeBasedThrottler(500, testClockUtils);
 
     @Before
     public void setUp() {
-        sut = new WebPageReader(ALLOW_ALL_URI, httpRequestFactory, testRateLimiter);
+        sut = new WebPageReader(ALLOW_ALL_URI, httpRequestFactory, testTimeBasedThrottler);
     }
 
     @After
@@ -332,7 +332,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldReturnBlockedSnapshotIfUrlIsDisallowed() throws Exception {
 
-        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory, testRateLimiter);
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory, testTimeBasedThrottler);
 
         givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()
@@ -355,7 +355,7 @@ public class WebPageReaderTest {
     @Test
     public void shouldNotFetchDisallowedUri() throws Exception {
 
-        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory, testRateLimiter);
+        sut = new WebPageReader((sourceUri, discoveredLink) -> !discoveredLink.toString().endsWith("/disallowed"), httpRequestFactory, testTimeBasedThrottler);
 
         TestWebsite website = givenAWebsite()
                 .havingPage(TEST_ROOT_PAGE_PATH).redirectingTo(301, "/allowed").and()

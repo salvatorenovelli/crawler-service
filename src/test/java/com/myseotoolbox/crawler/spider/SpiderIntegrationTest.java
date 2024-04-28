@@ -102,7 +102,7 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy, atLeastOnce()).crawlStatusUpdate(argThat(argument -> argument.getPending() == 0 && argument.getVisited() == 3));
+        verify(dispatchSpy, atLeastOnce()).onCrawlStatusUpdate(0, 3);
     }
 
     @Test
