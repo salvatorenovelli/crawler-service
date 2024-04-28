@@ -26,4 +26,8 @@ public class MessageBrokerEventDispatch {
         log.debug("Page crawl completed. Publishing event. {}", payload);
         template.publish(config.getPageCrawlCompletedTopicName(), payload);
     }
+
+    public void onCrawlStatusUpdate(CrawlStatusUpdateEvent event) {
+        template.publish(config.getCrawlStatusUpdateTopicName(), event);
+    }
 }
