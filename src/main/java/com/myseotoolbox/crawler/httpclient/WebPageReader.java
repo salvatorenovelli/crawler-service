@@ -3,7 +3,7 @@ package com.myseotoolbox.crawler.httpclient;
 import com.myseotoolbox.crawler.CalendarService;
 import com.myseotoolbox.crawler.model.*;
 import com.myseotoolbox.crawler.spider.UriFilter;
-import com.myseotoolbox.crawler.spider.ratelimiter.RateLimiter;
+import com.myseotoolbox.crawler.spider.ratelimiter.TimeBasedThrottler;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.UnsupportedMimeTypeException;
 
@@ -23,12 +23,12 @@ public class WebPageReader {
     private final CalendarService calendarService = new CalendarService();
     private final UriFilter uriFilter;
     private final HttpRequestFactory httpRequestFactory;
-    private final RateLimiter rateLimiter;
+    private final TimeBasedThrottler timeBasedThrottler;
 
-    public WebPageReader(UriFilter uriFilter, HttpRequestFactory httpRequestFactory, RateLimiter rateLimiter) {
+    public WebPageReader(UriFilter uriFilter, HttpRequestFactory httpRequestFactory, TimeBasedThrottler timeBasedThrottler) {
         this.uriFilter = uriFilter;
         this.httpRequestFactory = httpRequestFactory;
-        this.rateLimiter = rateLimiter;
+        this.timeBasedThrottler = timeBasedThrottler;
     }
 
     public CrawlResult snapshotPage(URI uri) throws SnapshotException {
@@ -62,7 +62,7 @@ public class WebPageReader {
 
     private boolean scanRedirectChain(RedirectChain redirectChain, URI currentURI) throws IOException, URISyntaxException, RedirectLoopException {
 
-        rateLimiter.throttle();
+        timeBasedThrottler.throttle();
         HttpResponse response = httpRequestFactory.buildGetFor(currentURI).execute();
 
         int httpStatus = response.getHttpStatus();
