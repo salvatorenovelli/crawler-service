@@ -6,6 +6,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.mockito.ArgumentMatcher;
+import org.mockito.ArgumentMatchers;
 
 public class PageSnapshotArgumentMatcherBuilder {
 
@@ -26,8 +27,8 @@ public class PageSnapshotArgumentMatcherBuilder {
         return this;
     }
 
-    public ArgumentMatcher<PageSnapshot> build() {
-        return new ArgumentMatcher<PageSnapshot>() {
+    public PageSnapshot build() {
+        return ArgumentMatchers.argThat(new ArgumentMatcher<PageSnapshot>() {
 
             @Override
             public boolean matches(PageSnapshot compare) {
@@ -47,10 +48,7 @@ public class PageSnapshotArgumentMatcherBuilder {
                                 ", title= " + title + '\'' +
                                 '}';
             }
-
-            ;
-
-        };
+        });
     }
 
     /**
