@@ -13,8 +13,14 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class PubSubProperties {
     private String websiteCrawlCompletedTopicName;
     private String pageCrawlCompletedTopicName;
-    private String crawlStatusUpdateTopicName;
+    private TopicConfiguration crawlStatusUpdateConfiguration;
     private int connectionTimeoutSeconds = 10;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class TopicConfiguration {
+        private String topicName;
+        private int topicPublishMinIntervalMillis;
+    }
 }
-
-
