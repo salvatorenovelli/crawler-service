@@ -102,7 +102,7 @@ public class SpiderIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(dispatchSpy, atLeastOnce()).onCrawlStatusUpdate(0, 3);
+        verify(dispatchSpy, times(3)).onCrawlStatusUpdate(anyInt(), anyInt());
     }
 
     @Test
@@ -210,7 +210,6 @@ public class SpiderIntegrationTest {
 
     @Test
     public void shouldNotVisitOtherDomains() {
-
         givenAWebsite()
                 .havingPage("/base").withLinksTo("/base/abc", "http://differentdomain")
                 .save();

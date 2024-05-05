@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.testutils;
 
+import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.spider.CrawlExecutorFactory;
@@ -22,10 +23,17 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractO
 public class TestCrawlJobBuilder {
     private final CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
     private final SitemapReader sitemapReader = new SitemapReader();
-    private final CrawlEventDispatch crawlEventDispatch;
+    private CrawlEventDispatch crawlEventDispatch;
+    private final CrawlEventDispatchFactory crawlEventDispatchFactory;
 
     public TestCrawlJobBuilder(CrawlEventDispatch crawlEventDispatch) {
         this.crawlEventDispatch = crawlEventDispatch;
+        crawlEventDispatchFactory = null;
+    }
+
+    public TestCrawlJobBuilder(CrawlEventDispatchFactory factory) {
+        this.crawlEventDispatch = null;
+        crawlEventDispatchFactory = factory;
     }
 
 
@@ -53,6 +61,10 @@ public class TestCrawlJobBuilder {
                 .withConcurrentConnections(seeds.size())
                 .withRobotsTxt(merged)
                 .build();
+
+        if (crawlEventDispatch == null) {
+            crawlEventDispatch = crawlEventDispatchFactory.get(conf.getWebsiteCrawl());
+        }
 
 
         return crawlJobFactory.build(conf, crawlEventDispatch);

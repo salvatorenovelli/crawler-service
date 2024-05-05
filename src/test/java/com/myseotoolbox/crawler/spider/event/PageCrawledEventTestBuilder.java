@@ -12,25 +12,35 @@ import java.util.Collections;
 
 public class PageCrawledEventTestBuilder {
 
-    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
-    public static final String TEST_ORIGIN = "http://origin";
 
     private CrawlResult crawlResult;
     private WebsiteCrawl websiteCrawl;
+    private ObjectId crawlID = new ObjectId();
+    private PageSnapshot snapshot;
+    private final String origin;
+
+    public PageCrawledEventTestBuilder(String origin) {
+        this.origin = origin;
+    }
+
+    public static PageCrawledEventTestBuilder aPageCrawledEvent(String origin) {
+        return new PageCrawledEventTestBuilder(origin);
+    }
 
     public PageCrawledEventTestBuilder withStandardValuesForPath(String path) {
-        PageSnapshot snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(URI.create(TEST_ORIGIN).resolve(path).toASCIIString());
-        this.crawlResult = CrawlResult.forSnapshot(snapshot);
-        this.websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, TEST_ORIGIN, Collections.emptyList());
+        snapshot = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri(URI.create(origin).resolve(path).toASCIIString());
         return this;
     }
 
-
     public PageCrawledEvent build() {
+        this.crawlResult = CrawlResult.forSnapshot(snapshot);
+        this.websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor(crawlID, origin, Collections.emptyList());
         return new PageCrawledEvent(websiteCrawl, crawlResult);
     }
 
-    public static PageCrawledEventTestBuilder aTestPageCrawledEvent() {
-        return new PageCrawledEventTestBuilder();
+    public PageCrawledEventTestBuilder withCrawlId(String websiteCrawlId) {
+        this.crawlID = new ObjectId(websiteCrawlId);
+        return this;
     }
+
 }

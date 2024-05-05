@@ -12,12 +12,12 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class CrawlStartedEventListener {
+public class WebsiteCrawlRepositoryPersistenceListener {
 
     private final WebsiteCrawlRepository websiteCrawlRepository;
 
     @EventListener
-    public void onCrawlStartedEvent(CrawlStartedEvent event) {
+    public void persistOnRepository(CrawlStartedEvent event) {
         WebsiteCrawl websiteCrawl = event.getWebsiteCrawl();
         log.debug("Persisting CrawlStartedEvent: {}", websiteCrawl);
         runOrLogWarning(() -> websiteCrawlRepository.save(websiteCrawl), "Error while persisting CrawlStartedEvent: " + websiteCrawl);

@@ -3,7 +3,8 @@ package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
 import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
-import com.myseotoolbox.crawler.spider.ratelimiter.DefaultClockUtils;
+import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
+import com.myseotoolbox.crawler.spider.ratelimiter.SystemClockUtils;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,8 +27,8 @@ public class SpiderConfig {
     }
 
     @Bean
-    public DefaultClockUtils getClockUtils() {
-        return new DefaultClockUtils();
+    public ClockUtils getClockUtils() {
+        return new SystemClockUtils();
     }
 
     @Bean

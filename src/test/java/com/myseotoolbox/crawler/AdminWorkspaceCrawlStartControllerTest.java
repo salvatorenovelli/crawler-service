@@ -11,25 +11,26 @@ import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
-import static com.myseotoolbox.crawler.spider.CrawlerSettingsBuilder.defaultSettings;
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 
 @WebMvcTest(controllers = AdminWorkspaceCrawlStartController.class)
 @RunWith(SpringRunner.class)
@@ -38,7 +39,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
     @Autowired private MockMvc mockMvc;
 
     @MockBean private CrawlJobFactory factory;
-    @MockBean private WorkspaceRepository repository;
+    @MockBean private WorkspaceRepository workspaceRepo;
     @MockBean private WorkspaceCrawler workspaceCrawler;
     @MockBean private CrawlEventDispatchFactory cedfactory;
     @MockBean private HTTPClient httpClient;
@@ -50,27 +51,31 @@ public class AdminWorkspaceCrawlStartControllerTest {
     @Before
     public void setUp() throws Exception {
         when(factory.build(any(), any())).thenReturn(job);
+        when(workspaceRepo.findTopBySeqNumber(anyInt())).thenAnswer(invocation -> {
+            int seqNumber = invocation.getArgument(0);
+            Workspace workspace = allWorkspaces.stream().filter(ws -> ws.getSeqNumber() == seqNumber).findFirst().get();
+            return Optional.of(workspace);
+        });
+        when(httpClient.get(any())).thenReturn("");
     }
 
     @Test
     public void testCrawlWorkspace() throws Exception {
 
-        throw new UnsupportedOperationException("Not implemented yet!");
-//        // Setup mock workspace
-//        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host1").build();
-//
-//        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 1);
-//
-//
-//        String content = objectMapper.writeValueAsString(request);
-//        mockMvc.perform(post("/crawl-workspace")
-//                        .contentType(MediaType.APPLICATION_JSON)
-//                        .content(content))
-//                .andDo(print())
-//                .andExpect(MockMvcResultMatchers.status().isOk())
-//                .andExpect(MockMvcResultMatchers.content().string(org.hamcrest.Matchers.containsString("Crawling http://example.com with 3 parallel connections. Started on")));
-//
-//        verify(job).start();
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host1").build();
+
+        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 3);
+
+
+        String content = objectMapper.writeValueAsString(request);
+        mockMvc.perform(post("/crawl-workspace")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andDo(print())
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(content().string(containsString("Crawling http://host1 with 3 parallel connections. Started on")));
+
+        verify(job).start();
     }
 
     private TestWorkspaceBuilder givenAWorkspace() {

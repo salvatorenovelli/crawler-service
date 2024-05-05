@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @Data
 @ConfigurationProperties(prefix = "publisher")
 public class PubSubProperties {
+    private String websiteCrawlStartedTopicName;
     private String websiteCrawlCompletedTopicName;
     private String pageCrawlCompletedTopicName;
     private TopicConfiguration crawlStatusUpdateConfiguration;

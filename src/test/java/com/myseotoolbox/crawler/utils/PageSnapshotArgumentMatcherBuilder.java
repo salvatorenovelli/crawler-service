@@ -8,10 +8,13 @@ import org.hamcrest.Matchers;
 import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 
+import static org.hamcrest.CoreMatchers.any;
+
+
 public class PageSnapshotArgumentMatcherBuilder {
 
-    private Matcher<String> uri = dummy();
-    private Matcher<String> title = dummy();
+    private Matcher<String> uri = any(String.class);
+    private Matcher<String> title = any(String.class);
 
     public static PageSnapshotArgumentMatcherBuilder pageSnapshot() {
         return new PageSnapshotArgumentMatcherBuilder();
@@ -51,20 +54,4 @@ public class PageSnapshotArgumentMatcherBuilder {
         });
     }
 
-    /**
-     * Don't use any() instead of this. Mockito will count the number of matchers and complain you've used the wrong combination
-     */
-    private <T> Matcher<T> dummy() {
-        return new BaseMatcher<T>() {
-            @Override
-            public boolean matches(Object item) {
-                return true;
-            }
-
-            @Override
-            public void describeTo(Description description) {
-                description.appendText("is <any value>");
-            }
-        };
-    }
 }

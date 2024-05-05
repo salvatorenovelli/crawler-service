@@ -7,7 +7,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static com.myseotoolbox.crawler.spider.event.PageCrawledEventTestBuilder.aTestPageCrawledEvent;
+import static com.myseotoolbox.crawler.spider.event.PageCrawledEventTestBuilder.aPageCrawledEvent;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -19,7 +19,7 @@ public class PageCrawledEventMonitoredUriUpdaterListenerTest {
 
     @Test
     public void onPageCrawledEventShouldUpdateMonitoredUri() {
-        PageCrawledEvent event = aTestPageCrawledEvent().withStandardValuesForPath("/dst").build();
+        PageCrawledEvent event = aPageCrawledEvent("http://origin").withStandardValuesForPath("/dst").build();
         sut.onPageCrawledEvent(event);
         verify(monitoredUriUpdater).updateCurrentValue(event.getWebsiteCrawl(), event.getCrawlResult().getPageSnapshot());
     }

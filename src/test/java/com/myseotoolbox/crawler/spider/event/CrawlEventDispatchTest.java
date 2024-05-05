@@ -57,7 +57,7 @@ public class CrawlEventDispatchTest {
     @Test
     public void shouldNotifyForStatusUpdates() {
         sut.onCrawlStatusUpdate(10, 100);
-        verify(applicationEventPublisher).publishEvent(new CrawlStatusUpdateEvent(10, 100, CRAWL));
+        verify(applicationEventPublisher).publishEvent(new CrawlStatusUpdateEvent(10, 100, CRAWL.getId().toHexString()));
     }
 
 }

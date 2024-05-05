@@ -3,6 +3,7 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;
@@ -16,12 +17,14 @@ import java.util.stream.Collectors;
 public class CrawlJob {
 
     private final CrawlEventDispatch dispatch;
-    private final URI crawlOrigin;
+    @Getter private final String websiteCrawlId;
+    @Getter private final URI crawlOrigin;
     private final List<URI> seeds;
     private final CrawlerQueue crawlerQueue;
     private CrawlerPoolStatusMonitor crawlerPoolStatusMonitor;
 
-    public CrawlJob(URI crawlOrigin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls, CrawlEventDispatch dispatch) {
+    public CrawlJob(String websiteCrawlId, URI crawlOrigin, Collection<URI> seeds, WebPageReader pageReader, UriFilter uriFilter, ThreadPoolExecutor executor, int maxCrawls, CrawlEventDispatch dispatch) {
+        this.websiteCrawlId = websiteCrawlId;
         this.crawlOrigin = crawlOrigin;
         this.seeds = new ArrayList<>(seeds);
         String name = this.crawlOrigin.getHost();

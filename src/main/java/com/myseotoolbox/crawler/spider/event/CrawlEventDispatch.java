@@ -30,6 +30,6 @@ public class CrawlEventDispatch {
 
     public void onCrawlStatusUpdate(int visited, int pending) {
         log.trace("Crawl status update event for: {}. visited:{} pending:{}", websiteCrawl, visited, pending);
-        applicationEventPublisher.publishEvent(new CrawlStatusUpdateEvent(visited, pending, websiteCrawl));
+        applicationEventPublisher.publishEvent(new CrawlStatusUpdateEvent(visited, pending, websiteCrawl.getId().toHexString()));
     }
 }

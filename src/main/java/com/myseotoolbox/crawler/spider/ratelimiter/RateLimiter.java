@@ -1,33 +1,23 @@
 package com.myseotoolbox.crawler.spider.ratelimiter;
 
-import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
-
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.Optional;
-import java.util.function.Supplier;
 
-@ThreadSafe
-public class RateLimiter {
-    private final long intervalMillis;
-    private long lastExecutionTime;
-    private final ClockUtils clockUtils;
+public interface RateLimiter {
 
-    public RateLimiter(long intervalMillis, ClockUtils clockUtils) {
-        if (intervalMillis < 0) {
-            throw new IllegalArgumentException("Interval must be at least 0");
+    UnlimitedRateLimiter UNLIMITED_RATE_LIMITER = new UnlimitedRateLimiter();
+
+    <T> Optional<T> process(Task<T> task);
+
+    class UnlimitedRateLimiter implements RateLimiter {
+        private UnlimitedRateLimiter() {}
+
+        @Override
+        public <T> Optional<T> process(Task<T> task) {
+            return Optional.ofNullable(task.execute());
         }
-        this.intervalMillis = intervalMillis;
-        this.clockUtils = clockUtils;
-        this.lastExecutionTime = clockUtils.currentTimeMillis() - intervalMillis;
     }
 
-    public synchronized <T> Optional<T> process(Supplier<T> task) {
-        long currentTime = clockUtils.currentTimeMillis();
-        if (currentTime - lastExecutionTime >= intervalMillis) {
-            lastExecutionTime = currentTime;
-            T result = task.get();
-            return Optional.of(result);
-        }
-        return Optional.empty();
+    interface Task<T> {
+        T execute();
     }
 }

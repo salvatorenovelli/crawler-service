@@ -4,7 +4,6 @@ import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
 import com.myseotoolbox.crawler.pagelinks.*;
 import com.myseotoolbox.crawler.spider.PageLinksHelper;
-import com.myseotoolbox.crawler.spider.event.PageCrawledEvent;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawlercommons.UriCreator;
 import org.springframework.context.event.EventListener;

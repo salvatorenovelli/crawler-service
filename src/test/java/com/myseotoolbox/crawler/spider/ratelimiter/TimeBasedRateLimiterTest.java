@@ -4,15 +4,14 @@ package com.myseotoolbox.crawler.spider.ratelimiter;
 import org.junit.Test;
 
 import java.util.Optional;
-import java.util.function.Supplier;
 
 import static org.junit.Assert.*;
 
-public class RateLimiterTest {
+public class TimeBasedRateLimiterTest {
 
     private final TestClockUtils clockUtils = new TestClockUtils();
-    private final RateLimiter limiter = new RateLimiter(1000, clockUtils);
-    private final Supplier<String> TEST_TASK = () -> "Executed at " + clockUtils.currentTimeMillis();
+    private final TimeBasedRateLimiter limiter = new TimeBasedRateLimiter(1000, clockUtils);
+    private final RateLimiter.Task<String> TEST_TASK = () -> "Executed at " + clockUtils.currentTimeMillis();
 
 
     @Test
