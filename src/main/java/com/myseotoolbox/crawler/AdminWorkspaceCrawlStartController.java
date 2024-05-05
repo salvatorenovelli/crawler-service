@@ -52,7 +52,7 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     @PostMapping("/crawl-workspace")
-    public String crawlWorkspace(@RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException, IOException {
+    public String crawlWorkspace(@RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException {
         Workspace ws = repository.findTopBySeqNumber(request.getWorkspaceNumber()).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
