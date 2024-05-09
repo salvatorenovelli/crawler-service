@@ -47,7 +47,7 @@ public class MessageBrokerEventListenerIntegrationTest {
     @Test
     public void shouldForwardEvents() {
         WebsiteCrawl websiteCrawl = newWebsiteCrawlFor("host.host", Collections.emptyList());
-        CrawlStartedEvent event = CrawlStartedEvent.from(websiteCrawl);
+        WebsiteCrawlStartedEvent event = WebsiteCrawlStartedEvent.from(websiteCrawl);
         publisher.publishEvent(event);
         verify(pubSubTemplate).publish(config.getWebsiteCrawlStartedTopicName(), event);
     }

@@ -17,7 +17,7 @@ public class WebsiteCrawlRepositoryPersistenceListener {
     private final WebsiteCrawlRepository websiteCrawlRepository;
 
     @EventListener
-    public void persistOnRepository(CrawlStartedEvent event) {
+    public void persistOnRepository(WebsiteCrawlStartedEvent event) {
         WebsiteCrawl websiteCrawl = event.getWebsiteCrawl();
         log.debug("Persisting CrawlStartedEvent: {}", websiteCrawl);
         runOrLogWarning(() -> websiteCrawlRepository.save(websiteCrawl), "Error while persisting CrawlStartedEvent: " + websiteCrawl);

@@ -23,7 +23,7 @@ public class MessageBrokerEventListener {
     private final RateLimiterRepository rateLimiterRepository;
 
     @EventListener
-    public void onWebsiteCrawlStarted(CrawlStartedEvent event) {
+    public void onWebsiteCrawlStarted(WebsiteCrawlStartedEvent event) {
         log.debug("WebsiteCrawl started `{}`. Publishing event.", event.getWebsiteCrawl().getId().toHexString());
         publishMessage(config.getWebsiteCrawlStartedTopicName(), event);
     }

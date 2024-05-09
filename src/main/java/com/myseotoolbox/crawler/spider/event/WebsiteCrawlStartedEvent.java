@@ -5,10 +5,10 @@ import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.Data;
 
 @Data
-public class CrawlStartedEvent {
+public class WebsiteCrawlStartedEvent {
     private final WebsiteCrawl websiteCrawl;
 
-    public static CrawlStartedEvent from(WebsiteCrawl websiteCrawl) {
-        return new CrawlStartedEvent(websiteCrawl);
+    public static WebsiteCrawlStartedEvent from(WebsiteCrawl websiteCrawl) {
+        return new WebsiteCrawlStartedEvent(websiteCrawl);
     }
 }
