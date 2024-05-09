@@ -71,7 +71,6 @@ public class AdminWorkspaceCrawlStartControllerTest {
         mockMvc.perform(post("/crawl-workspace")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
-                .andDo(print())
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(content().string(containsString("Crawling http://host1 with 3 parallel connections. Started on")));
 

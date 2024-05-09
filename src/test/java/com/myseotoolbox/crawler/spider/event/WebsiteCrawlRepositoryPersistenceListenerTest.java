@@ -24,7 +24,7 @@ public class WebsiteCrawlRepositoryPersistenceListenerTest {
 
     @Test
     public void persistOnRepository() {
-        CrawlStartedEvent event = new CrawlStartedEvent(WebsiteCrawlFactory.newWebsiteCrawlFor("origin123", Collections.emptyList()));
+        CrawlStartedEvent event = CrawlStartedEvent.from(WebsiteCrawlFactory.newWebsiteCrawlFor("origin123", Collections.emptyList()));
         sut.persistOnRepository(event);
         verify(websiteCrawlRepository).save(argThat(websiteCrawl -> websiteCrawl.getOrigin().equals("origin123")));
     }

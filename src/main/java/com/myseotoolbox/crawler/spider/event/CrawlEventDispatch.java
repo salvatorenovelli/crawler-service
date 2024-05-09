@@ -20,7 +20,7 @@ public class CrawlEventDispatch {
 
     public void onCrawlStarted() {
         log.debug("Crawl started event for: {}", websiteCrawl);
-        applicationEventPublisher.publishEvent(new CrawlStartedEvent(websiteCrawl));
+        applicationEventPublisher.publishEvent(CrawlStartedEvent.from(websiteCrawl));
     }
 
     public void onCrawlCompleted() {

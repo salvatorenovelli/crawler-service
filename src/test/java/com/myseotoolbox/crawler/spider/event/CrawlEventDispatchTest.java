@@ -45,7 +45,7 @@ public class CrawlEventDispatchTest {
     @Test
     public void shouldNotifyCrawlStartedListeners() {
         sut.onCrawlStarted();
-        verify(applicationEventPublisher).publishEvent(new CrawlStartedEvent(CRAWL));
+        verify(applicationEventPublisher).publishEvent(CrawlStartedEvent.from(CRAWL));
     }
 
     @Test

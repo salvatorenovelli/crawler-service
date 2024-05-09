@@ -99,7 +99,7 @@ public class MessageBrokerEventListenerTest {
     @Test
     public void shouldPublishCrawlStartedEvent() {
         WebsiteCrawl websiteCrawl = newWebsiteCrawlFor("host.host", Collections.emptyList());
-        CrawlStartedEvent event = new CrawlStartedEvent(websiteCrawl);
+        CrawlStartedEvent event = CrawlStartedEvent.from(websiteCrawl);
         sut.onWebsiteCrawlStarted(event);
         verify(template).publish(WEBSITE_CRAWL_STARTED_TOPIC, event);
     }
