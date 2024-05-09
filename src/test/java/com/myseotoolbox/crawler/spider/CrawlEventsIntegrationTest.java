@@ -6,7 +6,7 @@ import com.myseotoolbox.crawler.model.PageCrawlCompletedEvent;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinkRepository;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
-import com.myseotoolbox.crawler.spider.event.CrawlCompletedEvent;
+import com.myseotoolbox.crawler.spider.event.WebsiteCrawlCompletedEvent;
 import com.myseotoolbox.crawler.spider.event.CrawlStatusUpdateEvent;
 import com.myseotoolbox.crawler.spider.event.MessageBrokerEventListener;
 import com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder;
@@ -111,7 +111,7 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new CrawlCompletedEvent(newWebsiteCrawlFor(new ObjectId(job.getWebsiteCrawlId()), job.getCrawlOrigin().toString(), Collections.emptyList())));
+        verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(newWebsiteCrawlFor(new ObjectId(job.getWebsiteCrawlId()), job.getCrawlOrigin().toString(), Collections.emptyList())));
     }
 
 
@@ -128,7 +128,7 @@ public class CrawlEventsIntegrationTest {
         job.start();
 
         verify(template).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
-        verify(template).publish(eq(pubSubProperties.getWebsiteCrawlCompletedTopicName()), any(CrawlCompletedEvent.class));
+        verify(template).publish(eq(pubSubProperties.getWebsiteCrawlCompletedTopicName()), any(WebsiteCrawlCompletedEvent.class));
     }
 
     private String getTestUri(String path) {

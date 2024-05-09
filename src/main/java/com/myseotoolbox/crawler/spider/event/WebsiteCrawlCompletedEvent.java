@@ -7,10 +7,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class CrawlCompletedEvent {
+public class WebsiteCrawlCompletedEvent {
     private SimpleWebsiteCrawl websiteCrawl;
 
-    public CrawlCompletedEvent(WebsiteCrawl websiteCrawl) {
+    public WebsiteCrawlCompletedEvent(WebsiteCrawl websiteCrawl) {
         this.websiteCrawl = new SimpleWebsiteCrawl(websiteCrawl.getId().toHexString(), websiteCrawl.getOrigin());
     }
 }

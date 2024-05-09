@@ -51,7 +51,7 @@ public class CrawlEventDispatchTest {
     @Test
     public void shouldNotifyCrawlCompletedListeners() {
         sut.onCrawlCompleted();
-        verify(applicationEventPublisher).publishEvent(new CrawlCompletedEvent(CRAWL));
+        verify(applicationEventPublisher).publishEvent(new WebsiteCrawlCompletedEvent(CRAWL));
     }
 
     @Test

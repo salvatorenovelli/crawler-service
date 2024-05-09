@@ -29,7 +29,7 @@ public class MessageBrokerEventListener {
     }
 
     @EventListener
-    public void onWebsiteCrawlCompletedEvent(CrawlCompletedEvent event) {
+    public void onWebsiteCrawlCompletedEvent(WebsiteCrawlCompletedEvent event) {
         log.info("WebsiteCrawl completed. Publishing event. {}", event);
         publishMessage(config.getWebsiteCrawlCompletedTopicName(), event);
     }

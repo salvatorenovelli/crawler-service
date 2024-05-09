@@ -60,8 +60,8 @@ public class MessageBrokerEventListenerTest {
     @Test
     public void shouldPublishPageCrawlCompletedOnTheCorrectQueue() {
         WebsiteCrawl websiteCrawl = newWebsiteCrawlFor("host.host", Collections.emptyList());
-        sut.onWebsiteCrawlCompletedEvent(new CrawlCompletedEvent(websiteCrawl));
-        verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(new CrawlCompletedEvent(websiteCrawl)));
+        sut.onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(websiteCrawl));
+        verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(new WebsiteCrawlCompletedEvent(websiteCrawl)));
     }
 
     @Test
