@@ -3,7 +3,7 @@
 
 
 echo "Fetching gradle project properties..."
-IFS=':' read -ra props_array <<< "$(gradle -q getProjectProperties)"
+IFS=':' read -ra props_array <<< "$(./gradlew -q getProjectProperties)"
 
 export GCE_PROJECT_ID="$(gcloud config get-value project -q)"
 export GROUP_ID=${props_array[0]}
@@ -72,7 +72,7 @@ case $1 in
     ;;
     "build" )
         echo "Building ${IMAGE_TAG}"
-        gradle clean build || exit 1
+        ./gradlew clean build || exit 1
         cp build/libs/*.jar docker
         docker build docker -t ${IMAGE_TAG}
     ;;
