@@ -7,6 +7,7 @@ import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -94,7 +95,7 @@ public class CrawlJobTest {
         }
 
         public CrawlJob build() {
-            return new CrawlJob("ABCD", TEST_ORIGIN, seeds, pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService(), MAX_CRAWLS, dispatch);
+            return new CrawlJob(TestWebsiteCrawlFactory.newWebsiteCrawlFor(TEST_ORIGIN.toASCIIString(), seeds), TEST_ORIGIN, seeds, pageReader, NO_URI_FILTER, new CurrentThreadTestExecutorService(), MAX_CRAWLS, dispatch);
 
         }
     }

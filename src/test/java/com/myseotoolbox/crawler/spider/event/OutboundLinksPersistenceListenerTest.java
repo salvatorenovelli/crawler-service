@@ -8,8 +8,7 @@ import com.myseotoolbox.crawler.pagelinks.OutboundLinkRepository;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinks;
 import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
-import org.bson.types.ObjectId;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -35,8 +34,8 @@ public class OutboundLinksPersistenceListenerTest {
 
     private static final String TEST_ORIGIN = "http://domain";
     private static final URI CRAWL_ORIGIN = URI.create(TEST_ORIGIN);
+    private static final WebsiteCrawl CRAWL = TestWebsiteCrawlFactory.newWebsiteCrawlFor(CRAWL_ORIGIN.toASCIIString(), emptyList());
     @Mock OutboundLinkRepository repository;
-    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     private OutboundLinksPersistenceListener sut;
 
     @Before
@@ -51,7 +50,7 @@ public class OutboundLinksPersistenceListenerTest {
         processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
-            assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(outboundLinks.getCrawlId(), equalTo(CRAWL.getId()));
             assertThat(outboundLinks.getUrl(), equalTo(TEST_ORIGIN));
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
         });
@@ -65,7 +64,7 @@ public class OutboundLinksPersistenceListenerTest {
         processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
-            assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(outboundLinks.getCrawlId(), equalTo(CRAWL.getId()));
             assertThat(outboundLinks.getUrl(), equalTo("http://domain"));
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), containsInAnyOrder("/relativeLink", "http://absoluteLink/hello"));
         });
@@ -78,7 +77,7 @@ public class OutboundLinksPersistenceListenerTest {
         processCrawlResult(crawlResult);
 
         verifySavedLinks(outboundLinks -> {
-            assertThat(outboundLinks.getCrawlId(), equalTo(TEST_CRAWL_ID));
+            assertThat(outboundLinks.getCrawlId(), equalTo(CRAWL.getId()));
             assertThat(outboundLinks.getUrl(), equalTo("http://testuri"));
             assertThat(outboundLinks.getLinksByType().get(LinkType.AHREF), hasSize(0));
         });
@@ -423,7 +422,6 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     private void processCrawlResult(CrawlResult crawlResult) {
-        WebsiteCrawl websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, CRAWL_ORIGIN.toASCIIString(), emptyList());
-        sut.onPageCrawled(new PageCrawledEvent(websiteCrawl, crawlResult));
+        sut.onPageCrawled(new PageCrawledEvent(CRAWL, crawlResult));
     }
 }

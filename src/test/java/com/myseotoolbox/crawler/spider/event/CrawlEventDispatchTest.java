@@ -5,6 +5,8 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
+import com.myseotoolbox.testutils.TestTimeUtils;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Instant;
 import java.util.Collections;
 
 import static org.mockito.Mockito.verify;
@@ -24,8 +27,7 @@ public class CrawlEventDispatchTest {
     public static final String TEST_ORIGIN = "http://origin";
     public static final PageSnapshot TEST_PAGE_SNAPSHOT = PageSnapshotTestBuilder.aPageSnapshotWithStandardValuesForUri("http://host");
     public static final CrawlResult TEST_CRAWL_RESULT = CrawlResult.forSnapshot(TEST_PAGE_SNAPSHOT);
-    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
-    private static final WebsiteCrawl CRAWL = WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, TEST_ORIGIN, Collections.emptyList());
+    private static final WebsiteCrawl CRAWL = TestWebsiteCrawlFactory.newWebsiteCrawlFor(TEST_ORIGIN, Collections.emptyList());
 
     @Mock private ApplicationEventPublisher applicationEventPublisher;
 
@@ -33,7 +35,7 @@ public class CrawlEventDispatchTest {
 
     @Before
     public void setUp() {
-        sut = new CrawlEventDispatch(CRAWL, applicationEventPublisher);
+        sut = new CrawlEventDispatch(CRAWL, applicationEventPublisher, new TestTimeUtils());
     }
 
     @Test
@@ -45,19 +47,19 @@ public class CrawlEventDispatchTest {
     @Test
     public void shouldNotifyCrawlStartedListeners() {
         sut.onCrawlStarted();
-        verify(applicationEventPublisher).publishEvent(WebsiteCrawlStartedEvent.from(CRAWL));
+        verify(applicationEventPublisher).publishEvent(WebsiteCrawlStartedEvent.from(CRAWL, Instant.EPOCH));
     }
 
     @Test
     public void shouldNotifyCrawlCompletedListeners() {
         sut.onCrawlCompleted();
-        verify(applicationEventPublisher).publishEvent(new WebsiteCrawlCompletedEvent(CRAWL));
+        verify(applicationEventPublisher).publishEvent(new WebsiteCrawlCompletedEvent(CRAWL, Instant.EPOCH));
     }
 
     @Test
     public void shouldNotifyForStatusUpdates() {
         sut.onCrawlStatusUpdate(10, 100);
-        verify(applicationEventPublisher).publishEvent(new CrawlStatusUpdateEvent(10, 100, CRAWL.getId().toHexString()));
+        verify(applicationEventPublisher).publishEvent(new CrawlStatusUpdateEvent(CRAWL, 10, 100, Instant.EPOCH));
     }
 
 }

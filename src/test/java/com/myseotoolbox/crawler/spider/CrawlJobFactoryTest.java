@@ -56,7 +56,7 @@ public class CrawlJobFactoryTest {
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
 
         sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, sitemapReader);
-        testConf = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withSeeds(ONLY_ROOT).withRobotsTxt(mockRobotsTxt);
+        testConf = CrawlJobConfiguration.newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).withSeeds(ONLY_ROOT).withRobotsTxt(mockRobotsTxt);
     }
 
     @Test
@@ -105,7 +105,7 @@ public class CrawlJobFactoryTest {
     public void shouldTakeSeedsFromSitemap() throws SnapshotException {
 
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
-        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), anyList(),anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
+        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), anyList(), anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
 
         CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();

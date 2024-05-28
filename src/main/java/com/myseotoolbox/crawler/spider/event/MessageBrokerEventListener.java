@@ -43,7 +43,7 @@ public class MessageBrokerEventListener {
 
     @EventListener
     public void onCrawlStatusUpdate(CrawlStatusUpdateEvent event) {
-        getRateLimiter(event.getWebsiteCrawlId()).process(() -> {
+        getRateLimiter(event.getWebsiteCrawl().getId().toHexString()).process(() -> {
             log.debug("Publishing Crawl Status update. Publishing event. {} on {}", event, config.getCrawlStatusUpdateConfiguration().getTopicName());
             publishMessage(config.getCrawlStatusUpdateConfiguration().getTopicName(), event);
             return null;

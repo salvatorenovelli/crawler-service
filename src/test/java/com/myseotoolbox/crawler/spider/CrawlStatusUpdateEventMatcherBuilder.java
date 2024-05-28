@@ -11,6 +11,7 @@ import static org.hamcrest.CoreMatchers.any;
 public class CrawlStatusUpdateEventMatcherBuilder {
     private Matcher<Integer> visited = any(Integer.class);
     private Matcher<Integer> pending = any(Integer.class);
+    private Matcher<String> crawlId = any(String.class);
 
 
     public static CrawlStatusUpdateEventMatcherBuilder aCrawlStatusUpdateEvent() {
@@ -27,23 +28,31 @@ public class CrawlStatusUpdateEventMatcherBuilder {
         return this;
     }
 
+    public CrawlStatusUpdateEventMatcherBuilder withCrawlId(String websiteCrawlId) {
+        this.crawlId = Matchers.equalTo(websiteCrawlId);
+        return this;
+    }
 
     public CrawlStatusUpdateEvent build() {
         return ArgumentMatchers.argThat(new ArgumentMatcher<CrawlStatusUpdateEvent>() {
             @Override
             public boolean matches(CrawlStatusUpdateEvent argument) {
-                return visited.matches(argument.getVisited()) && pending.matches(argument.getPending());
+                return visited.matches(argument.getVisited()) &&
+                        pending.matches(argument.getPending()) &&
+                        crawlId.matches(argument.getWebsiteCrawl().getId().toHexString())
+
+                        ;
             }
 
             @Override
             public String toString() {
                 return "CrawlStatusUpdateEvent{" +
-                        "visited=" + visited +
+                        "crawlId=" + crawlId +
+                        ", visited=" + visited +
                         ", pending=" + pending +
                         '}';
             }
         });
 
     }
-
 }

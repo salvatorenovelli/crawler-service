@@ -45,8 +45,7 @@ public class CrawlJobFactory {
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 
-        String crawlId = configuration.getWebsiteCrawl().getId().toHexString();
-        return new CrawlJob(crawlId, origin, allSeeds, webPageReader, uriFilter, executor, configuration.getCrawledPageLimit(), dispatch);
+        return new CrawlJob(configuration.getWebsiteCrawl(), origin, allSeeds, webPageReader, uriFilter, executor, configuration.getCrawledPageLimit(), dispatch);
     }
 
     private List<URI> concat(Collection<URI> seeds, Collection<URI> seedsFromSitemap) {

@@ -13,6 +13,7 @@ import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
 import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 
 import java.net.URI;
 import java.util.List;
@@ -56,7 +57,7 @@ public class TestCrawlJobBuilder {
         }).collect(Collectors.toList()));
 
         CrawlJobConfiguration conf = CrawlJobConfiguration
-                .newConfiguration(origin)
+                .newConfiguration(TestWebsiteCrawlFactory.TEST_OWNER, origin)
                 .withSeeds(seeds)
                 .withConcurrentConnections(seeds.size())
                 .withRobotsTxt(merged)

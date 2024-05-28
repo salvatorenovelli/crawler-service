@@ -6,11 +6,16 @@ import com.myseotoolbox.crawler.model.PageCrawlCompletedEvent;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinkRepository;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
-import com.myseotoolbox.crawler.spider.event.WebsiteCrawlCompletedEvent;
 import com.myseotoolbox.crawler.spider.event.CrawlStatusUpdateEvent;
 import com.myseotoolbox.crawler.spider.event.MessageBrokerEventListener;
+import com.myseotoolbox.crawler.spider.event.WebsiteCrawlCompletedEvent;
 import com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.testutils.TestTimeUtils;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
+import com.myseotoolbox.testutils.TimeUtilsTestConfiguration;
+import com.myseotoolbox.utils.TimeUtils;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -18,12 +23,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTemplate;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Primary;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,10 +41,10 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.CrawlStatusUpdateEventMatcherBuilder.aCrawlStatusUpdateEvent;
 import static com.myseotoolbox.crawler.spider.PageCrawledEventMatcherBuilder.aPageCrawledEvent;
-import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
+@Import(TimeUtilsTestConfiguration.class)
 @SpringBootTest
 public class CrawlEventsIntegrationTest {
 
@@ -91,9 +101,18 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent().withVisited(1).build());
-        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent().withVisited(2).build());
-        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent().withVisited(3).build());
+        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
+                .withCrawlId(job.getWebsiteCrawlId())
+                .withVisited(1)
+                .build());
+        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
+                .withCrawlId(job.getWebsiteCrawlId())
+                .withVisited(2)
+                .build());
+        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
+                .withCrawlId(job.getWebsiteCrawlId())
+                .withVisited(3)
+                .build());
 
         //given this test is single threaded, this is deterministic. We only have 1 pending because with a single thread the crawler will go depth first
         //Bit tied with implementation details but don't think it's worth making it more generic
@@ -103,7 +122,7 @@ public class CrawlEventsIntegrationTest {
     }
 
     @Test
-    public void shouldNotifyOfWebsiteCrawlCompleted() throws InterruptedException {
+    public void shouldNotifyOfWebsiteCrawlCompleted() {
         givenAWebsite()
                 .havingRootPage().withLinksTo("/abc", "/cde")
                 .save();
@@ -111,7 +130,7 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(newWebsiteCrawlFor(new ObjectId(job.getWebsiteCrawlId()), job.getCrawlOrigin().toString(), Collections.emptyList())));
+        verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(job.getWebsiteCrawl(), Instant.EPOCH));
     }
 
 

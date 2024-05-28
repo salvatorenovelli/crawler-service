@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class CrawlWorkspaceRequest {
     private int workspaceNumber;
     private int numConnections;
+    private String crawlOwner;
 }

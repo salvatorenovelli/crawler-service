@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
@@ -64,7 +65,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
 
         givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host1").build();
 
-        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 3);
+        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 3, "testOwner@myseotoolbox");
 
 
         String content = objectMapper.writeValueAsString(request);

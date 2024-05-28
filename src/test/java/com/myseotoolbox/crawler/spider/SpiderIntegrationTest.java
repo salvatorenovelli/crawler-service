@@ -11,6 +11,7 @@ import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import com.myseotoolbox.utils.ItemMatcher;
 import org.hamcrest.Matcher;
 import org.junit.After;
@@ -30,7 +31,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
@@ -65,7 +65,7 @@ public class SpiderIntegrationTest {
     @Before
     public void setUp() throws Exception {
         testWebsiteBuilder.run();
-        dispatchSpy = Mockito.spy(dispatchFactory.get(newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
+        dispatchSpy = Mockito.spy(dispatchFactory.get(TestWebsiteCrawlFactory.newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
         testCrawlJobBuilder = new TestCrawlJobBuilder(dispatchSpy);
     }
 

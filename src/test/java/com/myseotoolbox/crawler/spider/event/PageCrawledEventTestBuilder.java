@@ -4,7 +4,7 @@ import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.bson.types.ObjectId;
 
 import java.net.URI;
@@ -34,7 +34,7 @@ public class PageCrawledEventTestBuilder {
 
     public PageCrawledEvent build() {
         this.crawlResult = CrawlResult.forSnapshot(snapshot);
-        this.websiteCrawl = WebsiteCrawlFactory.newWebsiteCrawlFor(crawlID, origin, Collections.emptyList());
+        this.websiteCrawl = TestWebsiteCrawlFactory.newWebsiteCrawlFor(origin, Collections.emptyList());
         return new PageCrawledEvent(websiteCrawl, crawlResult);
     }
 

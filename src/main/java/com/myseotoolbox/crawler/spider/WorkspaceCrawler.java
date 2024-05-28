@@ -11,6 +11,7 @@ import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 public class WorkspaceCrawler {
 
 
+    public static final String CRAWL_OWNER = "cron@myseotoolbox.com";
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
@@ -71,7 +73,7 @@ public class WorkspaceCrawler {
                             RobotsTxt mergedConfiguration = robotsTxtAggregation.mergeConfigurations(workspaces);
 
                             CrawlJobConfiguration conf = CrawlJobConfiguration
-                                    .newConfiguration(origin)
+                                    .newConfiguration(CRAWL_OWNER, origin)
                                     .withSeeds(seeds)
                                     .withConcurrentConnections(seeds.size())
                                     .withRobotsTxt(mergedConfiguration)
@@ -79,7 +81,7 @@ public class WorkspaceCrawler {
                                     .withCrawlDelayMillis(getHigherCrawlDelayMillis(workspaces))
                                     .build();
 
-                            CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(newWebsiteCrawlFor(origin.toString(), seeds));
+                            CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(conf.getWebsiteCrawl());
 
                             CrawlJob job = crawlJobFactory.build(conf, dispatch);
                             job.start();
@@ -91,7 +93,7 @@ public class WorkspaceCrawler {
     }
 
 
-    private long getHigherCrawlDelayMillis(Collection<Workspace> workspaces){
+    private long getHigherCrawlDelayMillis(Collection<Workspace> workspaces) {
         return workspaces.stream().mapToLong(workspace -> workspace.getCrawlerSettings().getCrawlDelayMillis()).max().orElse(0);
     }
 

@@ -13,6 +13,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.IOException;
 import java.net.URI;
 
+import static com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration.newConfiguration;
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
@@ -26,7 +27,7 @@ public class CrawlJobConfigurationBuilderTest {
     private RobotsTxt provided = new EmptyRobotsTxt(null);
 
     private static final URI TEST_ORIGIN = URI.create("http://testhost");
-    private CrawlJobConfiguration.Builder sut = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withRobotsTxt(provided);
+    private CrawlJobConfiguration.Builder sut = newConfiguration("testOwner", TEST_ORIGIN).withRobotsTxt(provided);
     @Mock private HTTPClient httpClient;
 
 
@@ -51,7 +52,7 @@ public class CrawlJobConfigurationBuilderTest {
     @Test
     public void shouldFetchRobotsTxtIfDefaultIsRequired() throws Exception {
         when(httpClient.get(any())).thenReturn("User-agent: *\n" + "Disallow: /disabled\n");
-        CrawlJobConfiguration conf = CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).withRobotsTxt(getDefault(TEST_ORIGIN)).build();
+        CrawlJobConfiguration conf = newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).withRobotsTxt(getDefault(TEST_ORIGIN)).build();
         assertThat(conf.getRobotsTxt().shouldCrawl(null, TEST_ORIGIN.resolve("/disabled")), is(false));
         assertThat(conf.getRobotsTxt().shouldCrawl(null, TEST_ORIGIN.resolve("/something")), is(true));
     }
@@ -63,7 +64,7 @@ public class CrawlJobConfigurationBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void shouldThrowExceptionIfRobotsTxtIsNotConfigured() {
-        CrawlJobConfiguration.newConfiguration(TEST_ORIGIN).build();
+        newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).build();
     }
 
     @Test

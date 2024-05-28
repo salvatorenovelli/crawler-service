@@ -9,6 +9,7 @@ import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -39,7 +40,6 @@ public class MonitoredUriUpdaterTest {
 
     public static final String TEST_URI = DEFAULT_WORKSPACE_ORIGIN + "/path";
     public static final int TEST_WORKSPACE_NUMBER = 23;
-    public static final ObjectId TEST_CRAWL_ID = new ObjectId();
     @Autowired private MongoOperations operations;
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
@@ -296,7 +296,7 @@ public class MonitoredUriUpdaterTest {
         MonitoredUri monitoredUri = monitoredUris.get(0);
         assertThat(monitoredUri.getUri(), is(snapshot.getUri()));
         assertThat(monitoredUri.getWorkspaceNumber(), is(TEST_WORKSPACE_NUMBER));
-        assertThat(monitoredUri.getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL_ID.toHexString()));
+        assertThat(monitoredUri.getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL.getId().toHexString()));
         assertNotNull(monitoredUri.getLastCrawl().getDateTime());
 
     }
@@ -335,7 +335,7 @@ public class MonitoredUriUpdaterTest {
         sut.updateCurrentValue(TEST_CRAWL, snapshot);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
-        assertThat(monitoredUris1.get(0).getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL_ID.toHexString()));
+        assertThat(monitoredUris1.get(0).getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL.getId().toHexString()));
     }
 
     @Test
@@ -375,6 +375,6 @@ public class MonitoredUriUpdaterTest {
     }
 
     private static WebsiteCrawl getCrawlForOrigin(String origin) {
-        return WebsiteCrawlFactory.newWebsiteCrawlFor(TEST_CRAWL_ID, origin, Collections.emptyList());
+        return TestWebsiteCrawlFactory.newWebsiteCrawlFor(origin, Collections.emptyList());
     }
 }

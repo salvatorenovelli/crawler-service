@@ -18,6 +18,7 @@ import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.RequiredArgsConstructor;
+import org.jsoup.helper.Validate;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -44,7 +45,7 @@ public class AdminWorkspaceCrawlStartController {
         List<URI> seedsAsUri = seeds.stream().map(URI::create).collect(Collectors.toList());
 
 
-        CrawlJobConfiguration configuration = getConfiguration(origin, seedsAsUri, numConnections, true, 0L);
+        CrawlJobConfiguration configuration = getConfiguration("admin@myseotoolbox.com", origin, seedsAsUri, numConnections, true, 0L);
 
         CrawlJob job = factory.build(configuration, getCrawlEventsListener(configuration.getWebsiteCrawl()));
         job.start();
@@ -56,7 +57,7 @@ public class AdminWorkspaceCrawlStartController {
         Workspace ws = repository.findTopBySeqNumber(request.getWorkspaceNumber()).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
-        CrawlJobConfiguration conf = getConfiguration(origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
+        CrawlJobConfiguration conf = getConfiguration(request.getCrawlOwner(), origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
         CrawlJob job = factory.build(conf, getCrawlEventsListener(conf.getWebsiteCrawl()));
 
         job.start();
@@ -69,9 +70,9 @@ public class AdminWorkspaceCrawlStartController {
         return "Started on " + new Date() + "\n";
     }
 
-    private CrawlJobConfiguration getConfiguration(URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots, Long crawlDelayMillis) {
+    private CrawlJobConfiguration getConfiguration(String owner, URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots, Long crawlDelayMillis) {
         CrawlJobConfiguration.Builder builder = CrawlJobConfiguration
-                .newConfiguration(origin)
+                .newConfiguration(owner, origin)
                 .withConcurrentConnections(numConnections)
                 .withCrawlDelayMillis(crawlDelayMillis)
                 .withSeeds(seeds);

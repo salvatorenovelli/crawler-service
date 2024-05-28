@@ -30,18 +30,19 @@ public class CrawlJobConfiguration {
     private final long crawlDelayMillis;
     private final WebsiteCrawl websiteCrawl;
 
-    private CrawlJobConfiguration(URI origin, Collection<URI> seeds, int maxConcurrentConnections, long crawlDelayMillis, int crawledPageLimit, RobotsTxt robotsTxt) {
+    private CrawlJobConfiguration(String owner, URI origin, Collection<URI> seeds, int maxConcurrentConnections, long crawlDelayMillis, int crawledPageLimit, RobotsTxt robotsTxt) {
         this.origin = origin;
         this.seeds = seeds;
         this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, MIN_CONCURRENT_CONNECTIONS, MAX_CONCURRENT_CONNECTIONS);
         this.crawlDelayMillis = crawlDelayMillis;
         this.crawledPageLimit = crawledPageLimit;
         this.robotsTxt = robotsTxt;
-        this.websiteCrawl = newWebsiteCrawlFor(origin.toString(), seeds);
+        this.websiteCrawl = newWebsiteCrawlFor(owner, origin.toString(), seeds);
     }
 
-    public static Builder newConfiguration(URI origin) {
-        return new Builder(origin);
+    public static Builder newConfiguration(String owner, URI origin) {
+        Validate.notNull(owner, "crawlOwner cannot be null");
+        return new Builder(owner, origin);
     }
 
     public Collection<URI> getSeeds() {
@@ -60,12 +61,14 @@ public class CrawlJobConfiguration {
 
         private Collection<URI> seeds = Collections.emptyList();
         private final URI origin;
+        private final String owner;
         private int crawledPageLimit = DEFAULT_MAX_URL_PER_CRAWL;
         private int maxConcurrentConnections = DEFAULT_CONCURRENT_CONNECTIONS;
         private long crawlDelayMillis = MIN_CRAWL_DELAY_MILLIS;
         private RobotsTxt robotsTxt;
 
-        public Builder(URI origin) {
+        public Builder(String owner, URI origin) {
+            this.owner = owner;
             this.origin = origin;
         }
 
@@ -91,7 +94,7 @@ public class CrawlJobConfiguration {
 
         public CrawlJobConfiguration build() {
             Validate.notNull(robotsTxt, "robots.txt configuration missing. Please use defaultRobotsTxt() or configure it with withRobotsTxt(...)");
-            return new CrawlJobConfiguration(origin, seeds, maxConcurrentConnections, crawlDelayMillis, crawledPageLimit, robotsTxt);
+            return new CrawlJobConfiguration(owner, origin, seeds, maxConcurrentConnections, crawlDelayMillis, crawledPageLimit, robotsTxt);
         }
 
         public Builder withMaxPagesCrawledLimit(int crawledPageLimit) {

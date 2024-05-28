@@ -9,6 +9,7 @@ import com.myseotoolbox.crawler.spider.event.*;
 import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,9 +17,9 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTemplate;
 
+import java.time.Instant;
 import java.util.Collections;
 
-import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,6 +27,8 @@ import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageBrokerEventListenerTest {
+    private static WebsiteCrawl TEST_CRAWL = TestWebsiteCrawlFactory.newWebsiteCrawlFor("http://host/", Collections.emptyList());
+    private static WebsiteCrawl TEST_CRAWL2 = TestWebsiteCrawlFactory.newWebsiteCrawlFor("http://host/", Collections.emptyList());
 
     private static final String PAGE_CRAWL_COMPLETED_TOPIC = "pageCrawlCompletedTopic";
     private static final String WEBSITE_CRAWL_STARTED_TOPIC = "websiteCrawlStartedTopic";
@@ -51,22 +54,21 @@ public class MessageBrokerEventListenerTest {
 
     @Test
     public void shouldPublishWebsiteCompletedOnTheCorrectQueue() {
-        WebsiteCrawl websiteCrawl = newWebsiteCrawlFor("http://host/", Collections.emptyList());
         PageSnapshot val = PageSnapshotTestBuilder.aTestPageSnapshotForUri("http://host/someuri").build();
-        sut.onPageCrawlCompletedEvent(new PageCrawledEvent(websiteCrawl, CrawlResult.forSnapshot(val)));
-        verify(template).publish(eq(PAGE_CRAWL_COMPLETED_TOPIC), eq(new PageCrawlCompletedEvent(websiteCrawl.getId().toHexString(), val)));
+        sut.onPageCrawlCompletedEvent(new PageCrawledEvent(TEST_CRAWL, CrawlResult.forSnapshot(val)));
+        verify(template).publish(eq(PAGE_CRAWL_COMPLETED_TOPIC), eq(new PageCrawlCompletedEvent(TEST_CRAWL.getId().toHexString(), val)));
     }
 
     @Test
     public void shouldPublishPageCrawlCompletedOnTheCorrectQueue() {
-        WebsiteCrawl websiteCrawl = newWebsiteCrawlFor("host.host", Collections.emptyList());
-        sut.onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(websiteCrawl));
-        verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(new WebsiteCrawlCompletedEvent(websiteCrawl)));
+        WebsiteCrawlCompletedEvent event = new WebsiteCrawlCompletedEvent(TEST_CRAWL, Instant.EPOCH);
+        sut.onWebsiteCrawlCompletedEvent(event);
+        verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(event));
     }
 
     @Test
     public void shouldPublishStatusUpdateOnMessageBroker() {
-        CrawlStatusUpdateEvent event = new CrawlStatusUpdateEvent(10, 100, "ID1");
+        CrawlStatusUpdateEvent event = new CrawlStatusUpdateEvent(TEST_CRAWL, 10, 100, Instant.EPOCH);
         sut.onCrawlStatusUpdate(event);
         verify(template).publish(CRAWL_STATUS_UPDATE_TOPIC, event);
     }
@@ -74,7 +76,7 @@ public class MessageBrokerEventListenerTest {
 
     @Test
     public void shouldNotPublishStatusUpdateMoreFrequentlyThanConfigured() throws InterruptedException {
-        CrawlStatusUpdateEvent event = new CrawlStatusUpdateEvent(10, 100, "ID1");
+        CrawlStatusUpdateEvent event = new CrawlStatusUpdateEvent(TEST_CRAWL, 10, 100, Instant.EPOCH);
         sut.onCrawlStatusUpdate(event); //run 1
         sut.onCrawlStatusUpdate(event); //no op (too early)
         sut.onCrawlStatusUpdate(event); //no op (too early)
@@ -85,8 +87,8 @@ public class MessageBrokerEventListenerTest {
 
     @Test
     public void multipleCrawlsShouldNotBeLimitedTogether() throws InterruptedException {
-        CrawlStatusUpdateEvent event1 = new CrawlStatusUpdateEvent(10, 100, "ID1");
-        CrawlStatusUpdateEvent event2 = new CrawlStatusUpdateEvent(10, 100, "ID2");
+        CrawlStatusUpdateEvent event1 = new CrawlStatusUpdateEvent(TEST_CRAWL, 10, 100, Instant.EPOCH);
+        CrawlStatusUpdateEvent event2 = new CrawlStatusUpdateEvent(TEST_CRAWL2, 10, 100, Instant.EPOCH);
 
         sut.onCrawlStatusUpdate(event1); //run 1
         sut.onCrawlStatusUpdate(event1); //no op (too early)
@@ -98,8 +100,7 @@ public class MessageBrokerEventListenerTest {
 
     @Test
     public void shouldPublishCrawlStartedEvent() {
-        WebsiteCrawl websiteCrawl = newWebsiteCrawlFor("host.host", Collections.emptyList());
-        WebsiteCrawlStartedEvent event = WebsiteCrawlStartedEvent.from(websiteCrawl);
+        WebsiteCrawlStartedEvent event = WebsiteCrawlStartedEvent.from(TEST_CRAWL, Instant.EPOCH);
         sut.onWebsiteCrawlStarted(event);
         verify(template).publish(WEBSITE_CRAWL_STARTED_TOPIC, event);
     }
