@@ -47,7 +47,7 @@ public class MessageBrokerEventListener {
             log.debug("Publishing Crawl Status update. Publishing event. {} on {}", event, config.getCrawlStatusUpdateConfiguration().getTopicName());
             publishMessage(config.getCrawlStatusUpdateConfiguration().getTopicName(), event);
             return null;
-        });
+        }, event.getPending() == 0);
     }
 
     private <T> void publishMessage(String topicName, T payload) {

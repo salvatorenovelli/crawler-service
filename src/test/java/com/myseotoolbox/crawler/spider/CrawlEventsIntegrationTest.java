@@ -146,7 +146,7 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(template).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
+        verify(template, times(2)).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
         verify(template).publish(eq(pubSubProperties.getWebsiteCrawlCompletedTopicName()), any(WebsiteCrawlCompletedEvent.class));
     }
 

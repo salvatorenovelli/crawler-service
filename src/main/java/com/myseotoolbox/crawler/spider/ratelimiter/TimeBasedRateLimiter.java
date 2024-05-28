@@ -21,9 +21,9 @@ public class TimeBasedRateLimiter implements RateLimiter {
     }
 
     @Override
-    public synchronized <T> Optional<T> process(Task<T> task) {
+    public synchronized <T> Optional<T> process(Task<T> task, boolean bypassThrottling) {
         long currentTime = clockUtils.currentTimeMillis();
-        if (currentTime - lastExecutionTime >= intervalMillis) {
+        if (bypassThrottling || (currentTime - lastExecutionTime >= intervalMillis)) {
             lastExecutionTime = currentTime;
             T result = task.execute();
             return Optional.ofNullable(result);

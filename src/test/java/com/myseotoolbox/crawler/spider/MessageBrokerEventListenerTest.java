@@ -20,6 +20,7 @@ import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTempla
 import java.time.Instant;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -96,6 +97,14 @@ public class MessageBrokerEventListenerTest {
 
         verify(template, times(1)).publish(CRAWL_STATUS_UPDATE_TOPIC, event1);
         verify(template, times(1)).publish(CRAWL_STATUS_UPDATE_TOPIC, event2);
+    }
+
+    @Test
+    public void shouldNotRateLimitIfPendingIsZero() {
+        sut.onCrawlStatusUpdate(CrawlStatusUpdateEvent.aCrawlStatusUpdateEvent().websiteCrawl(TEST_CRAWL).visited(10).pending(10).build()); //run 1
+        sut.onCrawlStatusUpdate(CrawlStatusUpdateEvent.aCrawlStatusUpdateEvent().websiteCrawl(TEST_CRAWL).visited(10).pending(0).build()); //it's too early but should run as pending is 0
+
+        verify(template, times(2)).publish(eq(CRAWL_STATUS_UPDATE_TOPIC), any(CrawlStatusUpdateEvent.class));
     }
 
     @Test
