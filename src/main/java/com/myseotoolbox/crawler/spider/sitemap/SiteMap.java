@@ -72,7 +72,7 @@ public class SiteMap {
         }
 
         try {
-            log.debug("Fetching sitemap on {}", url.toString());
+            log.debug("Fetching sitemap on {}", url);
             AbstractSiteMap asm = siteMapParser.parseSiteMap(url);
             if (asm instanceof SiteMapIndex) {
                 SiteMapIndex smi = (SiteMapIndex) asm;

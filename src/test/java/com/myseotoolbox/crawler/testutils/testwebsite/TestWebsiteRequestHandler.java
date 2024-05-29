@@ -219,4 +219,9 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
     public List<ReceivedRequest> getRequestsReceived() {
         return requestsReceived;
     }
+
+    @Override
+    public List<String> getRequestsReceivedAsUrls() {
+        return getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(Collectors.toList());
+    }
 }

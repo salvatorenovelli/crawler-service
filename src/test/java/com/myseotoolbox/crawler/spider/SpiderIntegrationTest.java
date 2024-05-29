@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Is.is;
 import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.hamcrest.core.IsNot.not;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -131,6 +132,51 @@ public class SpiderIntegrationTest {
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/link1"));
         verify(dispatchSpy).onPageCrawled(uri("/link2"));
+    }
+
+    @Test
+    public void shouldFilterBadExtensionFromSitemap() {
+        givenAWebsite()
+                .withSitemapOn("/").havingUrls("/link1", "/link2.png").build()
+                .save();
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(dispatchSpy, never()).onPageCrawled(uri("/link2.png"));
+    }
+
+
+    @Test
+    public void shouldOnlyDiscoverLinksFromAllowedPaths() {
+        givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/en/gb/", "/it/it/").and()
+                .withSitemapOn("/en/gb/").havingUrls("/en/gb/1", "/en/gb/2", "/it/it/1").and()
+                .withSitemapOn("/it/it/").havingUrls("/it/it/2", "/en/gb/3")
+                .build().getTestWebsite();
+
+        CrawlJob job = buildForSeeds(testSeeds("/en/gb/"));
+        job.start();
+
+
+        verify(dispatchSpy, never()).onPageCrawled(uri("/en/gb/3"));
+        verify(dispatchSpy, never()).onPageCrawled(uri("/it/it/2"));
+
+    }
+
+    @Test
+    public void shouldOnlyFetchSitemapsFromAllowedPaths() {
+        TestWebsite testWebsite = givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/en/gb/", "/it/it/").and()
+                .withSitemapOn("/en/gb/").havingUrls("/en/gb/1", "/en/gb/2", "/it/it/1").and()
+                .withSitemapOn("/it/it/").havingUrls("/it/it/2", "/en/gb/3")
+                .build().getTestWebsite();
+
+        CrawlJob job = buildForSeeds(testSeeds("/en/gb/"));
+        job.start();
+
+        assertThat(testWebsite.getRequestsReceivedAsUrls(), not(hasItems("/it/it/sitemap.xml")));
     }
 
     @Test

@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface TestWebsite {
     List<ReceivedRequest> getRequestsReceived();
+
+    List<String> getRequestsReceivedAsUrls();
 }
