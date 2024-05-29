@@ -133,6 +133,10 @@ public class TestWebsiteBuilder {
         return handler;
     }
 
+    public TestWebsite getTestWebsite() {
+        return handler;
+    }
+
     public void tearDown() throws Exception {
         server.stop();
     }

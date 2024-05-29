@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
+import com.myseotoolbox.crawler.spider.filter.PathFilter;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
@@ -42,7 +43,7 @@ public class SiteMapTest {
         LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
         testWebsite = testWebsiteBuilder.run();
         origin = testUri("/");
-        siteMap = new SiteMap(origin, Collections.singletonList(uri("/sitemap.xml")), Collections.singletonList("/"), DEFAULT_MAX_URL_PER_CRAWL);
+        siteMap = new SiteMap(origin, Collections.singletonList(uri("/sitemap.xml")), new PathFilter(Collections.singletonList("/")), DEFAULT_MAX_URL_PER_CRAWL);
     }
 
     @After
@@ -58,7 +59,7 @@ public class SiteMapTest {
                 .havingUrls(tooManyUrls)
                 .build();
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), Collections.singletonList("/"), 100);
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), new PathFilter(Collections.singletonList("/")), 100);
 
         List<String> urls = siteMap.fetchUris();
 
@@ -78,7 +79,7 @@ public class SiteMapTest {
                 .havingUrls(tooManyUrls)
                 .build();
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), Collections.singletonList("/"), 100);
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), new PathFilter(Collections.singletonList("/")), 100);
 
         siteMap.fetchUris();
 
@@ -377,7 +378,7 @@ public class SiteMapTest {
 
 
     private SiteMap testSiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths) {
-        return new SiteMap(origin, sitemaps, allowedPaths, DEFAULT_MAX_URL_PER_CRAWL);
+        return new SiteMap(origin, sitemaps, new PathFilter(allowedPaths), DEFAULT_MAX_URL_PER_CRAWL);
     }
 
 }

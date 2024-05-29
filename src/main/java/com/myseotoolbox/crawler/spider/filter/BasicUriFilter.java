@@ -10,7 +10,12 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 
 @Slf4j
 public class BasicUriFilter implements UriFilter {
-    private static final Pattern INVALID_EXTENSIONS = Pattern.compile(".*\\.(?:css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz)$");
+    private static final Pattern INVALID_EXTENSIONS = Pattern.compile(
+            ".*\\.(?:css|js|bmp|gif|jpe?g|png|tiff?|mid|mp2|mp3|mp4|wav|avi|mov|mpeg|ram|m4v|pdf|rm|smil|wmv|swf|wma|zip|rar|gz|"
+                    + "exe|bin|dll|deb|pkg|doc|docx|xls|xlsx|ppt|pptx|odt|ods|odp|"
+                    + "ttf|woff|woff2|eot|otf|svg|ico|webp|heic|7z|dmg|iso|tar|bz2|"
+                    + "eml|msg|bak|cfg|java|py|c|cpp|h|rb|php|jsp|log|tmp)$"
+    );
     private static final Pattern VALID_SCHEME = Pattern.compile("(?:http|https)$");
 
 

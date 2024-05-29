@@ -1,7 +1,11 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
+import com.myseotoolbox.crawler.spider.UriFilter;
+import com.myseotoolbox.crawler.spider.filter.BasicUriFilter;
+import com.myseotoolbox.crawler.spider.filter.PathFilter;
+import com.myseotoolbox.crawler.testutils.TestWebsite;
+import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
-import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,18 +20,22 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 import static org.junit.Assert.assertThat;
 
 public class SitemapReaderTest {
 
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private SitemapReader sut = new SitemapReader();
+    private BasicUriFilter basicFilter;
 
     @Before
     public void setUp() throws Exception {
         LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
         testWebsiteBuilder.run();
+        basicFilter = new BasicUriFilter(URI.create(testWebsiteBuilder.getBaseUriAsString()));
     }
 
     @After
@@ -35,17 +43,55 @@ public class SitemapReaderTest {
         testWebsiteBuilder.tearDown();
     }
 
+    //This is necessary to discover child sitemaps
+    @Test
+    public void shouldFetchSitemapOnRootEvenIfNotInAllowedPath() throws Exception {
+        //given
+        PathFilter uriFilter = new PathFilter(Collections.singletonList("/it/"));
+
+        TestWebsite testWebsite = givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/it/", "/en/", "/de/")
+                .build().getTestWebsite();
+
+        fetchSeeds(testUris("/sitemap.xml"), uriFilter);
+
+        List<String> receivedRequests = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(Collectors.toList());
+        assertThat(receivedRequests, hasItem("/sitemap.xml"));
+    }
 
     @Test
-    public void shouldGetSeedsFromSitemapsIncludingFiltering() {
+    public void shouldNotFetchSitemapsDiscoveredOutsideAllowedPath() throws Exception {
+        //given
+        PathFilter uriFilter = new PathFilter(Collections.singletonList("/it/"));
+
+        TestWebsite testWebsite = givenAWebsite()
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/it/", "/en/", "/de/")
+                .build().getTestWebsite();
+
+        fetchSeeds(testUris("/sitemap.xml"), uriFilter);
+        List<String> receivedRequests = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(Collectors.toList());
+        assertThat(receivedRequests, containsInAnyOrder("/sitemap.xml", "/it/sitemap.xml"));
+    }
+
+    @Test
+    public void shouldOnlyDiscoverLinksInAllowedPaths() {
+        //given
+        PathFilter uriFilter = new PathFilter(Collections.singletonList("/it/"));
+
+
         givenAWebsite()
-                .withSitemapOn("/")
-                .havingUrls("/location1", "/location2", "/outside/shouldnotaddthis")
+                .withSitemapIndexOn("/")
+                .havingChildSitemaps("/it/", "/en/", "/de/").and()
+                .withSitemapOn("/it/").havingUrls("/it/location1", "/it/location2", "/en/should-not-be-discovered0").and()
+                .withSitemapOn("/en/").havingUrls("/en/location1", "/en/location2", "/it/should-not-be-discovered1").and()
+                .withSitemapOn("/de/").havingUrls("/de/location1", "/de/location2", "/it/should-not-be-discovered2")
                 .build();
 
-        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), uriFilter);
 
-        assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
+        assertThat(uris, containsInAnyOrder(testUri("/it/location1"), testUri("/it/location2")));
     }
 
     @Test
@@ -55,9 +101,9 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "/should not add this")
                 .build();
 
-        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), basicFilter);
 
-        assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
+        assertThat(uris, containsInAnyOrder(testUri("/location1"), testUri("/location2")));
     }
 
     @Test
@@ -67,35 +113,26 @@ public class SitemapReaderTest {
                 .havingUrls("/location1", "/location2", "http://another-domain/")
                 .build();
 
-        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), Collections.singletonList("/"));
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), basicFilter);
 
-        assertThat(uris, hasItems(testUri("/location1"), testUri("/location2")));
+        assertThat(uris, containsInAnyOrder(testUri("/location1"), testUri("/location2")));
     }
 
     @Test
-    public void shouldOnlyFetchSitemapsFromAllowedPaths() {
-
+    public void shouldFilterNotAllowedExtensions() {
         givenAWebsite()
-                .withSitemapOn("/en/gb/")
-                .havingUrls("/en/gb/1", "/en/gb/2", "/it/it/1").and()
-                .withSitemapOn("/it/it/")
-                .havingUrls("/it/it/2", "/en/gb/3")
+                .withSitemapOn("/")
+                .havingUrls("/location1", "/location1.png")
                 .build();
 
-        List<URI> uris = fetchSeeds(testUris("/en/gb/sitemap.xml", "/it/it/sitemap.xml"), Collections.singletonList("/en/gb/"));
 
+        List<URI> uris = fetchSeeds(testUris("/sitemap.xml"), basicFilter);
 
-        // note that allowedPaths is not intended to filter the discovered URLS in the sitemaps but only the sitemap links provided by the sitemapsUrls and the ones discovered recursively
-        // however, this is only the current implementation, and I'm not sure what would be the impact of filtering the URLS at this level
-        // might make sense, but it's not the current implementation
-
-        assertThat(uris, Matchers.contains(testUri("/en/gb/1"), testUri("/en/gb/2"), testUri("/it/it/1")));
-
+        assertThat(uris, not(hasItem(testUri("/location1.png"))));
     }
 
-
-    private List<URI> fetchSeeds(List<String> sitemapUrls, List<String> allowedPaths) {
-        return sut.fetchSeedsFromSitemaps(testUri("/"), sitemapUrls, allowedPaths, DEFAULT_MAX_URL_PER_CRAWL);
+    private List<URI> fetchSeeds(List<String> sitemapUrls, UriFilter uriFilter) {
+        return sut.fetchSeedsFromSitemaps(testUri("/"), sitemapUrls, uriFilter, DEFAULT_MAX_URL_PER_CRAWL);
     }
 
     private URI testUri(String s) {

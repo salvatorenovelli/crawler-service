@@ -1,6 +1,6 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
-import com.myseotoolbox.crawler.spider.filter.PathFilter;
+import com.myseotoolbox.crawler.spider.UriFilter;
 import com.myseotoolbox.crawlercommons.UriCreator;
 import crawlercommons.sitemaps.AbstractSiteMap;
 import crawlercommons.sitemaps.SiteMapIndex;
@@ -24,7 +24,7 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMa
 public class SiteMap {
 
     private final URI origin;
-    private final PathFilter pathFilter;
+    private final UriFilter uriFilter;
     private final int crawledPageLimit;
     private final List<URL> siteMaps;
 
@@ -32,15 +32,21 @@ public class SiteMap {
 
     private int currentUriCount = 0;
 
-
-    public SiteMap(URI origin, List<String> sitemaps, List<String> allowedPaths, int crawledPageLimit) {
+    /**
+     * How the SiteMap is instantiated:
+     * <ol>
+     *   <li>Create a robots.txt file based on the ROOT of the workspace (or workspaces).</li>
+     *   <li>Set the origin by resolving "/" on the aggregated websiteUrl.</li>
+     *   <li>Retrieve the sitemap URL from origin/robots.txt. (passed here as `sitemaps`)</li>
+     *   <li>Create a uriFilter based on the most permissive sub-path using
+     *       {@link com.myseotoolbox.crawler.spider.configuration.AllowedPathFromSeeds#extractAllowedPathFromSeeds(java.util.Collection)}.</li>
+     * </ol>
+     */
+    public SiteMap(URI origin, List<String> sitemaps, UriFilter uriFilter, int crawledPageLimit) {
         this.origin = origin;
         this.siteMaps = sitemaps.stream().map(this::mapToUrlOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
-        this.pathFilter = new PathFilter(allowedPaths);
+        this.uriFilter = uriFilter;
         this.crawledPageLimit = crawledPageLimit;
-
-        boolean anyNonCrawlable = sitemaps.stream().anyMatch(it -> !pathFilter.shouldCrawl(origin, URI.create(it)));
-        if (anyNonCrawlable) throw new IllegalArgumentException("Provided sitemaps should be within allowedPaths");
     }
 
     public List<String> fetchUris() {
@@ -99,7 +105,7 @@ public class SiteMap {
 
     private boolean shouldFetch(URL url) {
         try {
-            return isSameDomain(url) && (this.siteMaps.contains(url) || pathFilter.shouldCrawl(URI.create(url.toString()), URI.create(url.toString())));
+            return isSameDomain(url) && (this.siteMaps.contains(url) || uriFilter.shouldCrawl(origin, URI.create(url.toString())));
         } catch (IllegalArgumentException e) {
             log.warn("Unable to fetch sitemap on {}. {}", url, e.toString());
             return false;

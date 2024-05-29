@@ -17,8 +17,9 @@ public class BasicUriFilterTest {
 
     @Test
     public void filterInvalidExtensions() {
-        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host1/main.css")));
-        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host1/img.png")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host/main.css")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host/img.png")));
+        assertFalse(sutHttp.shouldCrawl(BASE_HTTP, create("http://host/something.webp")));
     }
 
     @Test

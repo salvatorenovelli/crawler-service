@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 public class AllowedPathFromSeeds {
 
     /**
-     * Hack.
+     * Hack?
      * <p>
      * Instead of interpreting seeds as filters, we should ask the user for filters.      *
      * Or should we? The user might not care or know. This is how it works in most of the crawlers.

@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
 import com.myseotoolbox.crawler.spider.PathMatcher;
+import com.myseotoolbox.crawler.spider.UriFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -17,19 +18,16 @@ public class SitemapReader {
      * @param allowedPaths: make sure we only fetch the sitemap indexes we need (for discovered sitemaps), and filters the ones provided in the sitemapUrls (that come from robots.txt)
      *
      * */
-    public List<URI> fetchSeedsFromSitemaps(URI origin, List<String> sitemapsUrls, List<String> allowedPaths, int crawledPageLimit) {
+    public List<URI> fetchSeedsFromSitemaps(URI origin, List<String> sitemapsUrls, UriFilter uriFilter, int crawledPageLimit) {
 
-        List<String> filteredSitemapUrls = sitemapsUrls.stream()
-                .filter(sitemapUrl -> PathMatcher.isSubPath(allowedPaths, URI.create(sitemapUrl).getPath()))
-                .collect(Collectors.toList());
+        log.info("Fetching {} sitemaps for {} with filter: {}. Urls: {}", sitemapsUrls.size(), origin, uriFilter, sitemapsUrls);
 
-        log.info("Fetching {} sitemap for {} with allowed paths: {}. Urls: {}", filteredSitemapUrls.size(), origin, allowedPaths, filteredSitemapUrls);
-
-        List<URI> sitemapSeeds = new SiteMap(origin, filteredSitemapUrls, allowedPaths, crawledPageLimit)
+        List<URI> sitemapSeeds = new SiteMap(origin, sitemapsUrls, uriFilter, crawledPageLimit)
                 .fetchUris()
                 .stream()
                 .map(this::toValidUri)
                 .filter(Optional::isPresent).map(Optional::get)
+                .filter(uri -> uriFilter.shouldCrawl(origin, uri))
                 .collect(Collectors.toList());
 
         log.info("Found {} seeds from sitemap for {}", sitemapSeeds.size(), origin);
