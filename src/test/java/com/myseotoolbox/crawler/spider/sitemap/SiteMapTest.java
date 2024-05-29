@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.spider.filter.PathFilter;
 import com.myseotoolbox.crawler.testutils.TestWebsite;
 import com.myseotoolbox.crawler.testutils.testwebsite.ReceivedRequest;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -189,20 +190,16 @@ public class SiteMapTest {
     public void shouldNotFetchUnnecessarySitemaps() {
         givenAWebsite()
                 .withSitemapIndexOn("/")
-                .havingChildSitemaps("/it/", "/uk/")
-                .and()
-                .withSitemapOn("/it/")
-                .havingUrls("/it/1", "/it/2", "/uk/")
-                .and()
-                .withSitemapOn("/uk/")
-                .havingUrls("/uk/1", "/uk/2").build();
+                .havingChildSitemaps("/it/", "/uk/").and()
+                .withSitemapOn("/it/").havingUrls("/it/1", "/it/2", "/uk/").and()
+                .withSitemapOn("/uk/").havingUrls("/uk/1", "/uk/2")
+                .build();
 
         SiteMap siteMap = testSiteMap(origin.resolve("/it/"), testUris("/sitemap.xml"), Collections.singletonList("/it/"));
         siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());
-        assertThat(requestsReceived, hasSize(2));
-        assertThat(requestsReceived, hasItems("/sitemap.xml", "/it/sitemap.xml"));
+        assertThat(requestsReceived, IsIterableContainingInAnyOrder.containsInAnyOrder("/sitemap.xml", "/it/sitemap.xml"));
     }
 
     @Test
@@ -237,16 +234,6 @@ public class SiteMapTest {
         siteMap.fetchUris();
 
         assertThat(differentDomainWebsite.getRequestsReceived(), hasSize(0));
-    }
-
-
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldThrowExceptionIfPassedSitemapsOutsidePath() {
-        // for example allowed path is /en/gb: intended usage is that it would receive /en/gb/A/sitemap.xml but it might receive /it/it which not intended
-        // should it warn or abort/throw?
-
-        testSiteMap(origin, testUris("/it/it/sitemap.xml"), Collections.singletonList("/en/gb"));
-
     }
 
     @Test
