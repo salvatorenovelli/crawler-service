@@ -1,7 +1,5 @@
 #!/bin/bash
 
-
-
 echo "Fetching gradle project properties..."
 IFS=':' read -ra props_array <<< "$(./gradlew -q getProjectProperties)"
 
@@ -72,13 +70,11 @@ case $1 in
     ;;
     "build" )
         echo "Building ${IMAGE_TAG}"
-        ./gradlew clean build || exit 1
-        cp build/libs/*.jar docker
-        docker build docker -t ${IMAGE_TAG}
+        docker build . -t ${IMAGE_TAG} || exit 1
     ;;
     "run" )
        docker run --rm -it \
-         -e GOOGLE_APPLICATION_CREDENTIALS=/run/secrets/gcpcredentials.json -v /run/secrets/:/run/secrets/ \
+         -v /run/secrets/:/run/secrets/ \
          -e GOOGLE_CLOUD_PROJECT=${GCE_PROJECT_ID} \
          --network="host" ${IMAGE_TAG}
     ;;
