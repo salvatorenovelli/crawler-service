@@ -25,9 +25,9 @@ public class CrawlEventDispatch {
         applicationEventPublisher.publishEvent(WebsiteCrawlStartedEvent.from(websiteCrawl, timeUtils.now()));
     }
 
-    public void onCrawlCompleted() {
+    public void onCrawlCompleted(int visited, int pending) {
         log.debug("Crawl completed event for: {}", websiteCrawl);
-        applicationEventPublisher.publishEvent(new WebsiteCrawlCompletedEvent(websiteCrawl, timeUtils.now()));
+        applicationEventPublisher.publishEvent(new WebsiteCrawlCompletedEvent(websiteCrawl, visited, pending, timeUtils.now()));
     }
 
     public void onCrawlStatusUpdate(int visited, int pending) {

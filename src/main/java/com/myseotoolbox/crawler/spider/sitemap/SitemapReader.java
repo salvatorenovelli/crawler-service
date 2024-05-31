@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 public class SitemapReader {
     /*
      * There are sitemaps with millions of entries.
-     * @param allowedPaths: make sure we only fetch the sitemap indexes we need (for discovered sitemaps), and filters the ones provided in the sitemapUrls (that come from robots.txt)
+     * @param uriFilter: make sure we only fetch the sitemaps we need (for discovered sitemaps), and filters the ones provided in the sitemapUrls (that come from robots.txt)
      *
      * */
     public List<URI> fetchSeedsFromSitemaps(URI origin, List<String> sitemapsUrls, UriFilter uriFilter, int crawledPageLimit) {

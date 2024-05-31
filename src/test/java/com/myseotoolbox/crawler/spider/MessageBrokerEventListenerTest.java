@@ -62,7 +62,7 @@ public class MessageBrokerEventListenerTest {
 
     @Test
     public void shouldPublishPageCrawlCompletedOnTheCorrectQueue() {
-        WebsiteCrawlCompletedEvent event = new WebsiteCrawlCompletedEvent(TEST_CRAWL, Instant.EPOCH);
+        WebsiteCrawlCompletedEvent event = new WebsiteCrawlCompletedEvent(TEST_CRAWL, 6, 0, Instant.EPOCH);
         sut.onWebsiteCrawlCompletedEvent(event);
         verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(event));
     }

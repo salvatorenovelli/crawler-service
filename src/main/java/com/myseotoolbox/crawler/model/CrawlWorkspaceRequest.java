@@ -1,4 +1,4 @@
-package com.myseotoolbox.crawler;
+package com.myseotoolbox.crawler.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -121,7 +121,7 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(job.getWebsiteCrawl(), Instant.EPOCH));
+        verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(job.getWebsiteCrawl(), 3, 0, Instant.EPOCH));
     }
 
 

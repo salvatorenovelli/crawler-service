@@ -2,6 +2,8 @@ package com.myseotoolbox.crawler;
 
 
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
+import com.myseotoolbox.crawler.model.CrawlWorkspaceRequest;
+import com.myseotoolbox.crawler.model.CrawlWorkspaceResponse;
 import com.myseotoolbox.crawler.model.EntityNotFoundException;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
@@ -53,7 +55,7 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     @PostMapping("/crawl-workspace")
-    public String crawlWorkspace(@RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException {
+    public CrawlWorkspaceResponse crawlWorkspace(@RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException {
         Workspace ws = repository.findTopBySeqNumber(request.getWorkspaceNumber()).orElseThrow(EntityNotFoundException::new);
         URI origin = URI.create(ws.getWebsiteUrl());
 
@@ -61,7 +63,7 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJob job = factory.build(conf, getCrawlEventsListener(conf.getWebsiteCrawl()));
 
         job.start();
-        return "Crawling " + ws.getWebsiteUrl() + " with " + request.getNumConnections() + " parallel connections. Started on " + new Date() + "\n";
+        return new CrawlWorkspaceResponse(conf.getWebsiteCrawl().getId());
     }
 
     @GetMapping("/crawl-all-workspaces")
