@@ -1,15 +1,8 @@
 #Configuration file for Google Cloud Builds
 
 steps:
-  - name: 'java:8'
-    env: ["GRADLE_USER_HOME=cache"]
-    entrypoint: "bash"
-    args: [ "-c", "./gradlew build"]
-  - name: 'ubuntu'
-    args: ['bash', '-c', 'cp build/libs/*.jar docker']
-
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', 'docker',
+    args: ['build', '.',
            '-t', 'eu.gcr.io/$PROJECT_ID/website-versioning-crawler:$TAG_NAME',
            '-t', 'eu.gcr.io/$PROJECT_ID/website-versioning-crawler:$SHORT_SHA',
            '-t', 'eu.gcr.io/$PROJECT_ID/website-versioning-crawler:latest']
