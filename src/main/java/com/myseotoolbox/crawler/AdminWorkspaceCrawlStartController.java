@@ -20,9 +20,10 @@ import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.RequiredArgsConstructor;
-import org.jsoup.helper.Validate;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
@@ -32,6 +33,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
@@ -55,8 +57,11 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     @PostMapping("/crawl-workspace")
-    public CrawlWorkspaceResponse crawlWorkspace(@RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException {
-        Workspace ws = repository.findTopBySeqNumber(request.getWorkspaceNumber()).orElseThrow(EntityNotFoundException::new);
+    public CrawlWorkspaceResponse crawlWorkspace(@Valid @RequestBody CrawlWorkspaceRequest request) throws EntityNotFoundException {
+        Workspace ws = getWorkspace(request);
+
+        verifyCrawlerSettings(ws.getCrawlerSettings());
+
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(request.getCrawlOwner(), origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
@@ -108,5 +113,18 @@ public class AdminWorkspaceCrawlStartController {
 
     private CrawlEventDispatch getCrawlEventsListener(WebsiteCrawl crawl) {
         return crawlEventDispatchFactory.get(crawl);
+    }
+
+    private Workspace getWorkspace(CrawlWorkspaceRequest request) throws EntityNotFoundException {
+        try {
+            return repository.findTopBySeqNumber(request.getWorkspaceNumber()).orElseThrow(EntityNotFoundException::new);
+        } catch (EntityNotFoundException e) {
+            log.warn("Workspace not found: {} - Request: {}", request.getWorkspaceNumber(), request);
+            throw e;
+        }
+    }
+
+    private void verifyCrawlerSettings(CrawlerSettings crawlerSettings) {
+        if (crawlerSettings == null) throw new IllegalStateException("Crawler Settings can't be null");
     }
 }

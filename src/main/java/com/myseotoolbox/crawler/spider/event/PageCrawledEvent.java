@@ -9,9 +9,4 @@ import lombok.Getter;
 public class PageCrawledEvent {
     private final WebsiteCrawl websiteCrawl;
     private final CrawlResult crawlResult;
-
-    public PageCrawledEvent(WebsiteCrawl websiteCrawl, CrawlResult crawlResult) {
-        this.websiteCrawl = websiteCrawl;
-        this.crawlResult = crawlResult;
-    }
 }

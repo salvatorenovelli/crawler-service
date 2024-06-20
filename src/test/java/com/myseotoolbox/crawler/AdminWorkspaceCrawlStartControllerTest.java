@@ -16,24 +16,27 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(controllers = AdminWorkspaceCrawlStartController.class)
 @RunWith(SpringRunner.class)
@@ -48,7 +51,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
     @MockBean private HTTPClient httpClient;
     private List<Workspace> allWorkspaces = new ArrayList<>();
 
-    @MockBean private CrawlJob job;
+    @Mock private CrawlJob job;
     @Autowired private ObjectMapper objectMapper;
 
     @Before
@@ -64,19 +67,54 @@ public class AdminWorkspaceCrawlStartControllerTest {
 
     @Test
     public void testCrawlWorkspace() throws Exception {
-
-        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host1").build();
-
-        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 3, "testOwner@myseotoolbox");
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host123").build();
+        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 3, "testCrawlWorkspace@myseotoolbox");
 
         String content = objectMapper.writeValueAsString(request);
         mockMvc.perform(post("/crawl-workspace")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
-                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.crawlId", isValidObjectId()));
 
+        verify(factory).build(argThat(conf -> {
+            assertEquals(conf.getOrigin().toASCIIString(), "http://host123");
+            assertThat(conf.getMaxConcurrentConnections(), is(3));
+            assertThat(conf.getWebsiteCrawl().getOwner(), is("testCrawlWorkspace@myseotoolbox"));
+            return true;
+        }), any());
+
         verify(job).start();
+    }
+
+    @Test
+    public void nullCrawlOwnerAre400() throws Exception {
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host123").build();
+        String content = objectMapper.writeValueAsString(new CrawlWorkspaceRequest(123, 3, null));
+        mockMvc.perform(post("/crawl-workspace")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void emptyCrawlOwnerAre400() throws Exception {
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host123").build();
+        String content = objectMapper.writeValueAsString(new CrawlWorkspaceRequest(123, 3, ""));
+        mockMvc.perform(post("/crawl-workspace")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void whenCrawlSettingsAreNullItShouldFailGracefully() throws Exception {
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host123").withCrawlerSettings(null).build();
+        String content = objectMapper.writeValueAsString(new CrawlWorkspaceRequest(123, 3, "test@myseotoolbox.com"));
+        mockMvc.perform(post("/crawl-workspace")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(content))
+                .andExpect(status().isInternalServerError());
     }
 
     private static Matcher<String> isValidObjectId() {
