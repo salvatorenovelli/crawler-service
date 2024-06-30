@@ -39,12 +39,19 @@ public class RequestResponseDebugLoggingFilter implements Filter {
         ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper((HttpServletRequest) request);
         ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper((HttpServletResponse) response);
 
-        chain.doFilter(wrappedRequest, wrappedResponse);
+        try {
+            chain.doFilter(wrappedRequest, wrappedResponse);
+        } finally {
+            // In case of exception thrown during doFilter (which can happen during parameter validation)
+            // we still want to print the request. The response is not valid and doesn't need to be printed
+            // for reasons I don't understand, spring will "fake" a request to /api/error and print the actual response served
+            // to the client, which is useful
+            logRequestDetails(wrappedRequest);
+        }
 
-        logRequestDetails(wrappedRequest);
         logResponseDetails(wrappedResponse);
-
         wrappedResponse.copyBodyToResponse();
+
     }
 
     private void logRequestDetails(ContentCachingRequestWrapper request) throws JsonProcessingException {
