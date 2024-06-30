@@ -66,7 +66,7 @@ public class SpiderIntegrationTest {
     @Before
     public void setUp() throws Exception {
         testWebsiteBuilder.run();
-        dispatchSpy = Mockito.spy(dispatchFactory.get(TestWebsiteCrawlFactory.newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
+        dispatchSpy = Mockito.spy(dispatchFactory.buildFor(TestWebsiteCrawlFactory.newWebsiteCrawlFor(testUri("/").toString(), Collections.emptyList())));
         testCrawlJobBuilder = new TestCrawlJobBuilder(dispatchSpy);
     }
 

@@ -302,7 +302,7 @@ public class WorkspaceCrawlerTest {
 
         sut.crawlAllWorkspaces();
 
-        verify(dispatchFactory).get(argThat(argument -> {
+        verify(dispatchFactory).buildFor(argThat(argument -> {
             assertNotNull(argument.getId());
             assertThat(argument.getOrigin(), is("http://host1/"));
             assertThat(argument.getSeeds(), containsInAnyOrder("http://host1", "http://host1/path1", "http://host1/path2/"));

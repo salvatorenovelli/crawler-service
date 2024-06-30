@@ -64,7 +64,7 @@ public class TestCrawlJobBuilder {
                 .build();
 
         if (crawlEventDispatch == null) {
-            crawlEventDispatch = crawlEventDispatchFactory.get(conf.getWebsiteCrawl());
+            crawlEventDispatch = crawlEventDispatchFactory.buildFor(conf.getWebsiteCrawl());
         }
 
 

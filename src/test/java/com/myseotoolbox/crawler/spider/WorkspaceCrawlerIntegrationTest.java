@@ -57,7 +57,7 @@ public class WorkspaceCrawlerIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        when(listenerProvider.get(any())).thenReturn(dispatch);
+        when(listenerProvider.buildFor(any())).thenReturn(dispatch);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
         crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
         sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);

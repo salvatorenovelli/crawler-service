@@ -11,7 +11,6 @@ import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -24,7 +23,6 @@ import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory.newWebsiteCrawlFor;
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
@@ -81,7 +79,7 @@ public class WorkspaceCrawler {
                                     .withCrawlDelayMillis(getHigherCrawlDelayMillis(workspaces))
                                     .build();
 
-                            CrawlEventDispatch dispatch = crawlEventDispatchFactory.get(conf.getWebsiteCrawl());
+                            CrawlEventDispatch dispatch = crawlEventDispatchFactory.buildFor(conf.getWebsiteCrawl());
 
                             CrawlJob job = crawlJobFactory.build(conf, dispatch);
                             job.start();

@@ -112,7 +112,7 @@ public class AdminWorkspaceCrawlStartController {
     }
 
     private CrawlEventDispatch getCrawlEventsListener(WebsiteCrawl crawl) {
-        return crawlEventDispatchFactory.get(crawl);
+        return crawlEventDispatchFactory.buildFor(crawl);
     }
 
     private Workspace getWorkspace(CrawlWorkspaceRequest request) throws EntityNotFoundException {

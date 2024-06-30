@@ -13,7 +13,7 @@ public class CrawlEventDispatchFactory {
     private final ApplicationEventPublisher eventPublisher;
     private final TimeUtils timeUtils;
 
-    public CrawlEventDispatch get(WebsiteCrawl crawl) {
+    public CrawlEventDispatch buildFor(WebsiteCrawl crawl) {
         return new CrawlEventDispatch(crawl, eventPublisher, timeUtils);
     }
 }
