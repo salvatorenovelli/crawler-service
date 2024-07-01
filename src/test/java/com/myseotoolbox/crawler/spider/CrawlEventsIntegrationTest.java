@@ -11,7 +11,6 @@ import com.myseotoolbox.crawler.spider.event.MessageBrokerEventListener;
 import com.myseotoolbox.crawler.spider.event.WebsiteCrawlCompletedEvent;
 import com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
-import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
 import com.myseotoolbox.testutils.TimeUtilsTestConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -170,7 +169,7 @@ public class CrawlEventsIntegrationTest {
 
         verify(messageBrokerEventListener).onWebsiteCrawlStarted(
                 argThat(event -> {
-                    assertThat(((ScheduledCrawlTrigger) event.getWebsiteCrawl().getTrigger()).getTargetWorkspaces(), containsInAnyOrder(EXPECTED_WORKSPACES_FOR_TRIGGER.toArray()));
+                    assertThat(event.getWebsiteCrawl().getTrigger().getTargetWorkspaces(), containsInAnyOrder(EXPECTED_WORKSPACES_FOR_TRIGGER.toArray()));
                     return true;
                 })
         );

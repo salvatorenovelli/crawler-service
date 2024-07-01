@@ -4,8 +4,7 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
-import com.myseotoolbox.crawler.websitecrawl.UserInitiatedWorkspaceCrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,7 +19,6 @@ import java.util.Arrays;
 import static com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration.newConfiguration;
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -92,14 +90,14 @@ public class CrawlJobConfigurationBuilderTest {
     @Test
     public void shouldSetScheduledTrigger() {
         CrawlJobConfiguration build = sut.withTriggerForScheduledScanOn(Arrays.asList(1, 2, 3)).build();
-        assertThat(build.getWebsiteCrawl().getTrigger(), instanceOf(ScheduledCrawlTrigger.class));
-        assertThat(((ScheduledCrawlTrigger) build.getWebsiteCrawl().getTrigger()).getTargetWorkspaces(), containsInAnyOrder(1, 2, 3));
+        assertThat(build.getWebsiteCrawl().getTrigger().getType(), is(CrawlTrigger.Type.SCHEDULED));
+        assertThat(build.getWebsiteCrawl().getTrigger().getTargetWorkspaces(), containsInAnyOrder(1, 2, 3));
     }
 
     @Test
     public void shouldSetUserInitiatedTrigger() {
         CrawlJobConfiguration build = sut.withTriggerForUserInitiatedCrawlWorkspace(22).build();
-        assertThat(build.getWebsiteCrawl().getTrigger(), instanceOf(UserInitiatedWorkspaceCrawlTrigger.class));
-        assertThat(((UserInitiatedWorkspaceCrawlTrigger) build.getWebsiteCrawl().getTrigger()).getTargetWorkspace(), is(22));
+        assertThat(build.getWebsiteCrawl().getTrigger().getType(), is(CrawlTrigger.Type.USER_INITIATED_WORKSPACE));
+        assertThat(build.getWebsiteCrawl().getTrigger().getTargetWorkspaces(), containsInAnyOrder(22));
     }
 }

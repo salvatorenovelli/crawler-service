@@ -2,8 +2,6 @@ package com.myseotoolbox.crawler.spider.configuration;
 
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
-import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
-import com.myseotoolbox.crawler.websitecrawl.UserInitiatedWorkspaceCrawlTrigger;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.Getter;
 import lombok.ToString;
@@ -108,13 +106,13 @@ public class CrawlJobConfiguration {
             return this;
         }
 
-        public Builder withTriggerForScheduledScanOn(Collection<Integer> workspacesNumber) {
-            this.trigger = new ScheduledCrawlTrigger(workspacesNumber);
+        public Builder withTriggerForScheduledScanOn(Collection<Integer> workspacesNumbers) {
+            this.trigger = CrawlTrigger.forScheduledCrawlTrigger(workspacesNumbers);
             return this;
         }
 
         public Builder withTriggerForUserInitiatedCrawlWorkspace(int workspaceSequenceNumber) {
-            this.trigger = new UserInitiatedWorkspaceCrawlTrigger(workspaceSequenceNumber);
+            this.trigger = CrawlTrigger.forUserInitiatedWorkspaceCrawl(workspaceSequenceNumber);
             return this;
         }
     }

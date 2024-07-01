@@ -9,7 +9,7 @@ import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
-import com.myseotoolbox.crawler.websitecrawl.UserInitiatedWorkspaceCrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import org.bson.types.ObjectId;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -130,8 +130,8 @@ public class AdminWorkspaceCrawlStartControllerTest {
                 .andExpect(status().isOk());
 
         verify(factory).build(argThat(conf -> {
-            assertThat(conf.getWebsiteCrawl().getTrigger(), instanceOf(UserInitiatedWorkspaceCrawlTrigger.class));
-            assertThat(((UserInitiatedWorkspaceCrawlTrigger) conf.getWebsiteCrawl().getTrigger()).getTargetWorkspace(), is(123));
+            assertThat(conf.getWebsiteCrawl().getTrigger().getType(), is(CrawlTrigger.Type.USER_INITIATED_WORKSPACE));
+            assertThat(conf.getWebsiteCrawl().getTrigger().getTargetWorkspaces(), containsInAnyOrder(123));
             return true;
         }), any());
     }

@@ -10,9 +10,10 @@ import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
-import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,6 +34,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -319,8 +321,8 @@ public class WorkspaceCrawlerTest {
         sut.crawlAllWorkspaces();
 
         verify(dispatchFactory).buildFor(argThat(argument -> {
-            assertThat(argument.getTrigger(), instanceOf(ScheduledCrawlTrigger.class));
-            assertThat(((ScheduledCrawlTrigger) argument.getTrigger()).getTargetWorkspaces(), containsInAnyOrder(123, 223));
+            Assert.assertThat(argument.getTrigger().getType(), is(CrawlTrigger.Type.SCHEDULED));
+            Assert.assertThat(argument.getTrigger().getTargetWorkspaces(), containsInAnyOrder(123, 223));
             return true;
         }));
     }
