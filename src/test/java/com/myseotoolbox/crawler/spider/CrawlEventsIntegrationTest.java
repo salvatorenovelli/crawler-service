@@ -11,6 +11,7 @@ import com.myseotoolbox.crawler.spider.event.MessageBrokerEventListener;
 import com.myseotoolbox.crawler.spider.event.WebsiteCrawlCompletedEvent;
 import com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
+import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
 import com.myseotoolbox.testutils.TimeUtilsTestConfiguration;
 import org.junit.After;
 import org.junit.Before;
@@ -32,6 +33,9 @@ import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.CrawlStatusUpdateEventMatcherBuilder.aCrawlStatusUpdateEvent;
 import static com.myseotoolbox.crawler.spider.PageCrawledEventMatcherBuilder.aPageCrawledEvent;
+import static com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder.EXPECTED_WORKSPACES_FOR_TRIGGER;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
@@ -60,6 +64,20 @@ public class CrawlEventsIntegrationTest {
     public void tearDown() throws Exception {
         testWebsiteBuilder.tearDown();
         monitoredUriRepository.deleteAll();
+    }
+
+    @Test
+    public void shouldNotifyOfCrawlStarted() {
+        givenAWebsite()
+                .havingRootPage().withLinksTo("/abc", "/cde")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(messageBrokerEventListener).onWebsiteCrawlStarted(
+                argThat(event -> event.getWebsiteCrawl().getId().toHexString().equals(job.getWebsiteCrawlId()))
+        );
     }
 
     @Test
@@ -140,6 +158,24 @@ public class CrawlEventsIntegrationTest {
         verify(template, times(2)).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
         verify(template).publish(eq(pubSubProperties.getWebsiteCrawlCompletedTopicName()), any(WebsiteCrawlCompletedEvent.class));
     }
+
+    @Test
+    public void shouldIncludeTriggerInEvents() {
+        givenAWebsite()
+                .havingRootPage().withLinksTo("/abc", "/cde")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(messageBrokerEventListener).onWebsiteCrawlStarted(
+                argThat(event -> {
+                    assertThat(((ScheduledCrawlTrigger) event.getWebsiteCrawl().getTrigger()).getTargetWorkspaces(), containsInAnyOrder(EXPECTED_WORKSPACES_FOR_TRIGGER.toArray()));
+                    return true;
+                })
+        );
+    }
+
 
     private String getTestUri(String path) {
         return testWebsiteBuilder.buildTestUri(path).toString();

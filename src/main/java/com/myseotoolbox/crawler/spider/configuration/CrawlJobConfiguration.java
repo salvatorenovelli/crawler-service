@@ -1,6 +1,9 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.UserInitiatedWorkspaceCrawlTrigger;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.Getter;
 import lombok.ToString;
@@ -30,14 +33,14 @@ public class CrawlJobConfiguration {
     private final long crawlDelayMillis;
     private final WebsiteCrawl websiteCrawl;
 
-    private CrawlJobConfiguration(String owner, URI origin, Collection<URI> seeds, int maxConcurrentConnections, long crawlDelayMillis, int crawledPageLimit, RobotsTxt robotsTxt) {
+    private CrawlJobConfiguration(String owner, URI origin, CrawlTrigger trigger, Collection<URI> seeds, int maxConcurrentConnections, long crawlDelayMillis, int crawledPageLimit, RobotsTxt robotsTxt) {
         this.origin = origin;
         this.seeds = seeds;
         this.maxConcurrentConnections = ensureRange(maxConcurrentConnections, MIN_CONCURRENT_CONNECTIONS, MAX_CONCURRENT_CONNECTIONS);
         this.crawlDelayMillis = crawlDelayMillis;
         this.crawledPageLimit = crawledPageLimit;
         this.robotsTxt = robotsTxt;
-        this.websiteCrawl = newWebsiteCrawlFor(owner, origin.toString(), seeds);
+        this.websiteCrawl = newWebsiteCrawlFor(owner, trigger, origin.toString(), seeds);
     }
 
     public static Builder newConfiguration(String owner, URI origin) {
@@ -62,6 +65,7 @@ public class CrawlJobConfiguration {
         private Collection<URI> seeds = Collections.emptyList();
         private final URI origin;
         private final String owner;
+        private CrawlTrigger trigger;
         private int crawledPageLimit = DEFAULT_MAX_URL_PER_CRAWL;
         private int maxConcurrentConnections = DEFAULT_CONCURRENT_CONNECTIONS;
         private long crawlDelayMillis = MIN_CRAWL_DELAY_MILLIS;
@@ -94,11 +98,23 @@ public class CrawlJobConfiguration {
 
         public CrawlJobConfiguration build() {
             Validate.notNull(robotsTxt, "robots.txt configuration missing. Please use defaultRobotsTxt() or configure it with withRobotsTxt(...)");
-            return new CrawlJobConfiguration(owner, origin, seeds, maxConcurrentConnections, crawlDelayMillis, crawledPageLimit, robotsTxt);
+            Validate.notNull(trigger, "crawlTrigger missing. Please use withTriggerFor...(...)");
+
+            return new CrawlJobConfiguration(owner, origin, trigger, seeds, maxConcurrentConnections, crawlDelayMillis, crawledPageLimit, robotsTxt);
         }
 
         public Builder withMaxPagesCrawledLimit(int crawledPageLimit) {
             this.crawledPageLimit = crawledPageLimit;
+            return this;
+        }
+
+        public Builder withTriggerForScheduledScanOn(Collection<Integer> workspacesNumber) {
+            this.trigger = new ScheduledCrawlTrigger(workspacesNumber);
+            return this;
+        }
+
+        public Builder withTriggerForUserInitiatedCrawlWorkspace(int workspaceSequenceNumber) {
+            this.trigger = new UserInitiatedWorkspaceCrawlTrigger(workspaceSequenceNumber);
             return this;
         }
     }

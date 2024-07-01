@@ -56,7 +56,9 @@ public class CrawlJobFactoryTest {
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
 
         sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, sitemapReader);
-        testConf = CrawlJobConfiguration.newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).withSeeds(ONLY_ROOT).withRobotsTxt(mockRobotsTxt);
+        testConf = CrawlJobConfiguration.newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN)
+                .withSeeds(ONLY_ROOT).withRobotsTxt(mockRobotsTxt)
+                .withTriggerForUserInitiatedCrawlWorkspace(1234);
     }
 
     @Test
@@ -128,7 +130,6 @@ public class CrawlJobFactoryTest {
 
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);
     }
-
 
     private CrawlResult buildSnapshotForUri(InvocationOnMock invocation) {
         String uri = invocation.getArgument(0).toString();

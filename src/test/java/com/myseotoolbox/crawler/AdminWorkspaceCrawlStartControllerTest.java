@@ -9,6 +9,7 @@ import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
+import com.myseotoolbox.crawler.websitecrawl.UserInitiatedWorkspaceCrawlTrigger;
 import org.bson.types.ObjectId;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -28,7 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.*;
@@ -115,6 +117,23 @@ public class AdminWorkspaceCrawlStartControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(content))
                 .andExpect(status().isInternalServerError());
+    }
+
+    @Test
+    public void shouldHaveTheRightTrigger() throws Exception {
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host123").build();
+        CrawlWorkspaceRequest request = new CrawlWorkspaceRequest(123, 3, "testCrawlWorkspace@myseotoolbox");
+
+        mockMvc.perform(post("/crawl-workspace")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        verify(factory).build(argThat(conf -> {
+            assertThat(conf.getWebsiteCrawl().getTrigger(), instanceOf(UserInitiatedWorkspaceCrawlTrigger.class));
+            assertThat(((UserInitiatedWorkspaceCrawlTrigger) conf.getWebsiteCrawl().getTrigger()).getTargetWorkspace(), is(123));
+            return true;
+        }), any());
     }
 
     private static Matcher<String> isValidObjectId() {

@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
+import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import org.junit.Before;
@@ -31,8 +32,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -311,6 +311,19 @@ public class WorkspaceCrawlerTest {
 
     }
 
+    @Test
+    public void shouldHaveTrigger() {
+        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host1").build();
+        givenAWorkspace().withSequenceNumber(223).withWebsiteUrl("http://host1").build();
+
+        sut.crawlAllWorkspaces();
+
+        verify(dispatchFactory).buildFor(argThat(argument -> {
+            assertThat(argument.getTrigger(), instanceOf(ScheduledCrawlTrigger.class));
+            assertThat(((ScheduledCrawlTrigger) argument.getTrigger()).getTargetWorkspaces(), containsInAnyOrder(123, 223));
+            return true;
+        }));
+    }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
         verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());

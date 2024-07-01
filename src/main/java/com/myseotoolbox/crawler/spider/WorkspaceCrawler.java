@@ -72,6 +72,7 @@ public class WorkspaceCrawler {
 
                             CrawlJobConfiguration conf = CrawlJobConfiguration
                                     .newConfiguration(CRAWL_OWNER, origin)
+                                    .withTriggerForScheduledScanOn(workspaces.stream().map(Workspace::getSeqNumber).collect(Collectors.toList()))
                                     .withSeeds(seeds)
                                     .withConcurrentConnections(seeds.size())
                                     .withRobotsTxt(mergedConfiguration)

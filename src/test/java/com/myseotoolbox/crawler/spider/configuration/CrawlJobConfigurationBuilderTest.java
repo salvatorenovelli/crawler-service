@@ -4,7 +4,10 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.websitecrawl.ScheduledCrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.UserInitiatedWorkspaceCrawlTrigger;
 import org.bson.types.ObjectId;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
@@ -12,9 +15,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 
 import static com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration.newConfiguration;
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -27,9 +33,13 @@ public class CrawlJobConfigurationBuilderTest {
     private RobotsTxt provided = new EmptyRobotsTxt(null);
 
     private static final URI TEST_ORIGIN = URI.create("http://testhost");
-    private CrawlJobConfiguration.Builder sut = newConfiguration("testOwner", TEST_ORIGIN).withRobotsTxt(provided);
+    private CrawlJobConfiguration.Builder sut = newConfiguration("testOwner", TEST_ORIGIN).withRobotsTxt(provided).withTriggerForUserInitiatedCrawlWorkspace(22);
     @Mock private HTTPClient httpClient;
 
+    @Before
+    public void setUp() throws Exception {
+        when(httpClient.get(any())).thenReturn("User-agent: *\n" + "Disallow: /disabled\n");
+    }
 
     @Test
     public void setOrigin() {
@@ -51,8 +61,7 @@ public class CrawlJobConfigurationBuilderTest {
 
     @Test
     public void shouldFetchRobotsTxtIfDefaultIsRequired() throws Exception {
-        when(httpClient.get(any())).thenReturn("User-agent: *\n" + "Disallow: /disabled\n");
-        CrawlJobConfiguration conf = newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).withRobotsTxt(getDefault(TEST_ORIGIN)).build();
+        CrawlJobConfiguration conf = newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).withTriggerForUserInitiatedCrawlWorkspace(223).withRobotsTxt(getDefault(TEST_ORIGIN)).build();
         assertThat(conf.getRobotsTxt().shouldCrawl(null, TEST_ORIGIN.resolve("/disabled")), is(false));
         assertThat(conf.getRobotsTxt().shouldCrawl(null, TEST_ORIGIN.resolve("/something")), is(true));
     }
@@ -67,11 +76,30 @@ public class CrawlJobConfigurationBuilderTest {
         newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).build();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void shouldThrowExceptionIfTriggerIsNotConfigured() throws IOException {
+        newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN).withRobotsTxt(getDefault(TEST_ORIGIN)).build();
+    }
+
     @Test
     public void shouldBuildWebsiteCrawl() {
         CrawlJobConfiguration build = sut.build();
         assertThat(build.getWebsiteCrawl().getOrigin(), is(TEST_ORIGIN.toString()));
         //just a simple way to check that it's generating a new bson objectID
         assertThat(build.getWebsiteCrawl().getId().getMachineIdentifier(), is(new ObjectId().getMachineIdentifier()));
+    }
+
+    @Test
+    public void shouldSetScheduledTrigger() {
+        CrawlJobConfiguration build = sut.withTriggerForScheduledScanOn(Arrays.asList(1, 2, 3)).build();
+        assertThat(build.getWebsiteCrawl().getTrigger(), instanceOf(ScheduledCrawlTrigger.class));
+        assertThat(((ScheduledCrawlTrigger) build.getWebsiteCrawl().getTrigger()).getTargetWorkspaces(), containsInAnyOrder(1, 2, 3));
+    }
+
+    @Test
+    public void shouldSetUserInitiatedTrigger() {
+        CrawlJobConfiguration build = sut.withTriggerForUserInitiatedCrawlWorkspace(22).build();
+        assertThat(build.getWebsiteCrawl().getTrigger(), instanceOf(UserInitiatedWorkspaceCrawlTrigger.class));
+        assertThat(((UserInitiatedWorkspaceCrawlTrigger) build.getWebsiteCrawl().getTrigger()).getTargetWorkspace(), is(22));
     }
 }

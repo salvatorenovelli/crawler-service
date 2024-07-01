@@ -4,12 +4,8 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Data;
 import org.bson.types.ObjectId;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.index.Indexed;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.Collection;
 
 
@@ -18,14 +14,15 @@ public class WebsiteCrawl {
     @JsonSerialize(using = ToStringSerializer.class)
     private final ObjectId id;
     private final String origin;
+    private final CrawlTrigger trigger;
     private final String owner;
     private final Instant startedAt;
     private final Collection<String> seeds;
 
-
-    WebsiteCrawl(ObjectId id, String owner, String origin, Instant startedAt, Collection<String> seeds) {
+    WebsiteCrawl(ObjectId id, String owner, CrawlTrigger trigger, String origin, Instant startedAt, Collection<String> seeds) {
         this.id = id;
         this.owner = owner;
+        this.trigger = trigger;
         this.origin = origin;
         this.startedAt = startedAt;
         this.seeds = seeds;

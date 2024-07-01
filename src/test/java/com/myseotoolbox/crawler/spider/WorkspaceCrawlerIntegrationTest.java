@@ -64,7 +64,6 @@ public class WorkspaceCrawlerIntegrationTest {
         testWebsiteBuilder.run();
     }
 
-
     public void crawlSingleUrlExploratory() {
         WebPageReader build = webPageReaderFactory.build((sourceUri, discoveredLink) -> true, 0);
 
@@ -76,7 +75,6 @@ public class WorkspaceCrawlerIntegrationTest {
         }
 
         System.out.println(crawlResult);
-
     }
 
     @Test
@@ -90,7 +88,6 @@ public class WorkspaceCrawlerIntegrationTest {
         verify(dispatch).onPageCrawled(crawlResultFor("/page1"));
         verify(dispatch).onPageCrawled(crawlResultFor("/page2"));
         verify(dispatch, atMost(3)).onPageCrawled(any());
-
     }
 
     @Test
@@ -192,12 +189,9 @@ public class WorkspaceCrawlerIntegrationTest {
         assertThat(testClockUtils.currentTimeMillis(), is(2000L));
     }
 
-
     private CrawlResult crawlResultFor(String s) {
         return argThat(snapshot -> snapshot.getUri().equals(testUri(s).toString()));
     }
-
-
 
     private URI testUri(String url) {
         return testWebsiteBuilder.buildTestUri(url);

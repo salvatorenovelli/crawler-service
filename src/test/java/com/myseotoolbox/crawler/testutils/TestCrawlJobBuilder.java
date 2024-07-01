@@ -16,12 +16,14 @@ import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
 
 public class TestCrawlJobBuilder {
+    public static final List<Integer> EXPECTED_WORKSPACES_FOR_TRIGGER = Arrays.asList(1, 2, 3);
     private final CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
     private final SitemapReader sitemapReader = new SitemapReader();
     private CrawlEventDispatch crawlEventDispatch;
@@ -58,6 +60,7 @@ public class TestCrawlJobBuilder {
 
         CrawlJobConfiguration conf = CrawlJobConfiguration
                 .newConfiguration(TestWebsiteCrawlFactory.TEST_OWNER, origin)
+                .withTriggerForScheduledScanOn(EXPECTED_WORKSPACES_FOR_TRIGGER)
                 .withSeeds(seeds)
                 .withConcurrentConnections(seeds.size())
                 .withRobotsTxt(merged)
