@@ -13,7 +13,6 @@ import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
-import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
@@ -21,15 +20,15 @@ import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -85,7 +84,6 @@ public class AdminWorkspaceCrawlStartController {
             return new EmptyRobotsTxt(origin);
         }
     }
-
 
     private boolean shouldIgnoreRobotsTxt(Workspace ws) {
         CrawlerSettings crawlerSettings = ws.getCrawlerSettings();
