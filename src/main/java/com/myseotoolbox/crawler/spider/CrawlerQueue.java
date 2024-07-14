@@ -173,7 +173,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         if (!crawlShutdownInvoked) {
             crawlShutdownInvoked = true;
             crawlersPool.shutDown();
-            dispatch.onCrawlCompleted(queueState.getVisitedCount(), queueState.getInProgressCount());
+            dispatch.onCrawlCompleted(queueState.getVisitedCount());
         }
     }
 

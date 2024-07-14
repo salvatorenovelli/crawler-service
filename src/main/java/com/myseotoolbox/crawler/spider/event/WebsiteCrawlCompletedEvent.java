@@ -10,6 +10,5 @@ import java.time.Instant;
 public class WebsiteCrawlCompletedEvent {
     private final WebsiteCrawl websiteCrawl;
     private final int visited;
-    private final int pending;
     private final Instant timestamp;
 }

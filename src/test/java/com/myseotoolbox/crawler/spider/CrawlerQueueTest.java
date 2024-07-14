@@ -479,7 +479,7 @@ public class CrawlerQueueTest {
     @Test
     public void shouldDispatchCrawlEndedWhenFinished() {
         sut.start();
-        verify(dispatch).onCrawlCompleted(anyInt(), anyInt());
+        verify(dispatch).onCrawlCompleted(anyInt());
     }
 
     @Test
@@ -488,7 +488,7 @@ public class CrawlerQueueTest {
 
         sut.start();
         verify(dispatch).onCrawlStatusUpdate(anyInt(), anyInt());
-        verify(dispatch).onCrawlCompleted(anyInt(), anyInt());
+        verify(dispatch).onCrawlCompleted(anyInt());
         verifyNoMoreInteractions(dispatch);
     }
 
