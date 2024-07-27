@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 
+import com.google.cloud.spring.pubsub.core.publisher.PubSubPublisherTemplate;
 import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.model.PageCrawlCompletedEvent;
 import com.myseotoolbox.crawler.pagelinks.OutboundLinkRepository;
@@ -20,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTemplate;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -50,7 +50,7 @@ public class CrawlEventsIntegrationTest {
     @Autowired private CrawlEventDispatchFactory factory;
     @Autowired PubSubProperties pubSubProperties;
     @SpyBean MessageBrokerEventListener messageBrokerEventListener;
-    @MockBean PubSubPublisherTemplate template;
+    @MockBean  PubSubPublisherTemplate template;
 
 
     @Before

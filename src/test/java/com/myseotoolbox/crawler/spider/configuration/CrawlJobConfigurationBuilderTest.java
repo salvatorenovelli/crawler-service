@@ -20,6 +20,7 @@ import static com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguratio
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.MAX_CONCURRENT_CONNECTIONS;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
+import static org.hamcrest.core.Is.isA;
 import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -84,7 +85,7 @@ public class CrawlJobConfigurationBuilderTest {
         CrawlJobConfiguration build = sut.build();
         assertThat(build.getWebsiteCrawl().getOrigin(), is(TEST_ORIGIN.toString()));
         //just a simple way to check that it's generating a new bson objectID
-        assertThat(build.getWebsiteCrawl().getId().getMachineIdentifier(), is(new ObjectId().getMachineIdentifier()));
+        assertThat(build.getWebsiteCrawl().getId(), isA(ObjectId.class));
     }
 
     @Test

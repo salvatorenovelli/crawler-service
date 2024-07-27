@@ -1,11 +1,11 @@
 package com.myseotoolbox.crawler.spider.event;
 
+import com.google.cloud.spring.pubsub.core.publisher.PubSubPublisherTemplate;
 import com.myseotoolbox.crawler.model.PageCrawlCompletedEvent;
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
 import com.myseotoolbox.crawler.spider.ratelimiter.RateLimiter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTemplate;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;

@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.utils;
 
-import static javax.servlet.http.HttpServletResponse.*;
+
+import static jakarta.servlet.http.HttpServletResponse.*;
 
 public class IsRedirect {
     public static boolean isRedirect(int statusCode) {

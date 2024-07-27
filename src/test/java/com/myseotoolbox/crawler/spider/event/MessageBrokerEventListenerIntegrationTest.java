@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider.event;
 
+import com.google.cloud.spring.pubsub.core.publisher.PubSubPublisherTemplate;
 import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
@@ -9,7 +10,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTemplate;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;

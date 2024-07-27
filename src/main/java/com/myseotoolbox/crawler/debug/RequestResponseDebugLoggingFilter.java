@@ -2,15 +2,15 @@ package com.myseotoolbox.crawler.debug;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -31,6 +31,7 @@ public class RequestResponseDebugLoggingFilter implements Filter {
         log.warn("Logging filter is initialised. This might log CONFIDENTIAL data! " +
                 "If this is not meant to be logging please remove `request-response-debug` from active spring profiles");
     }
+
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)

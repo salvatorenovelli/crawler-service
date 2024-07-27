@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.google.cloud.spring.pubsub.core.publisher.PubSubPublisherTemplate;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.PageCrawlCompletedEvent;
 import com.myseotoolbox.crawler.model.PageSnapshot;
@@ -15,7 +16,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import org.springframework.cloud.gcp.pubsub.core.publisher.PubSubPublisherTemplate;
 
 import java.time.Instant;
 import java.util.Collections;

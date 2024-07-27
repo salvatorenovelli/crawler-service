@@ -1,11 +1,11 @@
 package com.myseotoolbox.crawler.debug;
 
+import jakarta.servlet.Filter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
-import javax.servlet.Filter;
 
 @Slf4j
 @Configuration
