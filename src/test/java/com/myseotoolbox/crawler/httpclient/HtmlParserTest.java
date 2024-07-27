@@ -25,6 +25,9 @@ public class HtmlParserTest {
         assertThat(parse.getTitle(), is("This is the head title"));
     }
 
+    /**
+     * Browsers and search engines allow this - flagging it would be considered a waste of time
+     */
     @Test
     public void canFindTitleOutsideHead() throws IOException {
         InputStream is = givenHtmlPage().withBodyElement("<TITLE>This is the title</TITLE>").build();
