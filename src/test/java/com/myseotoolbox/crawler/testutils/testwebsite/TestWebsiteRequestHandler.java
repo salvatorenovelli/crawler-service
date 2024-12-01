@@ -107,7 +107,7 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
 
         for (String url : siteMap.getUrls()) {
 
-            String out = testWebsiteBuilder.getBaseUriAsString() + url + "sitemap.xml";
+            String out = testWebsiteBuilder.getBaseUriAsString() + url + (url.endsWith(".xml") ? "" : "sitemap.xml");
             if (url.startsWith("http")) {
                 out = url;
             }

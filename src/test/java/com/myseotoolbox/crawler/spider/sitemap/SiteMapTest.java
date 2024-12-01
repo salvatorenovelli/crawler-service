@@ -17,22 +17,22 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static junit.framework.TestCase.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
-import static org.hamcrest.core.IsCollectionContaining.hasItems;
-import static org.junit.Assert.assertThat;
 
 public class SiteMapTest {
 
-    public static final List<String> ALLOW_ALL = Collections.singletonList("/");
+    public static final List<String> ALLOW_ALL = singletonList("/");
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
     private TestWebsite testWebsite;
 
@@ -44,7 +44,7 @@ public class SiteMapTest {
         LoggingSystem.get(ClassLoader.getSystemClassLoader()).setLogLevel(Logger.ROOT_LOGGER_NAME, LogLevel.INFO);
         testWebsite = testWebsiteBuilder.run();
         origin = testUri("/");
-        siteMap = new SiteMap(origin, Collections.singletonList(uri("/sitemap.xml")), new PathFilter(Collections.singletonList("/")), DEFAULT_MAX_URL_PER_CRAWL);
+        siteMap = new SiteMap(origin, singletonList(uri("/sitemap.xml")), new PathFilter(singletonList("/")), DEFAULT_MAX_URL_PER_CRAWL);
     }
 
     @After
@@ -60,7 +60,7 @@ public class SiteMapTest {
                 .havingUrls(tooManyUrls)
                 .build();
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), new PathFilter(Collections.singletonList("/")), 100);
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), new PathFilter(singletonList("/")), 100);
 
         List<String> urls = siteMap.fetchUris();
 
@@ -80,7 +80,7 @@ public class SiteMapTest {
                 .havingUrls(tooManyUrls)
                 .build();
 
-        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), new PathFilter(Collections.singletonList("/")), 100);
+        SiteMap siteMap = new SiteMap(origin, testUris("/sitemap.xml"), new PathFilter(singletonList("/")), 100);
 
         siteMap.fetchUris();
 
@@ -158,7 +158,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = testSiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/it/sitemap.xml"), singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -179,7 +179,7 @@ public class SiteMapTest {
                 .havingUrls("/uk/1", "/uk/2").build();
 
 
-        SiteMap siteMap = testSiteMap(origin, testUris("/it/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/it/sitemap.xml"), singletonList("/it/"));
         List<String> urls = siteMap.fetchUris();
 
         assertThat(urls, hasSize(2));
@@ -195,7 +195,7 @@ public class SiteMapTest {
                 .withSitemapOn("/uk/").havingUrls("/uk/1", "/uk/2")
                 .build();
 
-        SiteMap siteMap = testSiteMap(origin.resolve("/it/"), testUris("/sitemap.xml"), Collections.singletonList("/it/"));
+        SiteMap siteMap = testSiteMap(origin.resolve("/it/"), testUris("/sitemap.xml"), singletonList("/it/"));
         siteMap.fetchUris();
 
         List<String> requestsReceived = testWebsite.getRequestsReceived().stream().map(ReceivedRequest::getUrl).collect(toList());
@@ -245,7 +245,7 @@ public class SiteMapTest {
                 .withSitemapOn("/two/")
                 .havingUrls("/two/1", "/two/2").build();
 
-        SiteMap siteMap = testSiteMap(origin, testUris("/one/sitemap.xml", "/two/sitemap.xml"), Collections.singletonList("/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/one/sitemap.xml", "/two/sitemap.xml"), singletonList("/"));
         List<String> uris = siteMap.fetchUris();
 
 
@@ -263,7 +263,7 @@ public class SiteMapTest {
                 .withSitemapOn("/sitemap_two.xml")
                 .havingUrls("/1", "/3").build();
 
-        SiteMap siteMap = testSiteMap(origin, testUris("/sitemap_one.xml", "/sitemap_two.xml"), Collections.singletonList("/"));
+        SiteMap siteMap = testSiteMap(origin, testUris("/sitemap_one.xml", "/sitemap_two.xml"), singletonList("/"));
         List<String> uris = siteMap.fetchUris();
 
 
@@ -310,7 +310,7 @@ public class SiteMapTest {
         TestWebsite wrongWebsite = wrongWebsiteBuilder.withSitemapOn("/").havingUrls("/wrong-domain-url").build().run();
 
 
-        SiteMap sut = testSiteMap(testUri("/"), Collections.singletonList(wrongWebsiteBuilder.buildTestUri("/sitemap.xml").toString()), Collections.singletonList("/"));
+        SiteMap sut = testSiteMap(testUri("/"), singletonList(wrongWebsiteBuilder.buildTestUri("/sitemap.xml").toString()), singletonList("/"));
         List<String> uris = sut.fetchUris();
 
 
@@ -331,11 +331,36 @@ public class SiteMapTest {
                 .withSitemapOn("/correct/sitemap.xml").havingUrls("/correct/correct-domain-url").build();
 
 
-        SiteMap sut = testSiteMap(testUri("/"), Collections.singletonList(testUri("/sitemap.xml").toString()), Collections.singletonList("/"));
+        SiteMap sut = testSiteMap(testUri("/"), singletonList(testUri("/sitemap.xml").toString()), singletonList("/"));
         List<String> uris = sut.fetchUris();
 
         assertThat(wrongWebsite.getRequestsReceived().size(), is(0));
         assertThat(uris, hasItems(testUri("/correct/correct-domain-url").toString()));
+    }
+
+    @Test
+    public void shouldFetchAllSitemapsInRoot() {
+
+        // oddly specific...
+
+        origin = testUri("/it/");
+        siteMap = new SiteMap(origin, singletonList(uri("/1_index_sitemap.xml")), new PathFilter(singletonList("/it/")), DEFAULT_MAX_URL_PER_CRAWL);
+
+        givenAWebsite()
+                .withSitemapIndexOn("/1_index_sitemap.xml")
+                .havingChildSitemaps("/1_gb_0_sitemap.xml", "/1_it_0_sitemap.xml")
+                .and()
+                .withSitemapOn("/1_gb_0_sitemap.xml")
+                .havingUrls("/gb/1", "/gb/2")
+                .and()
+                .withSitemapOn("/1_it_0_sitemap.xml")
+                .havingUrls("/it/1", "/it/2")
+                .build();
+
+        List<String> urls = siteMap.fetchUris();
+
+        assertThat(urls, containsInAnyOrder(uri("/it/1"), uri("/it/2"), uri("/gb/1"), uri("/gb/2")));
+
     }
 
     private String uri(String s) {

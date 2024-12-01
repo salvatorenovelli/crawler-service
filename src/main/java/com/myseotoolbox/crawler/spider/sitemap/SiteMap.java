@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
 import com.myseotoolbox.crawler.spider.UriFilter;
+import com.myseotoolbox.crawler.utils.UriUtils;
 import com.myseotoolbox.crawlercommons.UriCreator;
 import crawlercommons.sitemaps.AbstractSiteMap;
 import crawlercommons.sitemaps.SiteMapIndex;
@@ -10,6 +11,7 @@ import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collections;
@@ -106,10 +108,19 @@ public class SiteMap {
     private boolean shouldFetch(URL url) {
         try {
             URI uri = URI.create(url.toString());
-            return isSameDomain(url) && (this.siteMaps.contains(url) || uriFilter.shouldCrawl(uri, uri));
+            return isSameDomain(url) && (isInRoot(url) || this.siteMaps.contains(url) || uriFilter.shouldCrawl(uri, uri));
         } catch (IllegalArgumentException e) {
             log.warn("Unable to fetch sitemap on {}. {}", url, e.toString());
             return false;
+        }
+    }
+
+    private boolean isInRoot(URL url) {
+        try {
+            return UriUtils.getFolder(url.toString()).equals("/");
+        } catch (MalformedURLException e) {
+            log.warn("Malformed URL " + url, e);
+            return true; // we're going to allow fetch just in case
         }
     }
 
