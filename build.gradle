@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.myseotoolbox'
-version = '1.14.6-SNAPSHOT'
+version = '1.14.6'
 
 
 java {
@@ -62,7 +62,7 @@ dependencies {
     implementation('org.springframework.boot:spring-boot-starter-data-mongodb')
     implementation 'com.google.cloud:spring-cloud-gcp-starter-pubsub'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'com.github.salvatorenovelli:gcp-commons:2.1.4'
+    implementation 'com.github.salvatorenovelli:gcp-commons:2.2.0'
 
     implementation group: 'commons-lang', name: 'commons-lang', version: '2.2'
     implementation group: 'commons-io', name: 'commons-io', version: '2.7'

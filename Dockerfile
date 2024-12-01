@@ -2,8 +2,8 @@
 FROM eclipse-temurin:17-jdk as build
 
 # This is required by embedded mongo used in testing
-RUN wget http://security.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb && \
-    dpkg -i libssl1.1_1.1.1f-1ubuntu2.22_amd64.deb
+RUN wget http://archive.ubuntu.com/ubuntu/pool/main/o/openssl/libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb && \
+    dpkg -i libssl1.1_1.1.1f-1ubuntu2.23_amd64.deb
 
 WORKDIR /app
 
