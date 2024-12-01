@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class WorkspaceCrawlerIntegrationTest {
+public class WorkspaceCrawlerIntegrationExploratoryTest {
 
     private ClockUtils testClockUtils = new TestClockUtils();
 
