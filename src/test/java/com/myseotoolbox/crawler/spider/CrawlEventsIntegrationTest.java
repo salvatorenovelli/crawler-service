@@ -50,7 +50,7 @@ public class CrawlEventsIntegrationTest {
     @Autowired private CrawlEventDispatchFactory factory;
     @Autowired PubSubProperties pubSubProperties;
     @SpyBean MessageBrokerEventListener messageBrokerEventListener;
-    @MockBean  PubSubPublisherTemplate template;
+    @MockBean PubSubPublisherTemplate template;
 
 
     @Before
@@ -109,15 +109,16 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
-                .withCrawlId(job.getWebsiteCrawlId())
-                .withVisited(1)
-                .build());
+        //As the test is single threaded by design (included the executor in the queue), this works like a recursive algorithm
+        //which goes depth first - so the first update gets published after the highest depth is discovered
         verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
                 .withCrawlId(job.getWebsiteCrawlId())
                 .withVisited(2)
                 .build());
-        verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
+
+        //When this is single threaded, the enqueueing becomes recursive. so this will get called twice with 3.
+        //the first time for the last crawled page, the second time is for the first time it's called
+        verify(messageBrokerEventListener, times(2)).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
                 .withCrawlId(job.getWebsiteCrawlId())
                 .withVisited(3)
                 .build());
@@ -127,6 +128,23 @@ public class CrawlEventsIntegrationTest {
         verify(messageBrokerEventListener).onCrawlStatusUpdate(aCrawlStatusUpdateEvent().withPending(1).build());
 
         verify(messageBrokerEventListener, times(3)).onCrawlStatusUpdate(any());
+    }
+
+    @Test
+    public void shouldEnqueueLinksBeforePublishingStatusUpdate() {
+        givenAWebsite()
+                .havingRootPage().withLinksTo("/abc", "/cde")
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        //this site has three pages. Pending is never 0 unless three pages have been visited
+        verify(messageBrokerEventListener, never()).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
+                .withCrawlId(job.getWebsiteCrawlId())
+                .withVisitedBetween(0, 2)
+                .withPending(0)
+                .build());
     }
 
     @Test
@@ -141,7 +159,6 @@ public class CrawlEventsIntegrationTest {
         verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(job.getWebsiteCrawl(), 3, Instant.EPOCH));
     }
 
-
     @Test
     public void exceptionInOneTopicDoNotStopPublishingOtherEvents() {
         doThrow(new RuntimeException("This should not prevent update of the other"))
@@ -154,7 +171,7 @@ public class CrawlEventsIntegrationTest {
         CrawlJob job = buildForSeeds(testSeeds("/"));
         job.start();
 
-        verify(template, times(2)).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
+        verify(template, times(3)).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
         verify(template).publish(eq(pubSubProperties.getWebsiteCrawlCompletedTopicName()), any(WebsiteCrawlCompletedEvent.class));
     }
 
@@ -174,7 +191,6 @@ public class CrawlEventsIntegrationTest {
                 })
         );
     }
-
 
     private String getTestUri(String path) {
         return testWebsiteBuilder.buildTestUri(path).toString();

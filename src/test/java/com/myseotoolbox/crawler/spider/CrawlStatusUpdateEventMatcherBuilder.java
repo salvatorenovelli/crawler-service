@@ -7,6 +7,7 @@ import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
 
 import static org.hamcrest.CoreMatchers.any;
+import static org.hamcrest.Matchers.*;
 
 public class CrawlStatusUpdateEventMatcherBuilder {
     private Matcher<Integer> visited = any(Integer.class);
@@ -20,6 +21,11 @@ public class CrawlStatusUpdateEventMatcherBuilder {
 
     public CrawlStatusUpdateEventMatcherBuilder withVisited(int visitedCount) {
         this.visited = Matchers.equalTo(visitedCount);
+        return this;
+    }
+
+    public CrawlStatusUpdateEventMatcherBuilder withVisitedBetween(int lower,int higher) {
+        this.visited = allOf(greaterThanOrEqualTo(lower), lessThanOrEqualTo(higher));
         return this;
     }
 
