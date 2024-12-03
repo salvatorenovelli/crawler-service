@@ -27,7 +27,7 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 
 @Slf4j
 @Component
-public class WorkspaceCrawler {
+public class BulkWorkspaceCrawlingService {
 
 
     public static final String CRAWL_OWNER = "cron@myseotoolbox.com";
@@ -38,12 +38,12 @@ public class WorkspaceCrawler {
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
 
-    public WorkspaceCrawler(WorkspaceRepository workspaceRepository,
-                            CrawlJobFactory crawlJobFactory,
-                            WebsiteCrawlLogRepository websiteCrawlLogRepository,
-                            CrawlEventDispatchFactory crawlEventDispatchFactory,
-                            RobotsTxtAggregation robotsTxtAggregation,
-                            @Qualifier("crawl-job-init-executor") Executor executor) {
+    public BulkWorkspaceCrawlingService(WorkspaceRepository workspaceRepository,
+                                        CrawlJobFactory crawlJobFactory,
+                                        WebsiteCrawlLogRepository websiteCrawlLogRepository,
+                                        CrawlEventDispatchFactory crawlEventDispatchFactory,
+                                        RobotsTxtAggregation robotsTxtAggregation,
+                                        @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;

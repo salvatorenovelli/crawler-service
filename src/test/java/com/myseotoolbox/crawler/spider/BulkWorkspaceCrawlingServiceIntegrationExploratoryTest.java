@@ -31,7 +31,7 @@ import static org.mockito.Mockito.*;
 
 
 @RunWith(MockitoJUnitRunner.class)
-public class WorkspaceCrawlerIntegrationExploratoryTest {
+public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
 
     private ClockUtils testClockUtils = new TestClockUtils();
 
@@ -52,7 +52,7 @@ public class WorkspaceCrawlerIntegrationExploratoryTest {
 
     private List<Workspace> allWorkspaces = new ArrayList<>();
     private CrawlJobFactory crawlJobFactory;
-    private WorkspaceCrawler sut;
+    private BulkWorkspaceCrawlingService sut;
 
 
     @Before
@@ -60,7 +60,7 @@ public class WorkspaceCrawlerIntegrationExploratoryTest {
         when(listenerProvider.buildFor(any())).thenReturn(dispatch);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
         crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
+        sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
         testWebsiteBuilder.run();
     }
 

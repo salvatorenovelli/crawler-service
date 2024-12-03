@@ -8,7 +8,7 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.TestWorkspaceBuilder;
-import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
+import com.myseotoolbox.crawler.spider.BulkWorkspaceCrawlingService;
 import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import org.bson.types.ObjectId;
 import org.hamcrest.Description;
@@ -48,7 +48,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
 
     @MockBean private CrawlJobFactory factory;
     @MockBean private WorkspaceRepository workspaceRepo;
-    @MockBean private WorkspaceCrawler workspaceCrawler;
+    @MockBean private BulkWorkspaceCrawlingService bulkWorkspaceCrawlingService;
     @MockBean private CrawlEventDispatchFactory cedfactory;
     @MockBean private HTTPClient httpClient;
     private List<Workspace> allWorkspaces = new ArrayList<>();

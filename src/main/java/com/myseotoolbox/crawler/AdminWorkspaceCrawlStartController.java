@@ -9,7 +9,6 @@ import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
-import com.myseotoolbox.crawler.spider.WorkspaceCrawler;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
@@ -37,7 +36,6 @@ public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
-    private final WorkspaceCrawler workspaceCrawler;
     private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final HTTPClient client;
 

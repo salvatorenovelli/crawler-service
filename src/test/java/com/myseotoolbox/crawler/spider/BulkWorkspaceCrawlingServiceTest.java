@@ -40,7 +40,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
-public class WorkspaceCrawlerTest {
+public class BulkWorkspaceCrawlingServiceTest {
 
 
     private static final int YESTERDAY = -1;
@@ -56,13 +56,13 @@ public class WorkspaceCrawlerTest {
     @Mock private RobotsTxtAggregation robotsAggregation;
     @Mock private CrawlEventDispatchFactory dispatchFactory;
 
-    WorkspaceCrawler sut;
+    BulkWorkspaceCrawlingService sut;
     @Spy private Executor executor = new CurrentThreadTestExecutorService();
 
     @Before
     public void setUp() {
 
-        sut = new WorkspaceCrawler(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
+        sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
 
         when(crawlJobFactory.build(any(), any())).thenAnswer(
                 invocation -> {
