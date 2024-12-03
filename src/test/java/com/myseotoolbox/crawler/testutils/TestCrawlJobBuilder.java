@@ -42,7 +42,7 @@ public class TestCrawlJobBuilder {
 
     public CrawlJob buildForSeeds(List<URI> seeds) {
 
-        //mimic WorkspaceCrawler
+        //mimic BulkWorkspaceCrawlingService
 
         URI origin = extractOrigin(seeds.get(0));
         SpiderConfig spiderConfig = new SpiderConfig();
