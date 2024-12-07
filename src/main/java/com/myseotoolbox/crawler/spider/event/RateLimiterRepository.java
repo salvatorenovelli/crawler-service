@@ -17,7 +17,7 @@ public class RateLimiterRepository {
     public RateLimiterRepository(int intervalMillis, ClockUtils clockUtils, int maxEntryCount) {
         this.intervalMillis = intervalMillis;
         this.clockUtils = clockUtils;
-        this.rateLimiters = new LinkedHashMap<String, RateLimiter>() {
+        this.rateLimiters = new LinkedHashMap<>() {
             @Override
             protected boolean removeEldestEntry(Map.Entry<String, RateLimiter> eldest) {
                 return size() > maxEntryCount;
