@@ -67,7 +67,7 @@ dependencies {
     implementation group: 'commons-lang', name: 'commons-lang', version: '2.2'
     implementation group: 'commons-io', name: 'commons-io', version: '2.7'
     implementation('org.jsoup:jsoup:1.18.1')
-    implementation group: 'com.github.crawler-commons', name: 'crawler-commons', version: '1.0'
+    implementation group: 'com.github.crawler-commons', name: 'crawler-commons', version: '1.4'
 
     testCompileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
