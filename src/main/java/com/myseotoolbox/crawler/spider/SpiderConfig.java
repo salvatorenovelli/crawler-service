@@ -5,7 +5,7 @@ import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
 import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
 import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 import com.myseotoolbox.crawler.spider.ratelimiter.SystemClockUtils;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,7 +32,7 @@ public class SpiderConfig {
     }
 
     @Bean
-    public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, SitemapReader sitemapReader) {
-        return new CrawlJobFactory(new WebPageReaderFactory(httpRequestFactory, getClockUtils()), new WebsiteUriFilterFactory(), crawlExecutorFactory, sitemapReader);
+    public CrawlJobFactory getCrawlJobFactory(CrawlExecutorFactory crawlExecutorFactory, SitemapService sitemapService) {
+        return new CrawlJobFactory(new WebPageReaderFactory(httpRequestFactory, getClockUtils()), new WebsiteUriFilterFactory(), crawlExecutorFactory, sitemapService);
     }
 }

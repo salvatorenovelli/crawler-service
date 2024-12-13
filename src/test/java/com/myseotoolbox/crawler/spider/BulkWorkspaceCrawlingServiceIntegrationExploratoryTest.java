@@ -10,7 +10,7 @@ import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
@@ -41,7 +41,9 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
     private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
     private WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()), testClockUtils);
     private WebsiteUriFilterFactory uriFilterFactory = new WebsiteUriFilterFactory();
-    private SitemapReader sitemapReader = new SitemapReader();
+    private HttpURLConnectionFactory connectionFactory = new HttpURLConnectionFactory();
+    private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(connectionFactory);
+    private SitemapService sitemapService = new SitemapService(httpRequestFactory);
     private RobotsTxtAggregation robotsAggregation = new RobotsTxtAggregation(new HTTPClient());
 
 
@@ -59,7 +61,7 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
     public void setUp() throws Exception {
         when(listenerProvider.buildFor(any())).thenReturn(dispatch);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
-        crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapReader);
+        crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapService);
         sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
         testWebsiteBuilder.run();
     }

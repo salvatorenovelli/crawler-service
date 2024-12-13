@@ -2,6 +2,8 @@ package com.myseotoolbox.crawler.testutils;
 
 import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
+import com.myseotoolbox.crawler.httpclient.HttpRequestFactory;
+import com.myseotoolbox.crawler.httpclient.HttpURLConnectionFactory;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.spider.CrawlExecutorFactory;
 import com.myseotoolbox.crawler.spider.CrawlJob;
@@ -11,7 +13,7 @@ import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 
@@ -25,7 +27,10 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractO
 public class TestCrawlJobBuilder {
     public static final List<Integer> EXPECTED_WORKSPACES_FOR_TRIGGER = Arrays.asList(1, 2, 3);
     private final CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
-    private final SitemapReader sitemapReader = new SitemapReader();
+
+    private final HttpURLConnectionFactory connectionFactory = new HttpURLConnectionFactory();
+    private final HttpRequestFactory requestFactory = new HttpRequestFactory(connectionFactory);
+    private final SitemapService sitemapService = new SitemapService(requestFactory);
     private CrawlEventDispatch crawlEventDispatch;
     private final CrawlEventDispatchFactory crawlEventDispatchFactory;
 
@@ -48,7 +53,7 @@ public class TestCrawlJobBuilder {
         SpiderConfig spiderConfig = new SpiderConfig();
 
         CrawlJobFactory crawlJobFactory = spiderConfig
-                .getCrawlJobFactory(testExecutorBuilder, sitemapReader);
+                .getCrawlJobFactory(testExecutorBuilder, sitemapService);
 
         RobotsTxtAggregation robotsTxtAggregation = new RobotsTxtAggregation(new HTTPClient());
 

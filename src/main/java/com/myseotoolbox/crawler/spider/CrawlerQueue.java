@@ -43,7 +43,7 @@ class CrawlerQueue implements Consumer<CrawlResult> {
         List<URI> validSeeds = filterValidUrls(seeds.stream().map(URI::toString).collect(Collectors.toList()))
                 .stream()
                 .distinct()
-                .collect(Collectors.toList());
+                .toList();
         this.seeds.addAll(validSeeds);
     }
 

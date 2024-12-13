@@ -8,7 +8,7 @@ import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
 import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import org.junit.Before;
@@ -41,7 +41,7 @@ public class CrawlJobFactoryTest {
     @Spy private WebsiteUriFilterFactory filtersFactory = new WebsiteUriFilterFactory();
     @Mock private RobotsTxt mockRobotsTxt;
     @Mock private CrawlEventDispatch dispatch;
-    @Mock private SitemapReader sitemapReader;
+    @Mock private SitemapService sitemapService;
 
     private CrawlExecutorFactory crawlExecutorFactory = new CurrentThreadCrawlExecutorFactory();
 
@@ -55,7 +55,7 @@ public class CrawlJobFactoryTest {
         when(reader.snapshotPage(any())).thenAnswer(this::buildSnapshotForUri);
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
 
-        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, sitemapReader);
+        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, sitemapService);
         testConf = CrawlJobConfiguration.newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN)
                 .withSeeds(ONLY_ROOT).withRobotsTxt(mockRobotsTxt)
                 .withTriggerForUserInitiatedCrawlWorkspace(1234);
@@ -106,7 +106,7 @@ public class CrawlJobFactoryTest {
     @Test
     public void shouldTakeSeedsFromSitemap() throws SnapshotException {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
-        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), any(UriFilter.class), anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
+        when(sitemapService.fetchSeedsFromSitemaps(any(), anyList(), any(UriFilter.class), anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
 
         CrawlJob job = sut.build(testConf.build(), dispatch);
         job.start();
@@ -120,7 +120,7 @@ public class CrawlJobFactoryTest {
     @Test
     public void shouldNormalizeSeedsWIthEmptyPathToRootPath() {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
-        when(sitemapReader.fetchSeedsFromSitemaps(any(), anyList(), any(UriFilter.class), anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
+        when(sitemapService.fetchSeedsFromSitemaps(any(), anyList(), any(UriFilter.class), anyInt())).thenReturn(Collections.singletonList(linkFromSitemap));
 
         CrawlJobConfiguration conf = testConf.withSeeds(Collections.singletonList(URI.create("http://host"))).build();
 

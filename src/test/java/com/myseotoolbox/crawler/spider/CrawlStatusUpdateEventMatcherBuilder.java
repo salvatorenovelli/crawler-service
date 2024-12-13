@@ -45,9 +45,7 @@ public class CrawlStatusUpdateEventMatcherBuilder {
             public boolean matches(CrawlStatusUpdateEvent argument) {
                 return visited.matches(argument.getVisited()) &&
                         pending.matches(argument.getPending()) &&
-                        crawlId.matches(argument.getWebsiteCrawl().getId().toHexString())
-
-                        ;
+                        crawlId.matches(argument.getWebsiteCrawl().getId().toHexString());
             }
 
             @Override

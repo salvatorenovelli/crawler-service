@@ -4,7 +4,7 @@ import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReader;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -22,7 +22,7 @@ public class CrawlJobFactory {
     private final WebPageReaderFactory webPageReaderFactory;
     private final WebsiteUriFilterFactory uriFilterFactory;
     private final CrawlExecutorFactory crawlExecutorFactory;
-    private final SitemapReader sitemapReader;
+    private final SitemapService sitemapService;
 
 
     public CrawlJob build(CrawlJobConfiguration configuration, CrawlEventDispatch dispatch) {
@@ -41,7 +41,7 @@ public class CrawlJobFactory {
         ThreadPoolExecutor executor = crawlExecutorFactory.buildExecutor(origin.getHost(), configuration.getMaxConcurrentConnections());
 
         log.info("robots.txt provided {} sitemaps", robotsTxt.getSitemaps().size());
-        List<URI> seedsFromSitemap = sitemapReader.fetchSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), uriFilter, configuration.getCrawledPageLimit());
+        List<URI> seedsFromSitemap = sitemapService.fetchSeedsFromSitemaps(origin, robotsTxt.getSitemaps(), uriFilter, configuration.getCrawledPageLimit());
 
         List<URI> allSeeds = concat(seeds, seedsFromSitemap);
 
