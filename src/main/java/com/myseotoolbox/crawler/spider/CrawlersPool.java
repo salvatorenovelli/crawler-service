@@ -29,9 +29,11 @@ public class CrawlersPool implements Consumer<SnapshotTask> {
             try {
                 try {
                     CrawlResult result = pageReader.snapshotPage(task.getUri());
+                    //maybe here?
                     task.getTaskRequester().accept(result);
                 } catch (SnapshotException e) {
                     logException(e, task.getUri());
+                    //and here....
                     task.getTaskRequester().accept(CrawlResult.forSnapshot(e.getPartialSnapshot()));
                 }
             } catch (Exception e) {

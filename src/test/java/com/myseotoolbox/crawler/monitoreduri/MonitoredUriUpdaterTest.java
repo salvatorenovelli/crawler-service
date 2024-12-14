@@ -5,7 +5,6 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
@@ -26,10 +25,10 @@ import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonit
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_WORKSPACE_ORIGIN;
 import static junit.framework.TestCase.assertNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 
 
 @RunWith(SpringRunner.class)
@@ -42,7 +41,6 @@ public class MonitoredUriUpdaterTest {
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
-    @Autowired private SitemapRepository sitemapRepository;
 
     MonitoredUriUpdater sut;
     private static final WebsiteCrawl TEST_CRAWL = getCrawlForOrigin(DEFAULT_WORKSPACE_ORIGIN);
