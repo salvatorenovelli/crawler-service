@@ -5,12 +5,11 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
 import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
-import org.bson.types.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,8 +19,6 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.net.URI;
-import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -29,7 +26,8 @@ import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonit
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_WORKSPACE_ORIGIN;
 import static junit.framework.TestCase.assertNull;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -44,6 +42,7 @@ public class MonitoredUriUpdaterTest {
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
+    @Autowired private SitemapRepository sitemapRepository;
 
     MonitoredUriUpdater sut;
     private static final WebsiteCrawl TEST_CRAWL = getCrawlForOrigin(DEFAULT_WORKSPACE_ORIGIN);

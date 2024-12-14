@@ -40,18 +40,18 @@ public class SiteMapMatcherBuilder {
         return parent;
     }
 
-    public Matcher<List<SiteMapData>> build() {
+    public Matcher<List<SiteMap>> build() {
         and();
         return parent.build();
     }
 
-    Matcher<SiteMapData> buildMatcher() {
-        return new TypeSafeMatcher<SiteMapData>() {
+    Matcher<SiteMap> buildMatcher() {
+        return new TypeSafeMatcher<SiteMap>() {
             @Override
-            protected boolean matchesSafely(SiteMapData siteMapData) {
-                return linksMatcher.matches(siteMapData.links())
-                        && sitemapLocation.equals(siteMapData.location())
-                        && (linkCount == null || hasSize(linkCount).matches(siteMapData.links()));
+            protected boolean matchesSafely(SiteMap siteMap) {
+                return linksMatcher.matches(siteMap.links())
+                        && sitemapLocation.equals(siteMap.location())
+                        && (linkCount == null || hasSize(linkCount).matches(siteMap.links()));
             }
 
             @Override

@@ -53,7 +53,7 @@ public class SiteMapReader {
         this.requestFactory = requestFactory;
     }
 
-    public List<SiteMapData> fetchSitemaps() {
+    public List<SiteMap> fetchSitemaps() {
         return this.siteMaps
                 .stream()
                 .flatMap(this::fetch)
@@ -63,7 +63,7 @@ public class SiteMapReader {
     /**
      * Recursively scan Sitemap Index (the type of sitemap that has links to other sitemaps) and collect URLs
      */
-    private Stream<SiteMapData> fetch(URI location) {
+    private Stream<SiteMap> fetch(URI location) {
 
         if (!shouldFetch(location)) {
             return Stream.empty();
@@ -94,7 +94,7 @@ public class SiteMapReader {
         return asm;
     }
 
-    private Stream<SiteMapData> traverseSiteMapIndex(AbstractSiteMap asm) {
+    private Stream<SiteMap> traverseSiteMapIndex(AbstractSiteMap asm) {
         return ((SiteMapIndex) asm).getSitemaps().stream()
                 .map(AbstractSiteMap::getUrl)
                 .map(this::mapToUrIOrLogWarning)
@@ -103,8 +103,8 @@ public class SiteMapReader {
 
     }
 
-    private Stream<SiteMapData> getSiteMapData(URI location, AbstractSiteMap asm) {
-        SiteMap siteMap = (SiteMap) asm;
+    private Stream<SiteMap> getSiteMapData(URI location, AbstractSiteMap asm) {
+        crawlercommons.sitemaps.SiteMap siteMap = (crawlercommons.sitemaps.SiteMap) asm;
         List<URI> uriList = siteMap.getSiteMapUrls().stream()
                 .map(this::mapToUrIOrLogWarning)
                 .filter(Objects::nonNull)
@@ -119,7 +119,7 @@ public class SiteMapReader {
         }
 
         currentUriCount += uriList.size();
-        return Stream.of(new SiteMapData(location, uriList));
+        return Stream.of(new SiteMap(location, uriList));
     }
 
     private boolean crawledPageLimitExceeded() {

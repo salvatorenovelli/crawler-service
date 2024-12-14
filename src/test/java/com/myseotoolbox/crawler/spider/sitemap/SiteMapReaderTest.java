@@ -61,7 +61,7 @@ public class SiteMapReaderTest {
                 .havingUrls("/location1", "/location2")
                 .build();
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
 
         assertThat(sitemaps,
@@ -80,7 +80,7 @@ public class SiteMapReaderTest {
                 .havingUrls("/location1", "/location2", "/location2")
                 .build();
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
 
         assertThat(sitemaps,
@@ -101,7 +101,7 @@ public class SiteMapReaderTest {
                 .withSitemapOn("/uk/").havingUrls("/uk/1", "/uk/2")
                 .build();
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
 
         assertThat(sitemaps,
@@ -133,7 +133,7 @@ public class SiteMapReaderTest {
 
         SiteMapReader siteMapReader = testSiteMap(origin, testUris("/sitemap.xml"), singletonList("/it/"));
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -171,7 +171,7 @@ public class SiteMapReaderTest {
                 .build();
 
         SiteMapReader siteMapReader = testSiteMap(origin, testUris("/sitemap.xml"), singletonList("/it/"));
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -192,7 +192,7 @@ public class SiteMapReaderTest {
                 .havingUrls("/location1", "/location2", "https://differentdomain/location2")
                 .build();
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
 
         assertThat(sitemaps,
@@ -240,7 +240,7 @@ public class SiteMapReaderTest {
 
 
         SiteMapReader siteMapReader = testSiteMap(origin, testUris("/it/sitemap.xml"), singletonList("/it/"));
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -261,7 +261,7 @@ public class SiteMapReaderTest {
                 .havingUrls("/two/1", "/two/2").build();
 
         SiteMapReader siteMapReader = testSiteMap(origin, testUris("/one/sitemap.xml", "/two/sitemap.xml"), singletonList("/"));
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -287,7 +287,7 @@ public class SiteMapReaderTest {
                 .havingUrls("/valid-url/1", "/valid-url/2")
                 .build();
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -306,7 +306,7 @@ public class SiteMapReaderTest {
                 .havingUrls("/valid-url1", "/valid-url2", "/invalid url")
                 .build();
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
 
         assertThat(sitemaps,
@@ -328,7 +328,7 @@ public class SiteMapReaderTest {
 
 
         SiteMapReader sut = testSiteMap(testUri("/"), singletonList(wrongWebsiteBuilder.buildTestUri("/sitemap.xml").toString()), singletonList("/"));
-        List<SiteMapData> sitemaps = sut.fetchSitemaps();
+        List<SiteMap> sitemaps = sut.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList().withSitemapCount(0).build()
@@ -351,7 +351,7 @@ public class SiteMapReaderTest {
 
 
         SiteMapReader sut = testSiteMap(testUri("/"), singletonList(testUri("/sitemap.xml").toString()), singletonList("/"));
-        List<SiteMapData> sitemaps = sut.fetchSitemaps();
+        List<SiteMap> sitemaps = sut.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -385,7 +385,7 @@ public class SiteMapReaderTest {
                 .build();
 
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -411,7 +411,7 @@ public class SiteMapReaderTest {
 
         SiteMapReader siteMapReader = new SiteMapReader(origin, testUris("/sitemap.xml"), new PathFilter(singletonList("/")), 100, httpRequestFactory);
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()
@@ -454,7 +454,7 @@ public class SiteMapReaderTest {
                 .build();
 
 
-        List<SiteMapData> sitemaps = siteMapReader.fetchSitemaps();
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
 
         assertThat(sitemaps,
                 isSitemapList()

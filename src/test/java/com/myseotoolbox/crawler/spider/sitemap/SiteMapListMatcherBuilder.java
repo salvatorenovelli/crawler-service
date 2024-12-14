@@ -25,10 +25,10 @@ public class SiteMapListMatcherBuilder {
         return this;
     }
 
-    public Matcher<List<SiteMapData>> build() {
+    public Matcher<List<SiteMap>> build() {
         return new TypeSafeMatcher<>() {
             @Override
-            protected boolean matchesSafely(List<SiteMapData> sitemaps) {
+            protected boolean matchesSafely(List<SiteMap> sitemaps) {
                 return listSize == null || hasSize(listSize).matches(sitemaps)
                         && matchesSitemaps(sitemaps);
             }
@@ -45,15 +45,15 @@ public class SiteMapListMatcherBuilder {
         };
     }
 
-    private boolean matchesSitemaps(List<SiteMapData> actualSitemaps) {
+    private boolean matchesSitemaps(List<SiteMap> actualSitemaps) {
         return expectedSitemaps.stream().allMatch(expectedSitemap -> {
-            SiteMapData actualSitemap = findSitemap(expectedSitemap.getSitemapLocation(), actualSitemaps);
+            SiteMap actualSitemap = findSitemap(expectedSitemap.getSitemapLocation(), actualSitemaps);
             if (actualSitemap == null) return false;
             return expectedSitemap.buildMatcher().matches(actualSitemap);
         });
     }
 
-    private SiteMapData findSitemap(URI uri, List<SiteMapData> sitemaps) {
+    private SiteMap findSitemap(URI uri, List<SiteMap> sitemaps) {
         return sitemaps.stream()
                 .filter(data -> data.location().equals(uri))
                 .findFirst()

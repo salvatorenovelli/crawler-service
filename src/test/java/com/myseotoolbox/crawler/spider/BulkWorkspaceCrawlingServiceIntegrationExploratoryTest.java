@@ -10,6 +10,8 @@ import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapReaderFactory;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
@@ -18,6 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
@@ -37,13 +40,19 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
 
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
-    private Executor executor = new CurrentThreadTestExecutorService();
-    private CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
-    private WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()), testClockUtils);
-    private WebsiteUriFilterFactory uriFilterFactory = new WebsiteUriFilterFactory();
-    private HttpURLConnectionFactory connectionFactory = new HttpURLConnectionFactory();
-    private HttpRequestFactory httpRequestFactory = new HttpRequestFactory(connectionFactory);
-    private SitemapService sitemapService = new SitemapService(httpRequestFactory);
+    private final Executor executor = new CurrentThreadTestExecutorService();
+    private final CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
+    private final WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()), testClockUtils);
+    private final WebsiteUriFilterFactory uriFilterFactory = new WebsiteUriFilterFactory();
+
+    private final HttpURLConnectionFactory connectionFactory = new HttpURLConnectionFactory();
+    private final HttpRequestFactory requestFactory = new HttpRequestFactory(connectionFactory);
+    private final SitemapReaderFactory sitemapReaderFactory = new SitemapReaderFactory(requestFactory);
+
+    private final SitemapRepository sitemapRepository = Mockito.mock(SitemapRepository.class);
+    private SitemapService sitemapService = new SitemapService(sitemapReaderFactory, sitemapRepository);
+
+
     private RobotsTxtAggregation robotsAggregation = new RobotsTxtAggregation(new HTTPClient());
 
 
