@@ -58,7 +58,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        when(factory.build(any(), any())).thenReturn(job);
+        when(factory.build(any())).thenReturn(job);
         when(workspaceRepo.findTopBySeqNumber(anyInt())).thenAnswer(invocation -> {
             int seqNumber = invocation.getArgument(0);
             Workspace workspace = allWorkspaces.stream().filter(ws -> ws.getSeqNumber() == seqNumber).findFirst().get();
@@ -84,7 +84,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
             assertThat(conf.getMaxConcurrentConnections(), is(3));
             assertThat(conf.getWebsiteCrawl().getOwner(), is("testCrawlWorkspace@myseotoolbox"));
             return true;
-        }), any());
+        }));
 
         verify(job).start();
     }
@@ -133,11 +133,11 @@ public class AdminWorkspaceCrawlStartControllerTest {
             assertThat(conf.getWebsiteCrawl().getTrigger().getType(), is(CrawlTrigger.Type.USER_INITIATED_WORKSPACE));
             assertThat(conf.getWebsiteCrawl().getTrigger().getTargetWorkspaces(), containsInAnyOrder(123));
             return true;
-        }), any());
+        }));
     }
 
     private static Matcher<String> isValidObjectId() {
-        return new TypeSafeMatcher<String>() {
+        return new TypeSafeMatcher<>() {
             @Override
             protected boolean matchesSafely(String hexString) {
                 new ObjectId(hexString);

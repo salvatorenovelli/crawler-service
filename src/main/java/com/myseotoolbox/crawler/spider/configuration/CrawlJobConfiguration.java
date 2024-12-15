@@ -94,13 +94,6 @@ public class CrawlJobConfiguration {
             return this;
         }
 
-        public CrawlJobConfiguration build() {
-            Validate.notNull(robotsTxt, "robots.txt configuration missing. Please use defaultRobotsTxt() or configure it with withRobotsTxt(...)");
-            Validate.notNull(trigger, "crawlTrigger missing. Please use withTriggerFor...(...)");
-
-            return new CrawlJobConfiguration(owner, origin, trigger, seeds, maxConcurrentConnections, crawlDelayMillis, crawledPageLimit, robotsTxt);
-        }
-
         public Builder withMaxPagesCrawledLimit(int crawledPageLimit) {
             this.crawledPageLimit = crawledPageLimit;
             return this;
@@ -114,6 +107,13 @@ public class CrawlJobConfiguration {
         public Builder withTriggerForUserInitiatedCrawlWorkspace(int workspaceSequenceNumber) {
             this.trigger = CrawlTrigger.forUserInitiatedWorkspaceCrawl(workspaceSequenceNumber);
             return this;
+        }
+
+        public CrawlJobConfiguration build() {
+            Validate.notNull(robotsTxt, "robots.txt configuration missing. Please use defaultRobotsTxt() or configure it with withRobotsTxt(...)");
+            Validate.notNull(trigger, "crawlTrigger missing. Please use withTriggerFor...(...)");
+
+            return new CrawlJobConfiguration(owner, origin, trigger, seeds, maxConcurrentConnections, crawlDelayMillis, crawledPageLimit, robotsTxt);
         }
     }
 

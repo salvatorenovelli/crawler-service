@@ -11,12 +11,10 @@ import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
-import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,7 +34,6 @@ public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
     private final WorkspaceRepository repository;
-    private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final HTTPClient client;
 
 
@@ -49,7 +46,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(request.getCrawlOwner(), ws.getSeqNumber(), origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
-        CrawlJob job = factory.build(conf, getCrawlEventsListener(conf.getWebsiteCrawl()));
+        CrawlJob job = factory.build(conf);
 
         job.start();
         return new CrawlWorkspaceResponse(conf.getWebsiteCrawl().getId());
@@ -87,10 +84,6 @@ public class AdminWorkspaceCrawlStartController {
         CrawlerSettings crawlerSettings = ws.getCrawlerSettings();
         return crawlerSettings != null && crawlerSettings.getFilterConfiguration() != null &&
                 crawlerSettings.getFilterConfiguration().shouldIgnoreRobotsTxt();
-    }
-
-    private CrawlEventDispatch getCrawlEventsListener(WebsiteCrawl crawl) {
-        return crawlEventDispatchFactory.buildFor(crawl);
     }
 
     private Workspace getWorkspace(CrawlWorkspaceRequest request) throws EntityNotFoundException {

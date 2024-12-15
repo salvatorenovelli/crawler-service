@@ -32,7 +32,7 @@ public class BasicUriFilter implements UriFilter {
         boolean valid = validScheme(discoveredLink) && validExtension(discoveredLink) && validHost(sourceUri, discoveredLink);
 
         if (!valid && log.isDebugEnabled()) {
-            log.debug("Blocked: {} origin:{} sourceUri: {} discoveredLink: {}",
+            log.trace("Blocked: {} origin:{} sourceUri: {} discoveredLink: {}",
                     getFilterCause(validScheme(discoveredLink), validExtension(discoveredLink), validHost(sourceUri, discoveredLink)),
                     websiteOrigin,
                     sourceUri,

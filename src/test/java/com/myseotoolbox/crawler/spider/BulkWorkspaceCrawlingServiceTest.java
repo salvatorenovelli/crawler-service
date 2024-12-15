@@ -10,10 +10,8 @@ import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
-import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,10 +30,6 @@ import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -64,7 +58,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
 
-        when(crawlJobFactory.build(any(), any())).thenAnswer(
+        when(crawlJobFactory.build(any())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
                     CrawlJobConfiguration configuration = invocation.getArgument(0);
@@ -88,7 +82,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         sut.crawlAllWorkspaces();
         verify(robotsAggregation).mergeConfigurations(argThat(workspaces -> workspaces.size() == 3));
-        verify(crawlJobFactory).build(argThat(argument -> argument.getRobotsTxt() == returnedValue), any());
+        verify(crawlJobFactory).build(argThat(argument -> argument.getRobotsTxt() == returnedValue));
     }
 
     @Test
@@ -202,7 +196,7 @@ public class BulkWorkspaceCrawlingServiceTest {
         givenAWorkspace().withWebsiteUrl(originWithException).build();
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
-        when(crawlJobFactory.build(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))), any())).thenThrow(new RuntimeException("Testing exceptions"));
+        when(crawlJobFactory.build(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))))).thenThrow(new RuntimeException("Testing exceptions"));
 
         sut.crawlAllWorkspaces();
 
@@ -296,39 +290,8 @@ public class BulkWorkspaceCrawlingServiceTest {
         verify(executor, times(2)).execute(any());
     }
 
-    @Test
-    public void interactionWithEventDispatchFactory() {
-        givenAWorkspace().withWebsiteUrl("http://host1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path1").build();
-        givenAWorkspace().withWebsiteUrl("http://host1/path2/").build();
-
-        sut.crawlAllWorkspaces();
-
-        verify(dispatchFactory).buildFor(argThat(argument -> {
-            assertNotNull(argument.getId());
-            assertThat(argument.getOrigin(), is("http://host1/"));
-            assertThat(argument.getSeeds(), containsInAnyOrder("http://host1", "http://host1/path1", "http://host1/path2/"));
-            return true;
-        }));
-
-    }
-
-    @Test
-    public void shouldHaveTrigger() {
-        givenAWorkspace().withSequenceNumber(123).withWebsiteUrl("http://host1").build();
-        givenAWorkspace().withSequenceNumber(223).withWebsiteUrl("http://host1").build();
-
-        sut.crawlAllWorkspaces();
-
-        verify(dispatchFactory).buildFor(argThat(argument -> {
-            Assert.assertThat(argument.getTrigger().getType(), is(CrawlTrigger.Type.SCHEDULED));
-            Assert.assertThat(argument.getTrigger().getTargetWorkspaces(), containsInAnyOrder(123, 223));
-            return true;
-        }));
-    }
-
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
-        verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections), any());
+        verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections));
     }
 
     private void verifyCrawlStartedFor(String origin) {
@@ -343,7 +306,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
             verify(crawlJobFactory).build(argThat(conf ->
                     conf.getOrigin().equals(originRoot) &&
-                            conf.getSeeds().containsAll(expectedSeeds)), any());
+                            conf.getSeeds().containsAll(expectedSeeds)));
 
             mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job).start());
         } catch (Throwable e) {

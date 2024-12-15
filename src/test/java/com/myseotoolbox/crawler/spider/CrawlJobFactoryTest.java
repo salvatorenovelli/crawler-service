@@ -1,5 +1,6 @@
 package com.myseotoolbox.crawler.spider;
 
+import com.myseotoolbox.crawler.config.WebPageReaderFactory;
 import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
@@ -45,7 +46,6 @@ public class CrawlJobFactoryTest {
     @Mock private CrawlEventDispatch dispatch;
     @Mock private SitemapService sitemapService;
 
-    private CrawlExecutorFactory crawlExecutorFactory = new CurrentThreadCrawlExecutorFactory();
 
     private CrawlJobFactory sut;
     private CrawlJobConfiguration.Builder testConf;
@@ -56,7 +56,14 @@ public class CrawlJobFactoryTest {
         when(mockRobotsTxt.getSitemaps()).thenReturn(SITEMAPS_FROM_ROBOTS);
         when(sitemapService.fetchSeedsFromSitemaps(any(), any())).thenReturn(TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).build());
 
-        sut = new CrawlJobFactory(mockWebPageReaderFactory(), filtersFactory, crawlExecutorFactory, sitemapService);
+
+        sut = TestCrawlJobFactoryBuilder.builder()
+                .withWebPageReaderFactory(mockWebPageReaderFactory())
+                .withFilterFactory(filtersFactory)
+                .withSitemapService(sitemapService)
+                .withCrawlEventDispatch(dispatch)
+                .build();
+
         testConf = CrawlJobConfiguration.newConfiguration("unitTest@myseotoolbox", TEST_ORIGIN)
                 .withSeeds(ONLY_ROOT).withRobotsTxt(mockRobotsTxt)
                 .withTriggerForUserInitiatedCrawlWorkspace(1234);
@@ -67,7 +74,7 @@ public class CrawlJobFactoryTest {
 
         CrawlJobConfiguration configuration = testConf.withSeeds(seeds("/path1", "/path2")).build();
 
-        CrawlJob job = sut.build(configuration, dispatch);
+        CrawlJob job = sut.build(configuration);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
@@ -82,7 +89,7 @@ public class CrawlJobFactoryTest {
                 .withMaxPagesCrawledLimit(3)
                 .withSeeds(seeds("/path1", "/path2", "/path3", "/path4", "/path5", "/path6"))
                 .build();
-        CrawlJob job = sut.build(configuration, dispatch);
+        CrawlJob job = sut.build(configuration);
         job.start();
 
         verify(dispatch, times(3)).onPageCrawled(any());
@@ -90,14 +97,14 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
-        CrawlJob job = sut.build(testConf.build(), dispatch);
+        CrawlJob job = sut.build(testConf.build());
         job.start();
         verify(dispatch).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
-        CrawlJob job = sut.build(testConf.build(), dispatch);
+        CrawlJob job = sut.build(testConf.build());
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -110,7 +117,7 @@ public class CrawlJobFactoryTest {
         SitemapCrawlResult result = TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).withLinks(linkFromSitemap).build();
         when(sitemapService.fetchSeedsFromSitemaps(any(), any())).thenReturn(result);
 
-        CrawlJob job = sut.build(testConf.build(), dispatch);
+        CrawlJob job = sut.build(testConf.build());
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -130,7 +137,7 @@ public class CrawlJobFactoryTest {
         CrawlJobConfiguration conf = testConf.withSeeds(Collections.singletonList(URI.create("http://host"))).build();
 
 
-        CrawlJob job = sut.build(conf, dispatch);
+        CrawlJob job = sut.build(conf);
         job.start();
 
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);
@@ -144,7 +151,6 @@ public class CrawlJobFactoryTest {
     }
 
     private WebPageReaderFactory mockWebPageReaderFactory() {
-
         return new WebPageReaderFactory(null, null) {
             @Override
             public WebPageReader build(UriFilter uriFilter, long crawlDelayMillis) {

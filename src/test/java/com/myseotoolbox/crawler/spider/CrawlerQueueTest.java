@@ -45,7 +45,7 @@ public class CrawlerQueueTest {
     public void setUp() {
         doAnswer(invocation -> {
             SnapshotTask task = invocation.getArgument(0);
-            task.getTaskRequester().accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(task.getUri().toString())));
+            task.taskRequester().accept(CrawlResult.forSnapshot(aPageSnapshotWithStandardValuesForUri(task.uri().toString())));
             return null;
         }).when(pool).accept(any());
         sut = initSut().build();
@@ -262,9 +262,9 @@ public class CrawlerQueueTest {
     public void canHandleNoLinksAtAll() {
         doAnswer(invocation -> {
             SnapshotTask task = invocation.getArgument(0);
-            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.uri().toString());
             t.setLinks(null);
-            task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
+            task.taskRequester().accept(CrawlResult.forSnapshot(t));
             return null;
         }).when(pool).accept(taskForUri("http://host1"));
 
@@ -532,11 +532,11 @@ public class CrawlerQueueTest {
     private void initMocksToReturnCanonical(String baseUri, String canonicalPath) {
         doAnswer(invocation -> {
             SnapshotTask task = invocation.getArgument(0);
-            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+            PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.uri().toString());
             t.setCanonicals(Collections.singletonList(canonicalPath));
 
             CrawlResult result = CrawlResult.forSnapshot(t);
-            task.getTaskRequester().accept(result);
+            task.taskRequester().accept(result);
             return null;
         }).when(pool).accept(taskForUri(baseUri));
     }
@@ -557,7 +557,7 @@ public class CrawlerQueueTest {
         void discover(List<PageLink> links) {
             doAnswer(invocation -> {
                 SnapshotTask task = invocation.getArgument(0);
-                String sourceUri = task.getUri().toString();
+                String sourceUri = task.uri().toString();
                 PageSnapshot t = aPageSnapshotWithStandardValuesForUri(sourceUri);
                 t.setLinks(links);
                 if (redirectUrl != null) {
@@ -565,7 +565,7 @@ public class CrawlerQueueTest {
                             new RedirectChainElement(sourceUri, 301, this.redirectUrl),
                             new RedirectChainElement(this.redirectUrl, 200, this.redirectUrl)));
                 }
-                task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
+                task.taskRequester().accept(CrawlResult.forSnapshot(t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
@@ -575,7 +575,7 @@ public class CrawlerQueueTest {
                 SnapshotTask task = invocation.getArgument(0);
                 RedirectChain chain = new RedirectChain();
                 chain.addElement(new RedirectChainElement(baseUri, 301, redirectDestination));
-                task.getTaskRequester().accept(CrawlResult.forBlockedChain(chain));
+                task.taskRequester().accept(CrawlResult.forBlockedChain(chain));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
@@ -583,9 +583,9 @@ public class CrawlerQueueTest {
         public void returnEmptyRedirectChain() {
             doAnswer(invocation -> {
                 SnapshotTask task = invocation.getArgument(0);
-                PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.getUri().toString());
+                PageSnapshot t = aPageSnapshotWithStandardValuesForUri(task.uri().toString());
                 t.setRedirectChainElements(Collections.emptyList());
-                task.getTaskRequester().accept(CrawlResult.forSnapshot(t));
+                task.taskRequester().accept(CrawlResult.forSnapshot(t));
                 return null;
             }).when(pool).accept(taskForUri(baseUri));
         }
@@ -597,7 +597,7 @@ public class CrawlerQueueTest {
     }
 
     private SnapshotTask taskForUri(String uri) {
-        return argThat(arg -> arg.getUri().equals(uri(uri)));
+        return argThat(arg -> arg.uri().equals(uri(uri)));
     }
 
 

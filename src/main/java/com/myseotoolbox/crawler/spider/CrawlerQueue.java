@@ -22,7 +22,7 @@ import static com.myseotoolbox.crawler.utils.IsCanonicalized.isCanonicalizedToDi
 
 @Slf4j
 @ThreadSafe
-class CrawlerQueue implements Consumer<CrawlResult> {
+public class CrawlerQueue implements Consumer<CrawlResult> {
 
     private final QueueState queueState = new QueueState();
     private final List<URI> seeds = new ArrayList<>();

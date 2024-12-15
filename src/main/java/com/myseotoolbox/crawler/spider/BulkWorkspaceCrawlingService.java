@@ -34,7 +34,6 @@ public class BulkWorkspaceCrawlingService {
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
     private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
-    private final CrawlEventDispatchFactory crawlEventDispatchFactory;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
 
@@ -47,7 +46,6 @@ public class BulkWorkspaceCrawlingService {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
         this.websiteCrawlLogRepository = websiteCrawlLogRepository;
-        this.crawlEventDispatchFactory = crawlEventDispatchFactory;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
     }
@@ -80,9 +78,8 @@ public class BulkWorkspaceCrawlingService {
                                     .withCrawlDelayMillis(getHigherCrawlDelayMillis(workspaces))
                                     .build();
 
-                            CrawlEventDispatch dispatch = crawlEventDispatchFactory.buildFor(conf.getWebsiteCrawl());
 
-                            CrawlJob job = crawlJobFactory.build(conf, dispatch);
+                            CrawlJob job = crawlJobFactory.build(conf);
                             job.start();
                             //TODO: this needs to go
                             seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));

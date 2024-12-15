@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
+import com.myseotoolbox.crawler.config.WebPageReaderFactory;
 import com.myseotoolbox.crawler.httpclient.*;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
@@ -9,18 +10,14 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
+import com.myseotoolbox.crawler.spider.ratelimiter.SystemClockUtils;
 import com.myseotoolbox.crawler.spider.ratelimiter.TestClockUtils;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapReaderFactory;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
-import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.net.URI;
@@ -28,8 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executor;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 
@@ -41,18 +38,6 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
     private TestWebsiteBuilder testWebsiteBuilder = TestWebsiteBuilder.build();
 
     private final Executor executor = new CurrentThreadTestExecutorService();
-    private final CrawlExecutorFactory testExecutorBuilder = new CurrentThreadCrawlExecutorFactory();
-    private final WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()), testClockUtils);
-    private final WebsiteUriFilterFactory uriFilterFactory = new WebsiteUriFilterFactory();
-
-    private final HttpURLConnectionFactory connectionFactory = new HttpURLConnectionFactory();
-    private final HttpRequestFactory requestFactory = new HttpRequestFactory(connectionFactory);
-    private final SitemapReaderFactory sitemapReaderFactory = new SitemapReaderFactory(requestFactory);
-
-    private final SitemapRepository sitemapRepository = Mockito.mock(SitemapRepository.class);
-    private SitemapService sitemapService = new SitemapService(sitemapReaderFactory, sitemapRepository);
-
-
     private RobotsTxtAggregation robotsAggregation = new RobotsTxtAggregation(new HTTPClient());
 
 
@@ -68,19 +53,24 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
 
     @Before
     public void setUp() throws Exception {
-        when(listenerProvider.buildFor(any())).thenReturn(dispatch);
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
-        crawlJobFactory = new CrawlJobFactory(webPageReaderFactory, uriFilterFactory, testExecutorBuilder, sitemapService);
+
+        crawlJobFactory = TestCrawlJobFactoryBuilder.builder()
+                .withCrawlEventDispatch(dispatch)
+                .withCLockUtils(testClockUtils)
+                .build();
         sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
         testWebsiteBuilder.run();
     }
 
+    //    @Test
     public void crawlSingleUrlExploratory() {
+        WebPageReaderFactory webPageReaderFactory = new WebPageReaderFactory(new HttpRequestFactory(new HttpURLConnectionFactory()), new SystemClockUtils());
         WebPageReader build = webPageReaderFactory.build((sourceUri, discoveredLink) -> true, 0);
 
         CrawlResult crawlResult = null;
         try {
-            crawlResult = build.snapshotPage(URI.create(""));
+            crawlResult = build.snapshotPage(URI.create("https://"));
         } catch (SnapshotException e) {
             System.out.println(e.getPartialSnapshot().getRedirectChainElements());
         }
@@ -211,7 +201,6 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
     private TestWebsiteBuilder givenAWebsite() {
         return testWebsiteBuilder;
     }
-
 
     private TestWorkspaceBuilder givenAWorkspace() {
         return new TestWorkspaceBuilder(allWorkspaces, websiteCrawlLogRepository);

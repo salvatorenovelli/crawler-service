@@ -18,7 +18,8 @@ class QueueState {
     private final Set<String> inProgress = new HashSet<>();
 
     public synchronized void addToInProgress(List<URI> uris) {
-        log.debug("Adding to in progress: {}", uris);
+        log.debug("Adding to in progress: {}", uris.size());
+        log.trace("Adding to in progress: {}", uris);
         inProgress.addAll(toString(uris));
     }
 

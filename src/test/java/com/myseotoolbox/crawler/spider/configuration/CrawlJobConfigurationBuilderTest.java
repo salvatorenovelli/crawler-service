@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 public class CrawlJobConfigurationBuilderTest {
 
 
-    private RobotsTxt provided = new EmptyRobotsTxt(null);
+    private final RobotsTxt provided = new EmptyRobotsTxt(null);
 
     private static final URI TEST_ORIGIN = URI.create("http://testhost");
     private CrawlJobConfiguration.Builder sut = newConfiguration("testOwner", TEST_ORIGIN).withRobotsTxt(provided).withTriggerForUserInitiatedCrawlWorkspace(22);
