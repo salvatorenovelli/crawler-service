@@ -1,8 +1,11 @@
 package com.myseotoolbox.crawler.spider;
 
+import org.springframework.stereotype.Component;
+
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
+@Component
 public class CrawlExecutorFactory {
 
     private final AtomicInteger threadId = new AtomicInteger(0);

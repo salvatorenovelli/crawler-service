@@ -7,8 +7,4 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 
-@Data
-public class SnapshotTask {
-    private final URI uri;
-    private final Consumer<CrawlResult> taskRequester;
-}
+public record SnapshotTask(URI uri, Consumer<CrawlResult> taskRequester) { }

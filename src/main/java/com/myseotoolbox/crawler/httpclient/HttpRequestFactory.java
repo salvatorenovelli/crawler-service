@@ -1,7 +1,10 @@
 package com.myseotoolbox.crawler.httpclient;
 
+import org.springframework.stereotype.Component;
+
 import java.net.URI;
 
+@Component
 public class HttpRequestFactory {
     private final HttpURLConnectionFactory connectionFactory;
 

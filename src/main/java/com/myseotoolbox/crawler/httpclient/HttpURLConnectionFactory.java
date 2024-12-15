@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.httpclient;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import javax.net.ssl.*;
 import java.io.IOException;
@@ -12,6 +13,7 @@ import java.security.cert.X509Certificate;
 
 
 @Slf4j
+@Component
 public class HttpURLConnectionFactory {
     public HttpURLConnection createConnection(URI uri) throws IOException {
         HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
