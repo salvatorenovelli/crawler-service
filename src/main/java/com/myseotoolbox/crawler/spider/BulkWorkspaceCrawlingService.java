@@ -7,7 +7,6 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
-import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
@@ -79,7 +78,7 @@ public class BulkWorkspaceCrawlingService {
                                     .build();
 
 
-                            CrawlJob job = crawlJobFactory.build(conf);
+                            CrawlJob job = crawlJobFactory.make(conf);
                             job.start();
                             //TODO: this needs to go
                             seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));

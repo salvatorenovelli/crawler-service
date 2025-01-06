@@ -58,7 +58,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
 
     @Before
     public void setUp() throws Exception {
-        when(factory.build(any())).thenReturn(job);
+        when(factory.make(any())).thenReturn(job);
         when(workspaceRepo.findTopBySeqNumber(anyInt())).thenAnswer(invocation -> {
             int seqNumber = invocation.getArgument(0);
             Workspace workspace = allWorkspaces.stream().filter(ws -> ws.getSeqNumber() == seqNumber).findFirst().get();
@@ -79,7 +79,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.crawlId", isValidObjectId()));
 
-        verify(factory).build(argThat(conf -> {
+        verify(factory).make(argThat(conf -> {
             assertEquals(conf.getOrigin().toASCIIString(), "http://host123");
             assertThat(conf.getMaxConcurrentConnections(), is(3));
             assertThat(conf.getWebsiteCrawl().getOwner(), is("testCrawlWorkspace@myseotoolbox"));
@@ -129,7 +129,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        verify(factory).build(argThat(conf -> {
+        verify(factory).make(argThat(conf -> {
             assertThat(conf.getWebsiteCrawl().getTrigger().getType(), is(CrawlTrigger.Type.USER_INITIATED_WORKSPACE));
             assertThat(conf.getWebsiteCrawl().getTrigger().getTargetWorkspaces(), containsInAnyOrder(123));
             return true;

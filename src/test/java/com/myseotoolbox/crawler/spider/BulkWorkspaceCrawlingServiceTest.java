@@ -58,7 +58,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
 
-        when(crawlJobFactory.build(any())).thenAnswer(
+        when(crawlJobFactory.make(any())).thenAnswer(
                 invocation -> {
                     CrawlJob mock = mock(CrawlJob.class);
                     CrawlJobConfiguration configuration = invocation.getArgument(0);
@@ -82,7 +82,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         sut.crawlAllWorkspaces();
         verify(robotsAggregation).mergeConfigurations(argThat(workspaces -> workspaces.size() == 3));
-        verify(crawlJobFactory).build(argThat(argument -> argument.getRobotsTxt() == returnedValue));
+        verify(crawlJobFactory).make(argThat(argument -> argument.getRobotsTxt() == returnedValue));
     }
 
     @Test
@@ -196,7 +196,7 @@ public class BulkWorkspaceCrawlingServiceTest {
         givenAWorkspace().withWebsiteUrl(originWithException).build();
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
-        when(crawlJobFactory.build(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))))).thenThrow(new RuntimeException("Testing exceptions"));
+        when(crawlJobFactory.make(argThat(argument -> argument.getOrigin().equals(URI.create(originWithException))))).thenThrow(new RuntimeException("Testing exceptions"));
 
         sut.crawlAllWorkspaces();
 
@@ -291,7 +291,7 @@ public class BulkWorkspaceCrawlingServiceTest {
     }
 
     private void websiteCrawledWithConcurrentConnections(int numConnections) {
-        verify(crawlJobFactory).build(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections));
+        verify(crawlJobFactory).make(argThat(argument -> argument.getMaxConcurrentConnections() == numConnections));
     }
 
     private void verifyCrawlStartedFor(String origin) {
@@ -304,7 +304,7 @@ public class BulkWorkspaceCrawlingServiceTest {
         try {
             URI originRoot = create(origin).resolve("/");
 
-            verify(crawlJobFactory).build(argThat(conf ->
+            verify(crawlJobFactory).make(argThat(conf ->
                     conf.getOrigin().equals(originRoot) &&
                             conf.getSeeds().containsAll(expectedSeeds)));
 

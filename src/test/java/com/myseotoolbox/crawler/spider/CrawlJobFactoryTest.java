@@ -13,7 +13,6 @@ import com.myseotoolbox.crawler.spider.sitemap.SitemapCrawlResult;
 import com.myseotoolbox.crawler.spider.sitemap.SitemapService;
 import com.myseotoolbox.crawler.spider.sitemap.TestSitemapCrawlResultBuilder;
 import com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder;
-import com.myseotoolbox.crawler.utils.CurrentThreadCrawlExecutorFactory;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -74,7 +73,7 @@ public class CrawlJobFactoryTest {
 
         CrawlJobConfiguration configuration = testConf.withSeeds(seeds("/path1", "/path2")).build();
 
-        CrawlJob job = sut.build(configuration);
+        CrawlJob job = sut.make(configuration);
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
@@ -89,7 +88,7 @@ public class CrawlJobFactoryTest {
                 .withMaxPagesCrawledLimit(3)
                 .withSeeds(seeds("/path1", "/path2", "/path3", "/path4", "/path5", "/path6"))
                 .build();
-        CrawlJob job = sut.build(configuration);
+        CrawlJob job = sut.make(configuration);
         job.start();
 
         verify(dispatch, times(3)).onPageCrawled(any());
@@ -97,14 +96,14 @@ public class CrawlJobFactoryTest {
 
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
-        CrawlJob job = sut.build(testConf.build());
+        CrawlJob job = sut.make(testConf.build());
         job.start();
         verify(dispatch).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
-        CrawlJob job = sut.build(testConf.build());
+        CrawlJob job = sut.make(testConf.build());
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -117,7 +116,7 @@ public class CrawlJobFactoryTest {
         SitemapCrawlResult result = TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).withLinks(linkFromSitemap).build();
         when(sitemapService.fetchSeedsFromSitemaps(any(), any())).thenReturn(result);
 
-        CrawlJob job = sut.build(testConf.build());
+        CrawlJob job = sut.make(testConf.build());
         job.start();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
@@ -137,7 +136,7 @@ public class CrawlJobFactoryTest {
         CrawlJobConfiguration conf = testConf.withSeeds(Collections.singletonList(URI.create("http://host"))).build();
 
 
-        CrawlJob job = sut.build(conf);
+        CrawlJob job = sut.make(conf);
         job.start();
 
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);

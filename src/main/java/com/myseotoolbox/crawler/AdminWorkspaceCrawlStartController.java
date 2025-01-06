@@ -46,7 +46,7 @@ public class AdminWorkspaceCrawlStartController {
         URI origin = URI.create(ws.getWebsiteUrl());
 
         CrawlJobConfiguration conf = getConfiguration(request.getCrawlOwner(), ws.getSeqNumber(), origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
-        CrawlJob job = factory.build(conf);
+        CrawlJob job = factory.make(conf);
 
         job.start();
         return new CrawlWorkspaceResponse(conf.getWebsiteCrawl().getId());

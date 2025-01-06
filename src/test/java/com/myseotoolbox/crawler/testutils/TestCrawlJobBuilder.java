@@ -40,7 +40,7 @@ public class TestCrawlJobBuilder {
                 .withCrawlEventDispatchFactory(crawlEventDispatchFactory)
                 .build();
         CrawlJobConfiguration conf = buildTestConfigurationForSeeds(seeds);
-        return crawlJobFactory.build(conf);
+        return crawlJobFactory.make(conf);
     }
 
 

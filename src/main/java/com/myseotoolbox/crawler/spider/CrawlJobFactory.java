@@ -33,7 +33,7 @@ public class CrawlJobFactory {
     private final CrawlersPoolFactory crawlersPoolFactory;
     private final SitemapService sitemapService;
 
-    public CrawlJob build(CrawlJobConfiguration configuration) {
+    public CrawlJob make(CrawlJobConfiguration configuration) {
         log.debug("Building configuration for {}", configuration);
 
         URI origin = configuration.getOrigin();

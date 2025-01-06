@@ -105,7 +105,7 @@ public class CrawlJobTest {
                     .withCrawlEventDispatch(dispatch)
                     .build();
 
-            return crawlJobFactory.build(conf);
+            return crawlJobFactory.make(conf);
 
         }
     }
