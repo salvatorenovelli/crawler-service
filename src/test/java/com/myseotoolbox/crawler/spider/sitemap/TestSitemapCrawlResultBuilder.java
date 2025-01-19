@@ -5,16 +5,15 @@ import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import lombok.RequiredArgsConstructor;
 
 import java.net.URI;
-import java.util.Arrays;
-import java.util.List;
+import java.util.Set;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 
 @RequiredArgsConstructor
 public class TestSitemapCrawlResultBuilder {
     private final WebsiteCrawl websiteCrawl;
-    private List<URI> links = emptyList();
+    private Set<URI> links = emptySet();
 
 
     public static TestSitemapCrawlResultBuilder aSitemapCrawlResultForOrigin(String origin) {
@@ -23,7 +22,7 @@ public class TestSitemapCrawlResultBuilder {
     }
 
     public TestSitemapCrawlResultBuilder withLinks(URI... links) {
-        this.links = Arrays.asList(links);
+        this.links = Set.of(links);
         return this;
     }
 

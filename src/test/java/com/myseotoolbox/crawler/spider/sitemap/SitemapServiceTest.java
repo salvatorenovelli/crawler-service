@@ -21,13 +21,13 @@ import org.springframework.boot.logging.LoggingSystem;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder.buildTestConfigurationForSeeds;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.not;
 import static org.hamcrest.collection.IsIterableContainingInAnyOrder.containsInAnyOrder;
 
 public class SitemapServiceTest {
@@ -140,7 +140,7 @@ public class SitemapServiceTest {
 
         SitemapCrawlResult expectedResult = new SitemapCrawlResult(
                 curCrawlJobConfiguration.getWebsiteCrawl(),
-                List.of(new SiteMap(testUri("/sitemap.xml"), List.of(testUri("/location1"), testUri("/location2"))))
+                List.of(new SiteMap(testUri("/sitemap.xml"), Set.of(testUri("/location1"), testUri("/location2"))))
         );
 
         Mockito.verify(sitemapRepository).persist(Mockito.eq(expectedResult));

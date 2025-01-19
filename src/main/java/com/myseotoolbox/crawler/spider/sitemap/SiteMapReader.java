@@ -17,10 +17,12 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 @Slf4j
 public class SiteMapReader {
@@ -47,7 +49,7 @@ public class SiteMapReader {
      */
     public SiteMapReader(URI origin, List<String> sitemaps, UriFilter uriFilter, int crawledPageLimit, HttpRequestFactory requestFactory) {
         this.origin = origin;
-        this.siteMaps = sitemaps.stream().map(this::mapToUrIOrLogWarning).filter(Objects::nonNull).collect(Collectors.toList());
+        this.siteMaps = sitemaps.stream().map(this::mapToUrIOrLogWarning).filter(Objects::nonNull).collect(toList());
         this.uriFilter = uriFilter;
         this.crawledPageLimit = crawledPageLimit;
         this.requestFactory = requestFactory;
@@ -105,17 +107,16 @@ public class SiteMapReader {
 
     private Stream<SiteMap> getSiteMapData(URI location, AbstractSiteMap asm) {
         crawlercommons.sitemaps.SiteMap siteMap = (crawlercommons.sitemaps.SiteMap) asm;
-        List<URI> uriList = siteMap.getSiteMapUrls().stream()
+        Set<URI> uriList = siteMap.getSiteMapUrls().stream()
                 .map(this::mapToUrIOrLogWarning)
                 .filter(Objects::nonNull)
                 .filter(uri -> uriFilter.shouldCrawl(uri, uri))
                 .filter(this::isSameDomain)
-                .distinct()
-                .toList();
+                .collect(toSet());
 
         if (currentUriCount + uriList.size() > crawledPageLimit) {
             log.warn("Sitemap {}->{} contains more urls than the allowed limit {}/{}", origin, location, currentUriCount + uriList.size(), crawledPageLimit);
-            uriList = uriList.stream().limit(crawledPageLimit - currentUriCount).toList();
+            uriList = uriList.stream().limit(crawledPageLimit - currentUriCount).collect(toSet());
         }
 
         currentUriCount += uriList.size();

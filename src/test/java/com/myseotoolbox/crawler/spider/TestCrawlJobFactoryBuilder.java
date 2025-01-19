@@ -89,6 +89,6 @@ public class TestCrawlJobFactoryBuilder {
 
         return new CrawlJobFactory(webPageReaderReaderFactory,
                 websiteUriFilterFactory, testExecutorFactory, crawlEventDispatchFactory,
-                new CrawlersPoolFactory(sitemapRepository), sitemapService);
+                new CrawlersPoolFactory(), sitemapService);
     }
 }
