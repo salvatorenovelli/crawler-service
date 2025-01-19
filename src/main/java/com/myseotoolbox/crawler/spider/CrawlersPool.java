@@ -4,6 +4,7 @@ import com.myseotoolbox.crawler.httpclient.SnapshotException;
 import com.myseotoolbox.crawler.httpclient.WebPageReader;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.spider.model.SnapshotTask;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.UnsupportedMimeTypeException;
 
@@ -12,32 +13,26 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.function.Consumer;
 
 @Slf4j
+@RequiredArgsConstructor
 public class CrawlersPool implements Consumer<SnapshotTask> {
 
-    private final ThreadPoolExecutor executor;
     private final WebPageReader pageReader;
-
-    public CrawlersPool(WebPageReader pageReader, ThreadPoolExecutor executor) {
-        this.pageReader = pageReader;
-        this.executor = executor;
-    }
+    private final ThreadPoolExecutor executor;
 
     @Override
     public void accept(SnapshotTask task) {
-        log.debug("Task submitted: {}", task.getUri());
+        log.debug("Task submitted: {}", task.uri());
         executor.submit(() -> {
             try {
                 try {
-                    CrawlResult result = pageReader.snapshotPage(task.getUri());
-                    //maybe here?
-                    task.getTaskRequester().accept(result);
+                    CrawlResult result = pageReader.snapshotPage(task.uri());
+                    task.taskRequester().accept(result);
                 } catch (SnapshotException e) {
-                    logException(e, task.getUri());
-                    //and here....
-                    task.getTaskRequester().accept(CrawlResult.forSnapshot(e.getPartialSnapshot()));
+                    logException(e, task.uri());
+                    task.taskRequester().accept(CrawlResult.forSnapshot(e.getPartialSnapshot()));
                 }
             } catch (Exception e) {
-                log.error("Exception while crawling: " + task.getUri(), e);
+                log.error("Exception while crawling: " + task.uri(), e);
             }
         });
     }
