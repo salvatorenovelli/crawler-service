@@ -383,7 +383,7 @@ public class MonitoredUriUpdaterTest {
         sitemapRepository.persist(
                 aSitemapCrawlResultForCrawl(TEST_CRAWL)
                         .havingSitemapOn("https://testhost/sitemap.xml")
-                        .withCurLinks(URI.create(snapshot.getUri())).build()
+                        .withLinks(URI.create(snapshot.getUri())).build()
         );
 
         sut.updateCurrentValue(TEST_CRAWL, snapshot);
@@ -404,9 +404,9 @@ public class MonitoredUriUpdaterTest {
         sitemapRepository.persist(
                 aSitemapCrawlResultForCrawl(TEST_CRAWL)
                         .havingSitemapOn("https://testhost/sitemap.xml")
-                        .withCurLinks(URI.create(snapshot.getUri())).and()
+                        .withLinks(URI.create(snapshot.getUri())).and()
                         .havingSitemapOn("https://testhost/sitemap2.xml")
-                        .withCurLinks(URI.create(snapshot.getUri()))
+                        .withLinks(URI.create(snapshot.getUri()))
                         .build()
         );
 
@@ -420,7 +420,6 @@ public class MonitoredUriUpdaterTest {
                 URI.create("https://testhost/sitemap.xml"), URI.create("https://testhost/sitemap2.xml")
         )));
     }
-
 
     @Test
     public void shouldUnsetStatus() {

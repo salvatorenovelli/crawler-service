@@ -113,7 +113,7 @@ public class CrawlJobFactoryTest {
     @Test
     public void shouldTakeSeedsFromSitemap() throws SnapshotException {
         URI linkFromSitemap = TEST_ORIGIN.resolve("/fromSitemap");
-        SitemapCrawlResult result = TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).withCurLinks(linkFromSitemap).build();
+        SitemapCrawlResult result = TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).withLinks(linkFromSitemap).build();
         when(sitemapService.fetchSeedsFromSitemaps(any(), any())).thenReturn(result);
 
         CrawlJob job = sut.make(testConf.build());
@@ -129,7 +129,7 @@ public class CrawlJobFactoryTest {
     public void shouldNormalizeSeedsWIthEmptyPathToRootPath() {
 
 
-        SitemapCrawlResult result = TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).withCurLinks(TEST_ORIGIN.resolve("/fromSitemap")).build();
+        SitemapCrawlResult result = TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin(TEST_ORIGIN.toString()).withLinks(TEST_ORIGIN.resolve("/fromSitemap")).build();
 
         when(sitemapService.fetchSeedsFromSitemaps(any(), any())).thenReturn(result);
 

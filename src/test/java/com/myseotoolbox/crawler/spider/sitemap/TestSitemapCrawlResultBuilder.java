@@ -35,7 +35,7 @@ public class TestSitemapCrawlResultBuilder {
         return this;
     }
 
-    public TestSitemapCrawlResultBuilder withCurLinks(URI... links) {
+    public TestSitemapCrawlResultBuilder withLinks(URI... links) {
         Assert.notNull(currentSitemapLocation, "You need to set sitemap location first. havingSitemapOn(...)");
         this.curLinks = Set.of(links);
         return this;
