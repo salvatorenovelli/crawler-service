@@ -101,12 +101,12 @@ public class MonitoredUriBuilder {
     }
 
     public MonitoredUriBuilder havingInternalHrefLinksCount(int count) {
-        this.monitoredUri.getLastCrawl().getInboundLinksCount().setExternal(new InboundLinks(count, null, null));
+        this.monitoredUri.getLastCrawl().getInboundLinksCount().setExternal(new InboundLinkCounts(count, null, null));
         return this;
     }
 
     public MonitoredUriBuilder havingExternalHrefLinksCount(int count) {
-        this.monitoredUri.getLastCrawl().getInboundLinksCount().setExternal(new InboundLinks(count, null, null));
+        this.monitoredUri.getLastCrawl().getInboundLinksCount().setExternal(new InboundLinkCounts(count, null, null));
 
         return this;
     }

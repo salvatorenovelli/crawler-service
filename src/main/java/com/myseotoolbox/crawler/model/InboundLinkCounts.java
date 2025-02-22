@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor@NoArgsConstructor
-public class InboundLinks {
+public class InboundLinkCounts {
     private Integer ahref;
     private Integer sitemap;
     private Integer redirect;
