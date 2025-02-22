@@ -1,9 +1,9 @@
 package com.myseotoolbox.crawler.testutils;
 
 
-import com.myseotoolbox.crawler.pagelinks.PageLink;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.model.RedirectChainElement;
+import com.myseotoolbox.crawler.pagelinks.PageLink;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -67,8 +67,6 @@ public class PageSnapshotTestBuilder {
 
     public static List<RedirectChainElement> buildRedirectChainElementsFor(String uri, int... statuses) {
         AtomicInteger dstId = new AtomicInteger(0);
-
-
         return Arrays.stream(statuses)
                 .mapToObj(status ->
                         new RedirectChainElement(uri + "" + dstId.getAndIncrement(), status, uri + "" + dstId.getAndIncrement())
@@ -107,6 +105,11 @@ public class PageSnapshotTestBuilder {
 
     public PageSnapshotTestBuilder withLinks(String... links) {
         cur.setLinks(Arrays.stream(links).map(s -> new PageLink(s, emptyMap())).collect(Collectors.toList()));
+        return this;
+    }
+
+    public PageSnapshotTestBuilder withCrawlStatus(String text) {
+        cur.setCrawlStatus(text);
         return this;
     }
 

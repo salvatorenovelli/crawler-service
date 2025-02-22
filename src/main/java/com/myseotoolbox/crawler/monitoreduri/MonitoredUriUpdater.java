@@ -46,6 +46,7 @@ public class MonitoredUriUpdater {
                             .set("workspaceNumber", workspace.getSeqNumber())
                             .set("currentValue", snapshot)
                             .unset("lastCrawl.inboundLinksCount.internal")
+                            .set("status", snapshot.getCrawlStatus())
                             .set("lastCrawl.inboundLinks.internal.SITEMAP", sitemapRepository.findSitemapsLinkingTo(websiteCrawl, snapshot.getUri()))
                             .set("lastCrawl.websiteCrawlId", websiteCrawl.getId().toHexString())
                             .set("lastCrawl.dateTime", snapshot.getCreateDate());
