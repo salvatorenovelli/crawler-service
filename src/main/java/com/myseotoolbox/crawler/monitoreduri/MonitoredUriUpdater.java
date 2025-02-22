@@ -3,7 +3,9 @@ package com.myseotoolbox.crawler.monitoreduri;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.data.mongodb.core.MongoOperations;
@@ -20,28 +22,31 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class MonitoredUriUpdater {
     private final MongoOperations mongoOperations;
     private final WorkspaceRepository workspaceRepository;
+    private final SitemapRepository sitemapRepository;
 
-    public MonitoredUriUpdater(MongoOperations operations, WorkspaceRepository workspaceRepository) {
-        this.mongoOperations = operations;
-        this.workspaceRepository = workspaceRepository;
-    }
 
     public void updateCurrentValue(WebsiteCrawl websiteCrawl, PageSnapshot snapshot) {
-
 
         workspaceRepository.findAll()
                 .stream()
                 .filter(workspace -> websiteUrlMatch(workspace.getWebsiteUrl(), websiteCrawl.getOrigin(), snapshot.getUri()))
                 .forEach(workspace -> {
-                    Query query = new Query(new Criteria().andOperator(new Criteria("uri").is(snapshot.getUri()), new Criteria("workspaceNumber").is(workspace.getSeqNumber())));
+                    Query query = new Query(
+                            new Criteria().andOperator(
+                                    new Criteria("uri").is(snapshot.getUri()),
+                                    new Criteria("workspaceNumber").is(workspace.getSeqNumber())
+                            )
+                    );
                     Update update = new Update()
                             .set("uri", snapshot.getUri())
                             .set("workspaceNumber", workspace.getSeqNumber())
                             .set("currentValue", snapshot)
                             .unset("lastCrawl.inboundLinksCount.internal")
+                            .set("lastCrawl.inboundLinks.internal.SITEMAP", sitemapRepository.findSitemapsLinkingTo(websiteCrawl, snapshot.getUri()))
                             .set("lastCrawl.websiteCrawlId", websiteCrawl.getId().toHexString())
                             .set("lastCrawl.dateTime", snapshot.getCreateDate());
 

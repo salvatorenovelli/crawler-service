@@ -5,6 +5,7 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
@@ -18,9 +19,13 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
+import static com.myseotoolbox.crawler.pagelinks.LinkType.SITEMAP;
+import static com.myseotoolbox.crawler.spider.sitemap.TestSitemapCrawlResultBuilder.*;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_WORKSPACE_ORIGIN;
@@ -29,6 +34,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 
 @RunWith(SpringRunner.class)
@@ -41,6 +47,7 @@ public class MonitoredUriUpdaterTest {
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
+    private SitemapRepository sitemapRepository = new SitemapRepository();
 
     MonitoredUriUpdater sut;
     private static final WebsiteCrawl TEST_CRAWL = getCrawlForOrigin(DEFAULT_WORKSPACE_ORIGIN);
@@ -48,7 +55,7 @@ public class MonitoredUriUpdaterTest {
     @Before
     public void setUp() {
         MonitoredUriBuilder.setUp(monitoredUriRepo, pageSnapshotRepository);
-        sut = new MonitoredUriUpdater(operations, workspaceRepository);
+        sut = new MonitoredUriUpdater(operations, workspaceRepository, sitemapRepository);
     }
 
     @After
@@ -365,6 +372,59 @@ public class MonitoredUriUpdaterTest {
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1.get(0).getLastCrawl().getInboundLinksCount().getExternal().getAhref(), is(10));
+    }
+
+    @Test
+    public void shouldPersistSitemapLinks() {
+        givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
+
+
+        sitemapRepository.persist(
+                aSitemapCrawlResultForCrawl(TEST_CRAWL)
+                        .havingSitemapOn("https://testhost/sitemap.xml")
+                        .withCurLinks(URI.create(snapshot.getUri())).build()
+        );
+
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris, hasSize(1));
+
+        Set<URI> internalLinks = monitoredUris.get(0).getLastCrawl().getInboundLinks().getInternal(SITEMAP);
+        assertThat(internalLinks, is(Set.of(URI.create("https://testhost/sitemap.xml"))));
+    }
+
+    @Test
+    public void shouldPersistMultipleSitemapLinks() {
+        givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
+        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
+
+
+        sitemapRepository.persist(
+                aSitemapCrawlResultForCrawl(TEST_CRAWL)
+                        .havingSitemapOn("https://testhost/sitemap.xml")
+                        .withCurLinks(URI.create(snapshot.getUri())).and()
+                        .havingSitemapOn("https://testhost/sitemap2.xml")
+                        .withCurLinks(URI.create(snapshot.getUri()))
+                        .build()
+        );
+
+        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+
+        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(0);
+        assertThat(monitoredUris, hasSize(1));
+
+        Set<URI> internalLinks = monitoredUris.get(0).getLastCrawl().getInboundLinks().getInternal(SITEMAP);
+        assertThat(internalLinks, is(Set.of(
+                URI.create("https://testhost/sitemap.xml"), URI.create("https://testhost/sitemap2.xml")
+        )));
+    }
+
+
+    @Test
+    public void shouldUnsetStatus() {
+        fail();
     }
 
     private TestWorkspaceBuilder givenAWorkspaceWithSeqNumber(int seqNumber) {

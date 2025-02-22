@@ -9,6 +9,7 @@ public class LastCrawl {
     private String websiteCrawlId;
     private LocalDateTime dateTime;
     private InboundLinksCount inboundLinksCount;
+    private InboundLinks inboundLinks;
 
 
     public LastCrawl(String websiteCrawlId) {

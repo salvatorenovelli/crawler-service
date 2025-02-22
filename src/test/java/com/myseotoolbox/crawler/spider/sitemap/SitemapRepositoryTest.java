@@ -1,6 +1,5 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -20,7 +19,7 @@ class SitemapRepositoryTest {
     @Test
     void shouldPersistAndRetrieveSitemapCrawlResult() {
         SitemapCrawlResult sitemapCrawlResult = aSitemapCrawlResultForOrigin("http://domain/sitemap.xml")
-                .withLinks(URI.create("http://domain/page"))
+                .withCurLinks(URI.create("http://domain/page"))
                 .build();
 
         sut.persist(sitemapCrawlResult);
@@ -32,7 +31,7 @@ class SitemapRepositoryTest {
     @Test
     void shouldFindOnSitemapsWithMultipleLinks() {
         SitemapCrawlResult sitemapCrawlResult = aSitemapCrawlResultForOrigin("http://domain/sitemap.xml")
-                .withLinks(URI.create("http://domain/page1"), URI.create("http://domain/page2"))
+                .withCurLinks(URI.create("http://domain/page1"), URI.create("http://domain/page2"))
                 .build();
 
         sut.persist(sitemapCrawlResult);
@@ -47,11 +46,11 @@ class SitemapRepositoryTest {
     @Test
     void shouldFilterByWebsiteCrawl() {
         SitemapCrawlResult sitemapCrawlResult1 = aSitemapCrawlResultForOrigin("http://domain1/sitemap.xml")
-                .withLinks(URI.create("http://domain1/page1"))
+                .withCurLinks(URI.create("http://domain1/page1"))
                 .build();
 
         SitemapCrawlResult sitemapCrawlResult2 = aSitemapCrawlResultForOrigin("http://domain1/sitemap2.xml")
-                .withLinks(URI.create("http://domain1/page1"))
+                .withCurLinks(URI.create("http://domain1/page1"))
                 .build();
 
         sut.persist(sitemapCrawlResult1);
@@ -67,7 +66,7 @@ class SitemapRepositoryTest {
     @Test
     void shouldFilterByUri() {
         SitemapCrawlResult sitemapCrawlResult = aSitemapCrawlResultForOrigin("http://domain/sitemap.xml")
-                .withLinks(URI.create("http://domain/page1"), URI.create("http://domain/page2"))
+                .withCurLinks(URI.create("http://domain/page1"), URI.create("http://domain/page2"))
                 .build();
 
         sut.persist(sitemapCrawlResult);
@@ -95,7 +94,7 @@ class SitemapRepositoryTest {
     void shouldPurgeCrawls() {
         SitemapCrawlResult sitemapCrawlResult = TestSitemapCrawlResultBuilder
                 .aSitemapCrawlResultForOrigin("http://domain/sitemap.xml")
-                .withLinks(URI.create("http://domain/page"))
+                .withCurLinks(URI.create("http://domain/page"))
                 .build();
 
         sut.persist(sitemapCrawlResult);
