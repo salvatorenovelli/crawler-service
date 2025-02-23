@@ -3,7 +3,6 @@ package com.myseotoolbox.crawler.monitoreduri;
 import com.myseotoolbox.crawler.model.MonitoredUri;
 import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,9 +14,11 @@ import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
+import java.util.Set;
 
 import static com.myseotoolbox.crawler.spider.PathMatcher.isSubPath;
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
+import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isSameOrigin;
 
 
 @Component
@@ -26,10 +27,8 @@ import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
 public class MonitoredUriUpdater {
     private final MongoOperations mongoOperations;
     private final WorkspaceRepository workspaceRepository;
-    private final SitemapRepository sitemapRepository;
 
-
-    public void updateCurrentValue(WebsiteCrawl websiteCrawl, PageSnapshot snapshot) {
+    public void updateCurrentValue(WebsiteCrawl websiteCrawl, PageSnapshot snapshot, Set<URI> sitemapInboundLinks) {
 
         workspaceRepository.findAll()
                 .stream()
@@ -47,7 +46,7 @@ public class MonitoredUriUpdater {
                             .set("currentValue", snapshot)
                             .unset("lastCrawl.inboundLinksCount.internal")
                             .set("status", snapshot.getCrawlStatus())
-                            .set("lastCrawl.inboundLinks.internal.SITEMAP", sitemapRepository.findSitemapsLinkingTo(websiteCrawl, snapshot.getUri()))
+                            .set("lastCrawl.inboundLinks.internal.SITEMAP", sitemapInboundLinks)
                             .set("lastCrawl.websiteCrawlId", websiteCrawl.getId().toHexString())
                             .set("lastCrawl.dateTime", snapshot.getCreateDate());
 

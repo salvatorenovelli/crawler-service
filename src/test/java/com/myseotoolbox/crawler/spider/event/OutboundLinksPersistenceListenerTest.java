@@ -22,8 +22,7 @@ import java.net.URI;
 import java.util.function.Consumer;
 
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonMap;
+import static java.util.Collections.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -422,6 +421,6 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     private void processCrawlResult(CrawlResult crawlResult) {
-        sut.onPageCrawled(new PageCrawledEvent(CRAWL, crawlResult, emptyList()));
+        sut.onPageCrawled(new PageCrawledEvent(CRAWL, crawlResult, emptySet()));
     }
 }

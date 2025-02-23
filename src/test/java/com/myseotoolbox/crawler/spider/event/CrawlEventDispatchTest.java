@@ -16,7 +16,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,13 +39,13 @@ public class CrawlEventDispatchTest {
     @Before
     public void setUp() {
         sut = new CrawlEventDispatch(CRAWL, applicationEventPublisher, new TestTimeUtils(), pageCrawledEventFactory);
-        when(pageCrawledEventFactory.make(CRAWL, TEST_CRAWL_RESULT)).thenReturn(new PageCrawledEvent(CRAWL, TEST_CRAWL_RESULT, List.of(EXPECTED_SITEMAP_LINK)));
+        when(pageCrawledEventFactory.make(CRAWL, TEST_CRAWL_RESULT)).thenReturn(new PageCrawledEvent(CRAWL, TEST_CRAWL_RESULT, Set.of(EXPECTED_SITEMAP_LINK)));
     }
 
     @Test
     public void shouldNotifyPageCrawlListeners() {
         sut.onPageCrawled(TEST_CRAWL_RESULT);
-        verify(applicationEventPublisher).publishEvent(new PageCrawledEvent(CRAWL, TEST_CRAWL_RESULT, List.of(EXPECTED_SITEMAP_LINK)));
+        verify(applicationEventPublisher).publishEvent(new PageCrawledEvent(CRAWL, TEST_CRAWL_RESULT, Set.of(EXPECTED_SITEMAP_LINK)));
     }
 
     @Test

@@ -5,10 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -23,14 +21,14 @@ public class SitemapRepository {
         sitemaps.put(sitemapCrawlResult.crawl(), sitemapCrawlResult);
     }
 
-    public List<URI> findSitemapsLinkingTo(WebsiteCrawl websiteCrawl, String uriToSearch) {
+    public Set<URI> findSitemapsLinkingTo(WebsiteCrawl websiteCrawl, String uriToSearch) {
         SitemapCrawlResult sitemapCrawlResult = sitemaps.get(websiteCrawl);
-        if (sitemapCrawlResult == null) return Collections.emptyList();
+        if (sitemapCrawlResult == null) return Collections.emptySet();
 
         return sitemapCrawlResult.sitemaps().stream()
                 .filter(siteMap -> siteMap.links().contains(URI.create(uriToSearch)))
                 .map(SiteMap::location)
-                .toList();
+                .collect(Collectors.toSet());
     }
 
     public SitemapCrawlResult purgeCrawl(WebsiteCrawl websiteCrawl) {

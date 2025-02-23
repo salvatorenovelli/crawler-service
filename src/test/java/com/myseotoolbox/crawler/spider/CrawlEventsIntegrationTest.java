@@ -114,7 +114,9 @@ public class CrawlEventsIntegrationTest {
         job.start();
 
         verify(messageBrokerEventListener).onPageCrawlCompletedEvent(
-                aPageCrawledEvent().forCrawlId(job.getWebsiteCrawlId()).withSitemapInboundLinks(getTestUri("/sitemap.xml")).build()
+                aPageCrawledEvent().forCrawlId(job.getWebsiteCrawlId())
+                        .withPageSnapshotUri(getTestUri("/no_ahref_links"))
+                        .withSitemapInboundLinks(getTestUri("/sitemap.xml")).build()
         );
     }
 

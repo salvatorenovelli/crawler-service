@@ -16,7 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.List;
+import java.util.Set;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -52,7 +52,7 @@ class PageCrawledEventFactoryTest {
         URI expectedSitemapLink = URI.create("http://origin/sitempa.xml");
 
         when(sitemapRepository.findSitemapsLinkingTo(CRAWL, TEST_PAGE_SNAPSHOT.getUri()))
-                .thenReturn(List.of(expectedSitemapLink));
+                .thenReturn(Set.of(expectedSitemapLink));
 
         PageCrawledEvent event = sut.make(CRAWL, TEST_CRAWL_RESULT);
 

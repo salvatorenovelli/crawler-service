@@ -76,7 +76,7 @@ public class SpiderIntegrationTest {
         monitoredUriRepository.deleteAll();
     }
 
-
+    //    @Test
     public void exploratoryTest() {
         CrawlJob crawlJob = buildForSeeds(List.of(URI.create("https://www.example.com")));
         crawlJob.start();

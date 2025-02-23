@@ -3,7 +3,7 @@ package com.myseotoolbox.crawler.spider.sitemap;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Set;
 
 import static com.myseotoolbox.crawler.spider.sitemap.TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -25,7 +25,7 @@ class SitemapRepositoryTest {
 
         sut.persist(sitemapCrawlResult);
 
-        List<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain/page");
+        Set<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain/page");
         assertThat(result, contains(URI.create("http://domain/sitemap.xml")));
     }
 
@@ -38,7 +38,7 @@ class SitemapRepositoryTest {
 
         sut.persist(sitemapCrawlResult);
 
-        List<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain/page1");
+        Set<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain/page1");
         assertThat(result, containsInAnyOrder(URI.create("http://domain/sitemap.xml")));
 
         result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain/page2");
@@ -60,7 +60,7 @@ class SitemapRepositoryTest {
         sut.persist(sitemapCrawlResult1);
         sut.persist(sitemapCrawlResult2);
 
-        List<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult1.crawl(), "http://domain1/page1");
+        Set<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult1.crawl(), "http://domain1/page1");
         assertThat(result, containsInAnyOrder(URI.create("http://domain1/sitemap.xml")));
 
         result = sut.findSitemapsLinkingTo(sitemapCrawlResult2.crawl(), "http://domain1/page1");
@@ -76,7 +76,7 @@ class SitemapRepositoryTest {
 
         sut.persist(sitemapCrawlResult);
 
-        List<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain2/nonexisting");
+        Set<URI> result = sut.findSitemapsLinkingTo(sitemapCrawlResult.crawl(), "http://domain2/nonexisting");
         assertTrue(result.isEmpty());
     }
 

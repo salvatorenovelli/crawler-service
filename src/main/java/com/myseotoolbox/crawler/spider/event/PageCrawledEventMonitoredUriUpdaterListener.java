@@ -8,6 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
+import java.util.Set;
+
 import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWarning;
 
 @Slf4j
@@ -20,6 +23,7 @@ public class PageCrawledEventMonitoredUriUpdaterListener {
     public void onPageCrawledEvent(PageCrawledEvent event) {
         PageSnapshot snapshot = event.getCrawlResult().getPageSnapshot();
         WebsiteCrawl websiteCrawl = event.getWebsiteCrawl();
-        runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(websiteCrawl, snapshot), "Error while updating monitored uris for uri: " + snapshot.getUri());
+        Set<URI> sitemapInboundLinks = event.getSitemapInboundLinks();
+        runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(websiteCrawl, snapshot, sitemapInboundLinks), "Error while updating monitored uris for uri: " + snapshot.getUri());
     }
 }

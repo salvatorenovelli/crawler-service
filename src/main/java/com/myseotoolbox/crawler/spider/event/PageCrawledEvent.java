@@ -5,11 +5,11 @@ import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import lombok.Data;
 
 import java.net.URI;
-import java.util.List;
+import java.util.Set;
 
 @Data
 public class PageCrawledEvent {
     private final WebsiteCrawl websiteCrawl;
     private final CrawlResult crawlResult;
-    private final List<URI> sitemapInboundLinks;
+    private final Set<URI> sitemapInboundLinks;
 }

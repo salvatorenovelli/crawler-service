@@ -10,7 +10,7 @@ import org.bson.types.ObjectId;
 import java.net.URI;
 import java.util.Collections;
 
-import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 public class PageCrawledEventTestBuilder {
 
@@ -37,7 +37,7 @@ public class PageCrawledEventTestBuilder {
     public PageCrawledEvent build() {
         this.crawlResult = CrawlResult.forSnapshot(snapshot);
         this.websiteCrawl = TestWebsiteCrawlFactory.newWebsiteCrawlFor(origin, Collections.emptyList());
-        return new PageCrawledEvent(websiteCrawl, crawlResult, emptyList());
+        return new PageCrawledEvent(websiteCrawl, crawlResult, emptySet());
     }
 
     public PageCrawledEventTestBuilder withCrawlId(String websiteCrawlId) {

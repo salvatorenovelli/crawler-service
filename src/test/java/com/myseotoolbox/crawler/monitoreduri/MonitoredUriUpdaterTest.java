@@ -30,6 +30,7 @@ import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.TEST_WORKSP
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
 import static com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder.DEFAULT_WORKSPACE_ORIGIN;
+import static java.util.Collections.emptyList;
 import static junit.framework.TestCase.assertNull;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -47,15 +48,17 @@ public class MonitoredUriUpdaterTest {
     @Autowired private MonitoredUriRepository monitoredUriRepo;
     @Autowired private PageSnapshotRepository pageSnapshotRepository;
     @Autowired private WorkspaceRepository workspaceRepository;
-    private SitemapRepository sitemapRepository = new SitemapRepository();
 
     MonitoredUriUpdater sut;
     private static final WebsiteCrawl TEST_CRAWL = getCrawlForOrigin(DEFAULT_WORKSPACE_ORIGIN);
+    private Set<URI> TEST_SITEMAP_LINKS = Set.of(
+            URI.create("https://testhost/sitemap.xml"), URI.create("https://testhost/sitemap2.xml")
+    );
 
     @Before
     public void setUp() {
         MonitoredUriBuilder.setUp(monitoredUriRepo, pageSnapshotRepository);
-        sut = new MonitoredUriUpdater(operations, workspaceRepository, sitemapRepository);
+        sut = new MonitoredUriUpdater(operations, workspaceRepository);
     }
 
     @After
@@ -79,7 +82,7 @@ public class MonitoredUriUpdaterTest {
                 .build();
 
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findByUri(TEST_URI);
@@ -96,7 +99,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(1).save();
         PageSnapshot snapshot = aTestPageSnapshotForUri(DEFAULT_WORKSPACE_ORIGIN + "/linkWithUnicode%E2%80%8B%20%20%E2%80%8B").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findAll();
         assertThat(monitoredUris, hasSize(1));
@@ -119,7 +122,7 @@ public class MonitoredUriUpdaterTest {
                 .withTitle("This is a new title")
                 .build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findByUri(TEST_URI);
         assertThat(monitoredUris, hasSize(2));
@@ -137,7 +140,7 @@ public class MonitoredUriUpdaterTest {
                 .withTitle("This is a new title")
                 .build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -158,7 +161,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(1).withCrawlOrigin("https://testhost/it-it/index.html").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/it-it/something").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
         assertThat(monitoredUris1, hasSize(1));
@@ -170,7 +173,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(1).withCrawlOrigin("https://testhost/it-it/index.html").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/en-gb/something").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
         assertThat(monitoredUris1, hasSize(0));
@@ -185,7 +188,7 @@ public class MonitoredUriUpdaterTest {
                 .withTitle("This is a new title")
                 .build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -205,7 +208,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/it-it").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -220,7 +223,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("http://testhost/page1").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(1));
@@ -231,7 +234,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("http://testhost/page1").build();
 
-        sut.updateCurrentValue(getCrawlForOrigin("http://testhost"), snapshot); //different schema, it will not be the same crawl
+        sut.updateCurrentValue(getCrawlForOrigin("http://testhost"), snapshot, TEST_SITEMAP_LINKS); //different schema, it will not be the same crawl
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
@@ -242,7 +245,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://www.testhost").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(1));
@@ -253,7 +256,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://www.testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(1));
@@ -265,7 +268,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhostIsDifferent/page1").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
     }
@@ -277,7 +280,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://subdomain.testhost").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(1);
@@ -290,7 +293,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
         assertThat(monitoredUris, hasSize(1));
@@ -310,7 +313,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(3).withCrawlOrigin("https://testhost/").save();
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").build();
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         assertThat(monitoredUriRepo.findAllByWorkspaceNumber(1), hasSize(1));
         assertThat(monitoredUriRepo.findAllByWorkspaceNumber(3), hasSize(1));
@@ -322,7 +325,7 @@ public class MonitoredUriUpdaterTest {
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1, hasSize(0));
@@ -333,7 +336,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1.get(0).getLastCrawl().getWebsiteCrawlId(), is(TEST_CRAWL.getId().toHexString()));
@@ -349,7 +352,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertNull(monitoredUris1.get(0).getLastCrawl().getInboundLinksCount().getInternal());
@@ -365,7 +368,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
 
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris1 = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris1.get(0).getLastCrawl().getInboundLinksCount().getExternal().getAhref(), is(10));
@@ -377,45 +380,13 @@ public class MonitoredUriUpdaterTest {
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
 
 
-        sitemapRepository.persist(
-                aSitemapCrawlResultForCrawl(TEST_CRAWL)
-                        .havingSitemapOn("https://testhost/sitemap.xml")
-                        .withLinks(URI.create(snapshot.getUri())).build()
-        );
-
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(0);
         assertThat(monitoredUris, hasSize(1));
 
         Set<URI> internalLinks = monitoredUris.get(0).getLastCrawl().getInboundLinks().getInternal(SITEMAP);
-        assertThat(internalLinks, is(Set.of(URI.create("https://testhost/sitemap.xml"))));
-    }
-
-    @Test
-    public void shouldPersistMultipleSitemapLinks() {
-        givenAWorkspaceWithSeqNumber(0).withCrawlOrigin("https://testhost").save();
-        PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost").build();
-
-
-        sitemapRepository.persist(
-                aSitemapCrawlResultForCrawl(TEST_CRAWL)
-                        .havingSitemapOn("https://testhost/sitemap.xml")
-                        .withLinks(URI.create(snapshot.getUri())).and()
-                        .havingSitemapOn("https://testhost/sitemap2.xml")
-                        .withLinks(URI.create(snapshot.getUri()))
-                        .build()
-        );
-
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
-
-        List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(0);
-        assertThat(monitoredUris, hasSize(1));
-
-        Set<URI> internalLinks = monitoredUris.get(0).getLastCrawl().getInboundLinks().getInternal(SITEMAP);
-        assertThat(internalLinks, is(Set.of(
-                URI.create("https://testhost/sitemap.xml"), URI.create("https://testhost/sitemap2.xml")
-        )));
+        assertThat(internalLinks, is(TEST_SITEMAP_LINKS));
     }
 
 
@@ -424,7 +395,7 @@ public class MonitoredUriUpdaterTest {
         givenAWorkspaceWithSeqNumber(TEST_WORKSPACE_NUMBER).withCrawlOrigin("https://testhost").save();
         PageSnapshot snapshot = aTestPageSnapshotForUri("https://testhost/page1").withCrawlStatus("Some error").build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
         assertThat(monitoredUris, hasSize(1));
@@ -439,8 +410,8 @@ public class MonitoredUriUpdaterTest {
         PageSnapshot snapshot1 = aTestPageSnapshotForUri("https://testhost/page1").withCrawlStatus("Some error").build();
         PageSnapshot snapshot2 = aTestPageSnapshotForUri("https://testhost/page1").withCrawlStatus(null).build();
 
-        sut.updateCurrentValue(TEST_CRAWL, snapshot1);
-        sut.updateCurrentValue(TEST_CRAWL, snapshot2);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot1, TEST_SITEMAP_LINKS);
+        sut.updateCurrentValue(TEST_CRAWL, snapshot2, TEST_SITEMAP_LINKS);
 
         List<MonitoredUri> monitoredUris = monitoredUriRepo.findAllByWorkspaceNumber(TEST_WORKSPACE_NUMBER);
         assertThat(monitoredUris, hasSize(1));
@@ -454,6 +425,6 @@ public class MonitoredUriUpdaterTest {
     }
 
     private static WebsiteCrawl getCrawlForOrigin(String origin) {
-        return TestWebsiteCrawlFactory.newWebsiteCrawlFor(origin, Collections.emptyList());
+        return TestWebsiteCrawlFactory.newWebsiteCrawlFor(origin, emptyList());
     }
 }
