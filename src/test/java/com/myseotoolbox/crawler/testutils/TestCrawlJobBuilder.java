@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.event.CrawlEventDispatch;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.mockito.Mockito;
 
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 public class TestCrawlJobBuilder {
     public static final List<Integer> EXPECTED_WORKSPACES_FOR_TRIGGER = Arrays.asList(1, 2, 3);
     private final CrawlEventDispatchFactory crawlEventDispatchFactory;
+    private SitemapRepository sitemapRepository;
 
     public TestCrawlJobBuilder(CrawlEventDispatch dispatch) {
         crawlEventDispatchFactory = Mockito.mock();
@@ -34,13 +36,21 @@ public class TestCrawlJobBuilder {
         this.crawlEventDispatchFactory = factory;
     }
 
+    public void setSitemapRepository(SitemapRepository sitemapRepository) {
+        this.sitemapRepository = sitemapRepository;
+    }
+
     public CrawlJob buildForSeeds(List<URI> seeds) {
-        CrawlJobFactory crawlJobFactory = TestCrawlJobFactoryBuilder
+        TestCrawlJobFactoryBuilder crawlJobFactoryBuilder = TestCrawlJobFactoryBuilder
                 .builder()
-                .withCrawlEventDispatchFactory(crawlEventDispatchFactory)
-                .build();
+                .withCrawlEventDispatchFactory(crawlEventDispatchFactory);
+
+        if (sitemapRepository != null)
+            crawlJobFactoryBuilder.withSitemapRepository(sitemapRepository);
+
+
         CrawlJobConfiguration conf = buildTestConfigurationForSeeds(seeds);
-        return crawlJobFactory.make(conf);
+        return crawlJobFactoryBuilder.build().make(conf);
     }
 
 

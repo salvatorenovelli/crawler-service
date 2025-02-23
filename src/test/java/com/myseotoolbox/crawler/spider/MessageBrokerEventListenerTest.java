@@ -20,6 +20,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.time.Instant;
 import java.util.Collections;
 
+import static java.util.Collections.emptyList;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -56,7 +57,7 @@ public class MessageBrokerEventListenerTest {
     @Test
     public void shouldPublishWebsiteCompletedOnTheCorrectQueue() {
         PageSnapshot val = PageSnapshotTestBuilder.aTestPageSnapshotForUri("http://host/someuri").build();
-        sut.onPageCrawlCompletedEvent(new PageCrawledEvent(TEST_CRAWL, CrawlResult.forSnapshot(val)));
+        sut.onPageCrawlCompletedEvent(new PageCrawledEvent(TEST_CRAWL, CrawlResult.forSnapshot(val), emptyList()));
         verify(template).publish(eq(PAGE_CRAWL_COMPLETED_TOPIC), eq(new PageCrawlCompletedEvent(TEST_CRAWL.getId().toHexString(), val)));
     }
 

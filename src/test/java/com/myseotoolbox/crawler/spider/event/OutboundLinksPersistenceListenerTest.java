@@ -422,6 +422,6 @@ public class OutboundLinksPersistenceListenerTest {
     }
 
     private void processCrawlResult(CrawlResult crawlResult) {
-        sut.onPageCrawled(new PageCrawledEvent(CRAWL, crawlResult));
+        sut.onPageCrawled(new PageCrawledEvent(CRAWL, crawlResult, emptyList()));
     }
 }

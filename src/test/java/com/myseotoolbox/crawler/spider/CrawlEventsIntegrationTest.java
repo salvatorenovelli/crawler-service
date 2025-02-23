@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.spider.configuration.PubSubProperties;
 import com.myseotoolbox.crawler.spider.event.CrawlStatusUpdateEvent;
 import com.myseotoolbox.crawler.spider.event.MessageBrokerEventListener;
 import com.myseotoolbox.crawler.spider.event.WebsiteCrawlCompletedEvent;
+import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder;
 import com.myseotoolbox.crawler.testutils.testwebsite.TestWebsiteBuilder;
 import com.myseotoolbox.testutils.TimeUtilsTestConfiguration;
@@ -48,6 +49,7 @@ public class CrawlEventsIntegrationTest {
     @Autowired MonitoredUriRepository monitoredUriRepository;
     @Autowired OutboundLinkRepository outboundLinkRepository;
     @Autowired private CrawlEventDispatchFactory factory;
+    @Autowired SitemapRepository sitemapRepository;
     @Autowired PubSubProperties pubSubProperties;
     @SpyBean MessageBrokerEventListener messageBrokerEventListener;
     @MockBean PubSubPublisherTemplate template;
@@ -57,6 +59,7 @@ public class CrawlEventsIntegrationTest {
     public void setUp() throws Exception {
         testWebsiteBuilder.run();
         testCrawlJobBuilder = new TestCrawlJobBuilder(factory);
+        testCrawlJobBuilder.setSitemapRepository(sitemapRepository);
     }
 
     @After
@@ -101,7 +104,23 @@ public class CrawlEventsIntegrationTest {
     }
 
     @Test
-    public void shouldNotifyOfCrawlProgress() throws InterruptedException {
+    public void pageCrawledShouldHaveSitemapInboundLinks() {
+        givenAWebsite()
+                .havingPage("/no_ahref_links")
+                .withSitemapOn("/").havingUrls("/no_ahref_links").build()
+                .save();
+
+        CrawlJob job = buildForSeeds(testSeeds("/"));
+        job.start();
+
+        verify(messageBrokerEventListener).onPageCrawlCompletedEvent(
+                aPageCrawledEvent().forCrawlId(job.getWebsiteCrawlId()).withSitemapInboundLinks(getTestUri("/sitemap.xml")).build()
+        );
+    }
+
+
+    @Test
+    public void shouldNotifyOfCrawlProgress() {
         givenAWebsite()
                 .havingRootPage().withLinksTo("/abc", "/cde")
                 .save();

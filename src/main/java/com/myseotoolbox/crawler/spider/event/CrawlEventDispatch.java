@@ -14,10 +14,11 @@ public class CrawlEventDispatch {
     private final WebsiteCrawl websiteCrawl;
     private final ApplicationEventPublisher applicationEventPublisher;
     private final TimeUtils timeUtils;
+    private final PageCrawledEventFactory pageCrawledEventFactory;
 
     public void onPageCrawled(CrawlResult crawlResult) {
         log.debug("Persisting page crawled: {} for crawl: {}", crawlResult.getUri(), websiteCrawl);
-        applicationEventPublisher.publishEvent(new PageCrawledEvent(websiteCrawl, crawlResult));
+        applicationEventPublisher.publishEvent(pageCrawledEventFactory.make(websiteCrawl, crawlResult));
     }
 
     public void onCrawlStarted() {

@@ -3,7 +3,10 @@ package com.myseotoolbox.crawler.spider;
 import com.myseotoolbox.crawler.spider.event.PageCrawledEvent;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.hamcrest.core.IsIterableContaining;
 import org.mockito.ArgumentMatcher;
+
+import java.net.URI;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -12,6 +15,7 @@ import static org.mockito.ArgumentMatchers.argThat;
 public class PageCrawledEventMatcherBuilder {
     private Matcher<String> crawlId = Matchers.any(String.class);
     private Matcher<String> pageSnapshotUri = Matchers.any(String.class);
+    private Matcher<Iterable<? super URI>> sitemapInboundLinks = (Matcher<Iterable<? super URI>>) (Matcher) Matchers.any(Iterable.class);
 
 
     public static PageCrawledEventMatcherBuilder aPageCrawledEvent() {
@@ -28,12 +32,18 @@ public class PageCrawledEventMatcherBuilder {
         return this;
     }
 
+    public PageCrawledEventMatcherBuilder withSitemapInboundLinks(String testUri) {
+        this.sitemapInboundLinks = IsIterableContaining.hasItem(URI.create(testUri));
+        return this;
+    }
+
     public PageCrawledEvent build() {
         return argThat(new ArgumentMatcher<PageCrawledEvent>() {
             @Override
             public boolean matches(PageCrawledEvent argument) {
                 return crawlId.matches(argument.getWebsiteCrawl().getId().toHexString()) &&
-                        pageSnapshotUri.matches(argument.getCrawlResult().getPageSnapshot().getUri());
+                        pageSnapshotUri.matches(argument.getCrawlResult().getPageSnapshot().getUri()) &&
+                        sitemapInboundLinks.matches(argument.getSitemapInboundLinks());
             }
 
             @Override
@@ -41,6 +51,7 @@ public class PageCrawledEventMatcherBuilder {
                 return "PageCrawledEvent{" +
                         "websiteCrawlId=" + crawlId +
                         ", uri=" + pageSnapshotUri +
+                        ", sitemapInboundLinks=" + sitemapInboundLinks +
                         '}';
             }
         });

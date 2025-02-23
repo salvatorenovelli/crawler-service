@@ -68,6 +68,12 @@ public class TestCrawlJobFactoryBuilder {
         return this;
     }
 
+    public TestCrawlJobFactoryBuilder withSitemapRepository(SitemapRepository sitemapRepository) {
+        this.sitemapRepository = sitemapRepository;
+        this.sitemapService = new SitemapService(sitemapReaderFactory, sitemapRepository);
+        return this;
+    }
+
     public TestCrawlJobFactoryBuilder withWebPageReader(WebPageReader pageReader) {
         WebPageReaderFactory mockWebPageReaderFactory = Mockito.mock();
         when(mockWebPageReaderFactory.build(any(), anyLong())).thenReturn(pageReader);
