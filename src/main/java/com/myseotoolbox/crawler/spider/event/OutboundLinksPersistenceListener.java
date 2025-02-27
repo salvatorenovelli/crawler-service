@@ -27,10 +27,10 @@ public class OutboundLinksPersistenceListener {
 
     @EventListener
     public void onPageCrawled(PageCrawledEvent pageCrawledEvent) {
-        CrawlResult crawlResult = pageCrawledEvent.getCrawlResult();
+        CrawlResult crawlResult = pageCrawledEvent.crawlResult();
 
         if (isValid(crawlResult)) {
-            processCrawlResult(pageCrawledEvent.getWebsiteCrawl(), crawlResult);
+            processCrawlResult(pageCrawledEvent.websiteCrawl(), crawlResult);
         }
     }
 

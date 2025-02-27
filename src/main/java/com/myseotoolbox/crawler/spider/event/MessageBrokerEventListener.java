@@ -36,7 +36,7 @@ public class MessageBrokerEventListener {
 
     @EventListener
     public void onPageCrawlCompletedEvent(PageCrawledEvent event) {
-        PageCrawlCompletedEvent payload = new PageCrawlCompletedEvent(event.getWebsiteCrawl().getId().toHexString(), event.getCrawlResult().getPageSnapshot());
+        PageCrawlCompletedEvent payload = new PageCrawlCompletedEvent(event.websiteCrawl().getId().toHexString(), event.crawlResult().getPageSnapshot());
         log.debug("Page crawl completed. Publishing event. {}", payload);
         publishMessage(config.getPageCrawlCompletedTopicName(), payload);
     }

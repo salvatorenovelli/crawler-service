@@ -41,9 +41,9 @@ public class PageCrawledEventMatcherBuilder {
         return argThat(new ArgumentMatcher<PageCrawledEvent>() {
             @Override
             public boolean matches(PageCrawledEvent argument) {
-                return crawlId.matches(argument.getWebsiteCrawl().getId().toHexString()) &&
-                        pageSnapshotUri.matches(argument.getCrawlResult().getPageSnapshot().getUri()) &&
-                        sitemapInboundLinks.matches(argument.getSitemapInboundLinks());
+                return crawlId.matches(argument.websiteCrawl().getId().toHexString()) &&
+                        pageSnapshotUri.matches(argument.crawlResult().getPageSnapshot().getUri()) &&
+                        sitemapInboundLinks.matches(argument.sitemapInboundLinks());
             }
 
             @Override

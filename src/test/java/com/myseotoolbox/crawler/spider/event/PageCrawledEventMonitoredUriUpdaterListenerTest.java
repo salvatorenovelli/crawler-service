@@ -22,9 +22,9 @@ public class PageCrawledEventMonitoredUriUpdaterListenerTest {
         PageCrawledEvent event = aPageCrawledEvent("http://origin").withStandardValuesForPath("/dst").build();
         sut.onPageCrawledEvent(event);
         verify(monitoredUriUpdater).updateCurrentValue(
-                event.getWebsiteCrawl(),
-                event.getCrawlResult().getPageSnapshot(),
-                event.getSitemapInboundLinks());
+                event.websiteCrawl(),
+                event.crawlResult().getPageSnapshot(),
+                event.sitemapInboundLinks());
     }
 
 }

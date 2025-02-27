@@ -42,8 +42,8 @@ class PageCrawledEventFactoryTest {
     void shouldMakeWIthCorrectData() {
         PageCrawledEvent event = sut.make(CRAWL, TEST_CRAWL_RESULT);
 
-        assertThat(event.getCrawlResult(), is(TEST_CRAWL_RESULT));
-        assertThat(event.getWebsiteCrawl(), is(CRAWL));
+        assertThat(event.crawlResult(), is(TEST_CRAWL_RESULT));
+        assertThat(event.websiteCrawl(), is(CRAWL));
     }
 
     @Test
@@ -56,7 +56,7 @@ class PageCrawledEventFactoryTest {
 
         PageCrawledEvent event = sut.make(CRAWL, TEST_CRAWL_RESULT);
 
-        assertThat(event.getSitemapInboundLinks(), IsCollectionWithSize.hasSize(1));
-        assertThat(event.getSitemapInboundLinks(), IsIterableContaining.hasItem(expectedSitemapLink));
+        assertThat(event.sitemapInboundLinks(), IsCollectionWithSize.hasSize(1));
+        assertThat(event.sitemapInboundLinks(), IsIterableContaining.hasItem(expectedSitemapLink));
     }
 }

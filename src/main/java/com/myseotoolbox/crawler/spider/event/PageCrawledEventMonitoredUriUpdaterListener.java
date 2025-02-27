@@ -21,9 +21,9 @@ public class PageCrawledEventMonitoredUriUpdaterListener {
 
     @EventListener
     public void onPageCrawledEvent(PageCrawledEvent event) {
-        PageSnapshot snapshot = event.getCrawlResult().getPageSnapshot();
-        WebsiteCrawl websiteCrawl = event.getWebsiteCrawl();
-        Set<URI> sitemapInboundLinks = event.getSitemapInboundLinks();
+        PageSnapshot snapshot = event.crawlResult().getPageSnapshot();
+        WebsiteCrawl websiteCrawl = event.websiteCrawl();
+        Set<URI> sitemapInboundLinks = event.sitemapInboundLinks();
         runOrLogWarning(() -> monitoredUriUpdater.updateCurrentValue(websiteCrawl, snapshot, sitemapInboundLinks), "Error while updating monitored uris for uri: " + snapshot.getUri());
     }
 }
