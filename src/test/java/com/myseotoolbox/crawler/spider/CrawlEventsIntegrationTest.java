@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 import static com.myseotoolbox.crawler.spider.CrawlStatusUpdateEventMatcherBuilder.aCrawlStatusUpdateEvent;
 import static com.myseotoolbox.crawler.spider.PageCrawledEventMatcherBuilder.aPageCrawledEvent;
 import static com.myseotoolbox.crawler.testutils.TestCrawlJobBuilder.EXPECTED_WORKSPACES_FOR_TRIGGER;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(SpringRunner.class)
