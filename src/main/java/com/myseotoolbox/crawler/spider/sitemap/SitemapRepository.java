@@ -21,9 +21,13 @@ public class SitemapRepository {
         sitemaps.put(sitemapCrawlResult.crawl(), sitemapCrawlResult);
     }
 
-    public Set<URI> findSitemapsLinkingTo(WebsiteCrawl websiteCrawl, String uriToSearch) {
+    public Set<URI> findSitemapsLinkingTo(WebsiteCrawl websiteCrawl, String uriToSearch)  {
         SitemapCrawlResult sitemapCrawlResult = sitemaps.get(websiteCrawl);
-        if (sitemapCrawlResult == null) return Collections.emptySet();
+
+        if (sitemapCrawlResult == null) {
+            log.error("WebsiteCrawl {} was not present when finding links for {}", websiteCrawl, uriToSearch);
+            return Collections.emptySet(); //graceful fallback
+        }
 
         return sitemapCrawlResult.sitemaps().stream()
                 .filter(siteMap -> siteMap.links().contains(URI.create(uriToSearch)))

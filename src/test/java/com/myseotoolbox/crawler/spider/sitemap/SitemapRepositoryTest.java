@@ -29,6 +29,18 @@ class SitemapRepositoryTest {
         assertThat(result, contains(URI.create("http://domain/sitemap.xml")));
     }
 
+//    @Test
+//    void shouldThrowExceptionWhenWebsiteCrawlNotFound() {
+//        WebsiteCrawl nonExistentCrawl = newWebsiteCrawlFor("http://domain", Set.of());
+//
+//        WebsiteCrawlNotFoundException exception = assertThrows(WebsiteCrawlNotFoundException.class, () ->
+//                sut.findSitemapsLinkingTo(nonExistentCrawl, "http://domain/page")
+//        );
+//
+//        assertEquals("WebsiteCrawl not found: " + nonExistentCrawl, exception.getMessage());
+//    }
+
+
     @Test
     void shouldFindOnSitemapsWithMultipleLinks() {
         SitemapCrawlResult sitemapCrawlResult = aSitemapCrawlResultForOrigin("http://domain")
