@@ -60,7 +60,7 @@ public class CrawlersPoolTest {
     }
 
     @Test
-    public void exceptionHappeningOutsideCrawlShouldBeHandled() {
+    public void shouldLogExceptionHappeningOutsideCrawl() {
         doThrow(new RuntimeException("This happened while submitting result")).when(listener).accept(any());
         acceptTaskFor(SUCCESS_TEST_LINK);
         verify(mockAppender).doAppend(argThat(argument -> argument.getLevel().equals(Level.ERROR) && argument.getMessage().contains("Exception while crawling")));

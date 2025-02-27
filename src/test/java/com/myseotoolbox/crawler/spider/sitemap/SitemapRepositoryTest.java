@@ -1,19 +1,38 @@
 package com.myseotoolbox.crawler.spider.sitemap;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.net.URI;
 import java.util.Set;
 
 import static com.myseotoolbox.crawler.spider.sitemap.TestSitemapCrawlResultBuilder.aSitemapCrawlResultForOrigin;
+import static com.myseotoolbox.testutils.TestWebsiteCrawlFactory.newWebsiteCrawlFor;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.verify;
 
+@ExtendWith(MockitoExtension.class)
 class SitemapRepositoryTest {
 
     private SitemapRepository sut = new SitemapRepository();
+
+    @Mock private Appender<ILoggingEvent> mockAppender;
+
+    @BeforeEach
+    void setUp() {
+        ch.qos.logback.classic.Logger logger = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(SitemapRepository.class.getName());
+        logger.addAppender(mockAppender);
+    }
 
 
     @Test
@@ -29,16 +48,13 @@ class SitemapRepositoryTest {
         assertThat(result, contains(URI.create("http://domain/sitemap.xml")));
     }
 
-//    @Test
-//    void shouldThrowExceptionWhenWebsiteCrawlNotFound() {
-//        WebsiteCrawl nonExistentCrawl = newWebsiteCrawlFor("http://domain", Set.of());
-//
-//        WebsiteCrawlNotFoundException exception = assertThrows(WebsiteCrawlNotFoundException.class, () ->
-//                sut.findSitemapsLinkingTo(nonExistentCrawl, "http://domain/page")
-//        );
-//
-//        assertEquals("WebsiteCrawl not found: " + nonExistentCrawl, exception.getMessage());
-//    }
+    @Test
+    void shouldGracefullyFallbackOnMissingCrawl() {
+        WebsiteCrawl nonExistentCrawl = newWebsiteCrawlFor("http://domain", Set.of());
+        assertThat(sut.findSitemapsLinkingTo(nonExistentCrawl, "http://domain/page"), is(empty()));
+        verify(mockAppender).doAppend(argThat(argument -> argument.getLevel().equals(Level.ERROR) &&
+                argument.getMessage().contains("was not present when finding links for http://domain/page")));
+    }
 
 
     @Test
