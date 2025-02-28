@@ -27,6 +27,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.Is.is;
 
@@ -463,6 +464,16 @@ public class SiteMapReaderTest {
                         .withLinks(uri("www", "/locationWww"), uri("/location2"))
                         .build()
         );
+    }
+
+    @Test
+    public void shouldHandle404Sitemap() {
+        givenAWebsite().withSitemapOn("/weirdLocation.xml").build();
+
+        List<SiteMap> sitemaps = siteMapReader.fetchSitemaps();
+
+        assertThat(sitemaps, is(empty()));
+
     }
 
     private URI uri(String s) {

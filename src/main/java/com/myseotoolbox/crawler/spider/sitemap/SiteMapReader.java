@@ -9,6 +9,7 @@ import crawlercommons.sitemaps.*;
 import io.vavr.control.Try;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -92,8 +93,10 @@ public class SiteMapReader {
 
     private AbstractSiteMap fetchSitemap(URI location) throws IOException, URISyntaxException, UnknownFormatException {
         HttpResponse response = requestFactory.buildGetFor(location).execute();
-        AbstractSiteMap asm = siteMapParser.parseSiteMap(response.getContentType(), IOUtils.toByteArray(response.getInputStream()), location.toURL());
-        return asm;
+        if (response.getHttpStatus() == HttpStatus.OK.value()) {
+            return siteMapParser.parseSiteMap(response.getContentType(), IOUtils.toByteArray(response.getInputStream()), location.toURL());
+        }
+        throw new IOException(response + " - " + location.toString());
     }
 
     private Stream<SiteMap> traverseSiteMapIndex(AbstractSiteMap asm) {

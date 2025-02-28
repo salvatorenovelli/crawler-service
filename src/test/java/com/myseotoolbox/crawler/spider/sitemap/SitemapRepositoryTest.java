@@ -52,8 +52,10 @@ class SitemapRepositoryTest {
     void shouldGracefullyFallbackOnMissingCrawl() {
         WebsiteCrawl nonExistentCrawl = newWebsiteCrawlFor("http://domain", Set.of());
         assertThat(sut.findSitemapsLinkingTo(nonExistentCrawl, "http://domain/page"), is(empty()));
-        verify(mockAppender).doAppend(argThat(argument -> argument.getLevel().equals(Level.ERROR) &&
-                argument.getMessage().contains("was not present when finding links for http://domain/page")));
+        verify(mockAppender).doAppend(argThat(
+                argument -> argument.getLevel().equals(Level.ERROR) &&
+                        argument.getMessage().contains("WebsiteCrawl {} was not present when finding links for {}")
+        ));
     }
 
 

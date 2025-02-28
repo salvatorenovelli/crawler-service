@@ -71,11 +71,19 @@ class TestWebsiteRequestHandler extends AbstractHandler implements TestWebsite {
 
     private void serveSitemap(Request request, HttpServletResponse response, String path) {
 
+        TestWebsiteBuilder.TestSiteMap sitemap = this.testWebsiteBuilder.getSitemap(path);
+
+        if (sitemap == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            request.setHandled(true);
+            return;
+        }
+
         response.setStatus(HttpServletResponse.SC_OK);
         response.setHeader("content-type", "application/xml");
 
         try (OutputStream outputStream = response.getOutputStream()) {
-            CharSequence render = render(this.testWebsiteBuilder.getSitemap(path));
+            CharSequence render = render(sitemap);
             IOUtils.write(render, outputStream, "UTF-8");
         } catch (IOException e) {
             e.printStackTrace();
