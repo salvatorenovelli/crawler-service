@@ -17,10 +17,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Set;
 
-import static java.util.Collections.emptySet;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
@@ -57,12 +58,14 @@ public class MessageBrokerEventListenerTest {
     @Test
     public void shouldPublishWebsiteCompletedOnTheCorrectQueue() {
         PageSnapshot val = PageSnapshotTestBuilder.aTestPageSnapshotForUri("http://host/someuri").build();
-        sut.onPageCrawlCompletedEvent(new PageCrawledEvent(TEST_CRAWL, CrawlResult.forSnapshot(val), emptySet()));
-        verify(template).publish(eq(PAGE_CRAWL_COMPLETED_TOPIC), eq(new PageCrawlCompletedEvent(TEST_CRAWL.getId().toHexString(), val)));
+        Set<URI> expectedLinks = Set.of(URI.create("http://host/sitemap.xml"));
+        sut.onPageCrawlCompletedEvent(new PageCrawledEvent(TEST_CRAWL, CrawlResult.forSnapshot(val), expectedLinks));
+        verify(template).publish(eq(PAGE_CRAWL_COMPLETED_TOPIC),
+                eq(new PageCrawlCompletedEvent(TEST_CRAWL.getId().toHexString(), val, expectedLinks)));
     }
 
     @Test
-    public void shouldPublishPageCrawlCompletedOnTheCorrectQueue() {
+    public void shouldPublishWebsiteCrawlCompletedOnTheCorrectQueue() {
         WebsiteCrawlCompletedEvent event = new WebsiteCrawlCompletedEvent(TEST_CRAWL, 6, Instant.EPOCH);
         sut.onWebsiteCrawlCompletedEvent(event);
         verify(template).publish(eq(WEBSITE_CRAWL_COMPLETED_TOPIC), eq(event));
