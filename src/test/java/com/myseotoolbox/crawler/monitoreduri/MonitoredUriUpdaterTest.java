@@ -5,7 +5,6 @@ import com.myseotoolbox.crawler.model.PageSnapshot;
 import com.myseotoolbox.crawler.repository.MonitoredUriRepository;
 import com.myseotoolbox.crawler.repository.PageSnapshotRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
-import com.myseotoolbox.crawler.spider.sitemap.SitemapRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
@@ -20,12 +19,10 @@ import org.springframework.data.mongodb.core.MongoOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 import static com.myseotoolbox.crawler.pagelinks.LinkType.SITEMAP;
-import static com.myseotoolbox.crawler.spider.sitemap.TestSitemapCrawlResultBuilder.aSitemapCrawlResultForCrawl;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.TEST_WORKSPACE_NUMBER;
 import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonitoredUri;
 import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.aTestPageSnapshotForUri;
@@ -36,7 +33,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.fail;
 
 
 @RunWith(SpringRunner.class)
