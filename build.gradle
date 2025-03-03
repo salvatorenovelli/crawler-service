@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'com.myseotoolbox'
-version = '1.14.10'
+version = '1.14.11-SNAPSHOT'
 
 java {
     sourceCompatibility = '17'
