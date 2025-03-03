@@ -12,6 +12,6 @@ public class SitemapRepositoryGarbageCollectionListener {
 
     @EventListener
     public void onWebsiteCrawlCompletedEvent(WebsiteCrawlCompletedEvent event) {
-        sitemapRepository.purgeCrawl(event.getWebsiteCrawl());
+        sitemapRepository.purgeCrawl(event.websiteCrawl());
     }
 }
