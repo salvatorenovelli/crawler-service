@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.repository;
 
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
+import com.myseotoolbox.testutils.IsolatedMongoDbTest;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,9 +21,7 @@ import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertThat;
 
 
-@RunWith(SpringRunner.class)
-@DataMongoTest
-public class WorkspaceRepositoryTest {
+public class WorkspaceRepositoryTest extends IsolatedMongoDbTest {
 
     @Autowired
     MongoOperations operations;

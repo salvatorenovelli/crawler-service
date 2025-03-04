@@ -8,15 +8,13 @@ import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.testutils.MonitoredUriBuilder;
 import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
+import com.myseotoolbox.testutils.IsolatedMongoDbTest;
 import com.myseotoolbox.testutils.TestWebsiteCrawlFactory;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.net.URI;
 import java.util.List;
@@ -35,9 +33,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertNotNull;
 
 
-@RunWith(SpringRunner.class)
-@DataMongoTest
-public class MonitoredUriUpdaterTest {
+public class MonitoredUriUpdaterTest extends IsolatedMongoDbTest {
 
     public static final String TEST_URI = DEFAULT_WORKSPACE_ORIGIN + "/path";
     @Autowired private MongoOperations operations;
@@ -48,7 +44,7 @@ public class MonitoredUriUpdaterTest {
     MonitoredUriUpdater sut;
     private static final WebsiteCrawl TEST_CRAWL = getCrawlForOrigin(DEFAULT_WORKSPACE_ORIGIN);
     private Set<URI> TEST_SITEMAP_LINKS = Set.of(
-            URI.create("https://testhost/sitemap.xml"), URI.create("https://testhost/sitemap2.xml")
+            URI.create("https://MonitoredUriUpdaterTest/sitemap.xml"), URI.create("https://MonitoredUriUpdaterTest/sitemap2.xml")
     );
 
     @Before
@@ -61,6 +57,7 @@ public class MonitoredUriUpdaterTest {
     public void tearDown() throws Exception {
         MonitoredUriBuilder.tearDown();
         workspaceRepository.deleteAll();
+        monitoredUriRepo.deleteAll();
     }
 
     @Test

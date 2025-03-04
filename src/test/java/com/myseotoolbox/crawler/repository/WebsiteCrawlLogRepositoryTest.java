@@ -1,6 +1,7 @@
 package com.myseotoolbox.crawler.repository;
 
 import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.testutils.IsolatedMongoDbTest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,9 +15,7 @@ import static org.junit.Assert.assertThat;
 
 
 @SuppressWarnings("OptionalGetWithoutIsPresent")
-@RunWith(SpringRunner.class)
-@DataMongoTest
-public class WebsiteCrawlLogRepositoryTest {
+public class WebsiteCrawlLogRepositoryTest extends IsolatedMongoDbTest {
 
 
     @Autowired

@@ -8,14 +8,12 @@ import com.myseotoolbox.crawler.testutils.TestWorkspaceBuilder;
 import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawlFactory;
+import com.myseotoolbox.testutils.IsolatedMongoDbTest;
 import org.bson.types.ObjectId;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.data.mongodb.core.MongoOperations;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,9 +22,7 @@ import static com.myseotoolbox.crawler.testutils.MonitoredUriBuilder.givenAMonit
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
-@RunWith(SpringRunner.class)
-@DataMongoTest
-public class MonitoredUriInboundLinkCountResetListenerTest {
+public class MonitoredUriInboundLinkCountResetListenerTest extends IsolatedMongoDbTest {
 
     private static final int TEST_WORKSPACE_NUMBER = 99999;
     private static final int OTHER_WORKSPACE_NUMBER = 88888;
