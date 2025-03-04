@@ -20,9 +20,9 @@ import static com.myseotoolbox.crawler.testutils.PageSnapshotTestBuilder.buildRe
 
 public class MonitoredUriBuilder {
 
-    public static final String DEFAULT_USER = "default_user" ;
+    public static final String DEFAULT_USER = "default_user";
     public static final int TEST_WORKSPACE_NUMBER = 19514; //just a random number to avoid hardcoded stuff
-    public static final String WEBSITE_CRAWL_ID = "2340239845nn" ;
+    public static final String WEBSITE_CRAWL_ID = "2340239845nn";
     private static MonitoredUriRepository monitoredUriRepo;
     private static PageSnapshotRepository pageSnapshotRepo;
 
@@ -123,6 +123,13 @@ public class MonitoredUriBuilder {
 
     public MonitoredUriBuilder forWorkspace(int workspaceNumber) {
         monitoredUri.setWorkspaceNumber(workspaceNumber);
+        return this;
+    }
+
+    public MonitoredUriBuilder havingLastCrawl(String crawlId, int hrefInboundLinksCount) {
+        LastCrawl lastCrawl = new LastCrawl(crawlId);
+        lastCrawl.setInboundLinksCount(new InboundLinksCount(new InboundLinkCounts(hrefInboundLinksCount, null, null), null));
+        monitoredUri.setLastCrawl(lastCrawl);
         return this;
     }
 
