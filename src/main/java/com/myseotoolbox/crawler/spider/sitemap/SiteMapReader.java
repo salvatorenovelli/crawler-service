@@ -21,7 +21,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
+import static com.myseotoolbox.crawler.utils.WebsiteOriginUtils.isHostMatching;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 

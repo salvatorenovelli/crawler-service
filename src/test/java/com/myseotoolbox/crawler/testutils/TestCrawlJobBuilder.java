@@ -18,7 +18,7 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.extractOrigin;
+import static com.myseotoolbox.crawler.utils.WebsiteOriginUtils.extractOrigin;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 

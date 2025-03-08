@@ -6,7 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import java.net.URI;
 import java.util.regex.Pattern;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.*;
+import static com.myseotoolbox.crawler.utils.WebsiteOriginUtils.areSubdomains;
+import static com.myseotoolbox.crawler.utils.WebsiteOriginUtils.isHostMatching;
 
 @Slf4j
 public class BasicUriFilter implements UriFilter {

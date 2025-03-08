@@ -2,11 +2,11 @@ package com.myseotoolbox.crawler.spider.configuration;
 
 import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.Workspace;
-import com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.DefaultRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.IgnoredRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
+import com.myseotoolbox.crawler.utils.WebsiteOriginUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

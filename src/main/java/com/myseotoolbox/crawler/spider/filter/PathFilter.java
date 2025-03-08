@@ -1,7 +1,7 @@
 package com.myseotoolbox.crawler.spider.filter;
 
-import com.myseotoolbox.crawler.spider.PathMatcher;
 import com.myseotoolbox.crawler.spider.UriFilter;
+import com.myseotoolbox.crawler.utils.PathMatcher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.net.URI;

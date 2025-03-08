@@ -9,7 +9,7 @@ plugins {
 }
 
 group = 'com.myseotoolbox'
-version = '1.15.1'
+version = '1.15.2-SNAPSHOT'
 
 java {
     sourceCompatibility = '17'
@@ -63,6 +63,7 @@ dependencies {
     implementation 'com.google.cloud:spring-cloud-gcp-starter-pubsub'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'com.myseotoolbox:gcp-commons:3.1.0'
+    implementation 'com.myseotoolbox:crawler-commons:1.0.0'
 
     implementation group: 'commons-lang', name: 'commons-lang', version: '2.2'
     implementation group: 'commons-io', name: 'commons-io', version: '2.7'

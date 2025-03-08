@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.myseotoolbox.crawler.spider.filter.WebsiteOriginUtils.isHostMatching;
 import static com.myseotoolbox.crawler.utils.GetDestinationUri.getDestinationUriString;
+import static com.myseotoolbox.crawler.utils.WebsiteOriginUtils.isHostMatching;
 
 @Component
 public class OutboundLinksPersistenceListener {
