@@ -7,6 +7,7 @@ import com.myseotoolbox.crawler.model.CrawlWorkspaceResponse;
 import com.myseotoolbox.crawler.model.EntityNotFoundException;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.BulkWorkspaceCrawlingService;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
@@ -18,6 +19,7 @@ import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -33,6 +36,7 @@ import java.util.List;
 public class AdminWorkspaceCrawlStartController {
 
     private final CrawlJobFactory factory;
+    private final BulkWorkspaceCrawlingService bulkWorkspaceCrawlingService;
     private final WorkspaceRepository repository;
     private final HTTPClient client;
 
@@ -50,6 +54,12 @@ public class AdminWorkspaceCrawlStartController {
 
         job.start();
         return new CrawlWorkspaceResponse(conf.getWebsiteCrawl().getId());
+    }
+
+    @GetMapping("/crawl-all-workspaces")
+    public String crawlAllWorkspaces() {
+        bulkWorkspaceCrawlingService.crawlAllWorkspaces();
+        return "Started on " + new Date() + "\n";
     }
 
     private CrawlJobConfiguration getConfiguration(String owner, int workspaceNumber, URI origin, List<URI> seeds, int numConnections, boolean ignoreRobots, Long crawlDelayMillis) {
