@@ -42,7 +42,7 @@ public class CurrentThreadTestExecutorService extends ThreadPoolExecutor {
 
     @Override
     public boolean isTerminated() {
-        throw new UnsupportedOperationException("Not implemented!");
+        return true;
     }
 
     @Override

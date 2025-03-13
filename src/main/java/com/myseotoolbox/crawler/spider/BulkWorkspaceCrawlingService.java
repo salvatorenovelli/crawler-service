@@ -82,6 +82,7 @@ public class BulkWorkspaceCrawlingService {
                             job.start();
                             //TODO: this needs to go
                             seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
+                            job.join();
                         }, "Error while starting crawl for: " + origin))
         );
 

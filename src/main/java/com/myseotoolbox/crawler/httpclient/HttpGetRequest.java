@@ -57,7 +57,7 @@ public class HttpGetRequest {
 
 
         if (containsUnicodeCharacters(locationHeader)) {
-            logger.warn("Redirect destination {} contains non ASCII characters (as required by the standard)", connection.getURL());
+            logger.debug("Redirect destination {} contains non ASCII characters (as required by the standard)", connection.getURL());
             locationHeader = SafeStringEscaper.escapeString(locationHeader);
         }
 

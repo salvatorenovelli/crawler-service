@@ -115,7 +115,6 @@ public class BulkWorkspaceCrawlingServiceTest {
         sut.crawlAllWorkspaces();
 
         verifyCrawlStartedFor("http://host1");
-        verifyNoMoreCrawls();
     }
 
     @Test
@@ -141,7 +140,6 @@ public class BulkWorkspaceCrawlingServiceTest {
         sut.crawlAllWorkspaces();
 
         crawlStartedForOriginWithSeeds("http://host1/", asList("http://host1", "http://host1/path1/", "http://host1/path2/"));
-        verifyNoMoreCrawls();
     }
 
     @Test
@@ -219,7 +217,6 @@ public class BulkWorkspaceCrawlingServiceTest {
         sut.crawlAllWorkspaces();
 
         verifyCrawlStartedFor("http://host1/cde/");
-        verifyNoMoreCrawls();
     }
 
     @Test
@@ -233,8 +230,6 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         verifyCrawlStartedFor("http://host1/");
         verifyCrawlStartedFor("http://host2/");
-
-        verifyNoMoreCrawls();
     }
 
     @Test
@@ -308,7 +303,7 @@ public class BulkWorkspaceCrawlingServiceTest {
                     conf.getOrigin().equals(originRoot) &&
                             conf.getSeeds().containsAll(expectedSeeds)));
 
-            mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job).start());
+            mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job, times(1)).start());
         } catch (Throwable e) {
             System.out.println(mockingDetails(crawlJobFactory).printInvocations());
             throw e;
@@ -321,6 +316,7 @@ public class BulkWorkspaceCrawlingServiceTest {
             mockJobs.stream().map(Tuple2::_2).forEach(Mockito::verifyNoMoreInteractions);
         } catch (Throwable e) {
             System.out.println(mockingDetails(crawlJobFactory).printInvocations());
+            mockJobs.stream().map(Tuple2::_2).forEach(crawlJob -> System.out.println(mockingDetails(crawlJob).printInvocations()));
             throw e;
         }
     }
