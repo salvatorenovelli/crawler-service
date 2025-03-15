@@ -75,7 +75,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(messageBrokerEventListener).onWebsiteCrawlStarted(
                 argThat(event -> event.getWebsiteCrawl().getId().toHexString().equals(job.getWebsiteCrawlId()))
@@ -89,7 +89,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(messageBrokerEventListener).onPageCrawlCompletedEvent(
                 aPageCrawledEvent().forCrawlId(job.getWebsiteCrawlId()).withPageSnapshotUri(getTestUri("/")).build()
@@ -111,7 +111,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(messageBrokerEventListener).onPageCrawlCompletedEvent(
                 aPageCrawledEvent().forCrawlId(job.getWebsiteCrawlId())
@@ -128,7 +128,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         //As the test is single threaded by design (included the executor in the queue), this works like a recursive algorithm
         //which goes depth first - so the first update gets published after the highest depth is discovered
@@ -158,7 +158,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         //this site has three pages. Pending is never 0 unless three pages have been visited
         verify(messageBrokerEventListener, never()).onCrawlStatusUpdate(aCrawlStatusUpdateEvent()
@@ -175,7 +175,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(messageBrokerEventListener).onWebsiteCrawlCompletedEvent(new WebsiteCrawlCompletedEvent(job.getWebsiteCrawl(), 3, Instant.EPOCH));
     }
@@ -190,7 +190,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(template, times(3)).publish(eq(pubSubProperties.getCrawlStatusUpdateConfiguration().getTopicName()), any(CrawlStatusUpdateEvent.class));
         verify(template).publish(eq(pubSubProperties.getWebsiteCrawlCompletedTopicName()), any(WebsiteCrawlCompletedEvent.class));
@@ -203,7 +203,7 @@ public class CrawlEventsIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(messageBrokerEventListener).onWebsiteCrawlStarted(
                 argThat(event -> {

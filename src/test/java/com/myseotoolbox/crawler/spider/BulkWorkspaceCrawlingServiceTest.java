@@ -1,8 +1,8 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.model.Workspace;
-import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
+import com.myseotoolbox.crawler.repository.CrawlDelayExpired;
+import com.myseotoolbox.crawler.repository.WebsiteCrawlRepository;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings;
@@ -10,6 +10,7 @@ import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.EmptyRobotsTxt;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
 import com.myseotoolbox.crawler.testutils.CurrentThreadTestExecutorService;
+import com.myseotoolbox.utils.CurrentTimeUtils;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import org.junit.Before;
@@ -29,8 +30,8 @@ import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettin
 import static java.net.URI.create;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
-import static java.util.stream.Collectors.toList;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.*;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -46,17 +47,17 @@ public class BulkWorkspaceCrawlingServiceTest {
 
     @Mock private CrawlJobFactory crawlJobFactory;
     @Mock private WorkspaceRepository workspaceRepository;
-    @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
     @Mock private RobotsTxtAggregation robotsAggregation;
-    @Mock private CrawlEventDispatchFactory dispatchFactory;
+    @Mock private WebsiteCrawlRepository websiteCrawlRepository;
 
     BulkWorkspaceCrawlingService sut;
     @Spy private Executor executor = new CurrentThreadTestExecutorService();
 
     @Before
     public void setUp() {
+         CrawlDelayExpired crawlDelayExpired = new CrawlDelayExpired(websiteCrawlRepository, new CurrentTimeUtils());
 
-        sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, dispatchFactory, robotsAggregation, executor);
+        sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, crawlDelayExpired, robotsAggregation, executor);
 
         when(crawlJobFactory.make(any())).thenAnswer(
                 invocation -> {
@@ -93,7 +94,6 @@ public class BulkWorkspaceCrawlingServiceTest {
         sut.crawlAllWorkspaces();
 
         verifyCrawlStartedFor("http://host1");
-
     }
 
     @Test
@@ -115,6 +115,7 @@ public class BulkWorkspaceCrawlingServiceTest {
         sut.crawlAllWorkspaces();
 
         verifyCrawlStartedFor("http://host1");
+        verifyNoMoreCrawls();
     }
 
     @Test
@@ -128,6 +129,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         crawlStartedForOriginWithSeeds("http://host1", asList("http://host1", "http://host1/path1/", "http://host1/path2/"));
         crawlStartedForOriginWithSeeds("http://host2", asList("http://host2"));
+        verifyNoMoreCrawls();
     }
 
     @Test
@@ -147,7 +149,6 @@ public class BulkWorkspaceCrawlingServiceTest {
         givenAWorkspace().withWebsiteUrl("TBD").build();
 
         sut.crawlAllWorkspaces();
-
         verifyNoMoreCrawls();
     }
 
@@ -170,12 +171,10 @@ public class BulkWorkspaceCrawlingServiceTest {
         sut.crawlAllWorkspaces();
 
         websiteCrawledWithConcurrentConnections(MAX_CONCURRENT_CONNECTIONS);
-
     }
 
     @Test
     public void numConnectionsOnlyCountsUniqueSeeds() {
-
         givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
         givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
         givenAWorkspace().withWebsiteUrl("http://host1/path1/").build();
@@ -183,14 +182,12 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         sut.crawlAllWorkspaces();
 
-
         websiteCrawledWithConcurrentConnections(2);
     }
 
     @Test
     public void exceptionInBuildOrStartShouldNotPreventOtherCrawls() {
         String originWithException = "http://host1/";
-
         givenAWorkspace().withWebsiteUrl(originWithException).build();
         givenAWorkspace().withWebsiteUrl("http://host2/").build();
 
@@ -215,8 +212,8 @@ public class BulkWorkspaceCrawlingServiceTest {
         givenAWorkspace().withWebsiteUrl("http://host1/cde/").withCrawlingIntervalOf(1).withLastCrawlHappened(YESTERDAY).build();
 
         sut.crawlAllWorkspaces();
-
         verifyCrawlStartedFor("http://host1/cde/");
+        verifyNoMoreCrawls();
     }
 
     @Test
@@ -230,6 +227,7 @@ public class BulkWorkspaceCrawlingServiceTest {
 
         verifyCrawlStartedFor("http://host1/");
         verifyCrawlStartedFor("http://host2/");
+        verifyNoMoreCrawls();
     }
 
     @Test
@@ -244,35 +242,6 @@ public class BulkWorkspaceCrawlingServiceTest {
         givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(DEFAULT_CRAWL_VALUE_WHEN_MISSING).withLastCrawlHappened(YESTERDAY).build();
         sut.crawlAllWorkspaces();
         verifyCrawlStartedFor("http://host1/");
-    }
-
-    @Test
-    public void shouldPersistLastCrawl() {
-        givenAWorkspace().withWebsiteUrl("http://host1/").withCrawlingIntervalOf(1).build();
-        sut.crawlAllWorkspaces();
-        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/") && argument.getDate() != null));
-    }
-
-    @Test
-    public void shouldNotPersistTwice() {
-        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
-        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
-
-        sut.crawlAllWorkspaces();
-
-        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
-        verify(websiteCrawlLogRepository, times(2)).findTopByOriginOrderByDateDesc(anyString());
-
-        System.out.println(mockingDetails(websiteCrawlLogRepository).printInvocations());
-        verifyNoMoreInteractions(websiteCrawlLogRepository);
-    }
-
-    @Test
-    public void shouldPersistLastCrawlShouldSaveBaseDomain() {
-        givenAWorkspace().withWebsiteUrl("http://host1/abc/").withCrawlingIntervalOf(1).build();
-        sut.crawlAllWorkspaces();
-
-        verify(websiteCrawlLogRepository).save(argThat(argument -> argument.getOrigin().equals("http://host1/abc/") && argument.getDate() != null));
     }
 
     @Test
@@ -294,7 +263,7 @@ public class BulkWorkspaceCrawlingServiceTest {
     }
 
     private synchronized void crawlStartedForOriginWithSeeds(String origin, List<String> seeds) {
-        List<URI> expectedSeeds = seeds.stream().map(URI::create).collect(toList());
+        List<URI> expectedSeeds = seeds.stream().map(URI::create).toList();
 
         try {
             URI originRoot = create(origin).resolve("/");
@@ -303,7 +272,7 @@ public class BulkWorkspaceCrawlingServiceTest {
                     conf.getOrigin().equals(originRoot) &&
                             conf.getSeeds().containsAll(expectedSeeds)));
 
-            mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job, times(1)).start());
+            mockJobs.stream().filter(tuple -> tuple._1 != null && tuple._1.getOrigin().equals(originRoot)).map(t -> t._2).forEach(job -> verify(job, times(1)).run());
         } catch (Throwable e) {
             System.out.println(mockingDetails(crawlJobFactory).printInvocations());
             throw e;
@@ -322,7 +291,7 @@ public class BulkWorkspaceCrawlingServiceTest {
     }
 
     private TestWorkspaceBuilder givenAWorkspace() {
-        return new TestWorkspaceBuilder(allWorkspaces, websiteCrawlLogRepository);
+        return new TestWorkspaceBuilder(allWorkspaces, websiteCrawlRepository);
     }
 
     private String addTrailingSlashIfMissing(String uri) {

@@ -1,21 +1,18 @@
 package com.myseotoolbox.crawler.spider;
 
-import com.myseotoolbox.crawler.CrawlEventDispatchFactory;
 import com.myseotoolbox.crawler.model.Workspace;
-import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
+import com.myseotoolbox.crawler.repository.CrawlDelayExpired;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlJobConfiguration;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
 import com.myseotoolbox.crawler.spider.filter.robotstxt.RobotsTxt;
-import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
 import com.myseotoolbox.crawler.utils.WebsiteOriginUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -28,23 +25,21 @@ import static com.myseotoolbox.crawler.utils.FunctionalExceptionUtils.runOrLogWa
 @Component
 public class BulkWorkspaceCrawlingService {
 
-
     public static final String CRAWL_OWNER = "cron@myseotoolbox.com";
     private final WorkspaceRepository workspaceRepository;
     private final CrawlJobFactory crawlJobFactory;
-    private final WebsiteCrawlLogRepository websiteCrawlLogRepository;
+    private final CrawlDelayExpired crawlDelayExpired;
     private final Executor executor;
     private final RobotsTxtAggregation robotsTxtAggregation;
 
     public BulkWorkspaceCrawlingService(WorkspaceRepository workspaceRepository,
                                         CrawlJobFactory crawlJobFactory,
-                                        WebsiteCrawlLogRepository websiteCrawlLogRepository,
-                                        CrawlEventDispatchFactory crawlEventDispatchFactory,
+                                        CrawlDelayExpired crawlDelayExpired,
                                         RobotsTxtAggregation robotsTxtAggregation,
                                         @Qualifier("crawl-job-init-executor") Executor executor) {
         this.workspaceRepository = workspaceRepository;
         this.crawlJobFactory = crawlJobFactory;
-        this.websiteCrawlLogRepository = websiteCrawlLogRepository;
+        this.crawlDelayExpired = crawlDelayExpired;
         this.executor = executor;
         this.robotsTxtAggregation = robotsTxtAggregation;
     }
@@ -79,10 +74,7 @@ public class BulkWorkspaceCrawlingService {
 
 
                             CrawlJob job = crawlJobFactory.make(conf);
-                            job.start();
-                            //TODO: this needs to go
-                            seeds.forEach(seed -> websiteCrawlLogRepository.save(new WebsiteCrawlLog(seed.toString(), LocalDate.now())));
-                            job.join();
+                            job.run();
                         }, "Error while starting crawl for: " + origin))
         );
 
@@ -115,32 +107,10 @@ public class BulkWorkspaceCrawlingService {
 
     private boolean shouldCrawl(Workspace workspace) {
         CrawlerSettings crawlerSettings = workspace.getCrawlerSettings();
-        return crawlerSettings != null && crawlerSettings.isCrawlEnabled() && isCrawlDelayExpired(workspace);
+        return crawlerSettings != null && crawlerSettings.isCrawlEnabled() && crawlDelayExpired.isCrawlDelayExpired(workspace);
     }
 
     private boolean validOrigin(Workspace workspace) {
         return WebsiteOriginUtils.isValidOrigin(workspace.getWebsiteUrl());
     }
-
-    private boolean isCrawlDelayExpired(Workspace workspace) {
-
-        return websiteCrawlLogRepository
-                .findTopByOriginOrderByDateDesc(workspace.getWebsiteUrl())
-                .map(lastCrawl -> {
-                    int crawlIntervalDays = workspace.getCrawlerSettings().getCrawlIntervalDays();
-                    boolean delayExpired = LocalDate.now().minusDays(crawlIntervalDays).compareTo(lastCrawl.getDate()) >= 0;
-
-                    if (!delayExpired) {
-                        log.info("Workspace {} doesnt need crawl yet. Crawl interval: {} Last Crawl: {}",
-                                workspace.getOwnerName() + " - " + workspace.getName(),
-                                crawlIntervalDays,
-                                lastCrawl.getDate());
-                    }
-
-                    return delayExpired;
-                })
-                .orElse(true);
-    }
-
-
 }

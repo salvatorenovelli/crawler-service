@@ -13,5 +13,4 @@ public class WebsiteCrawlFactory {
     public static WebsiteCrawl newWebsiteCrawlFor(String owner, CrawlTrigger trigger, String origin, Collection<URI> seeds) {
         return new WebsiteCrawl(new ObjectId(), owner, trigger, origin, null, seeds.stream().map(URI::toString).collect(Collectors.toList()));
     }
-
 }

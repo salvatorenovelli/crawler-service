@@ -47,6 +47,6 @@ public class CurrentThreadTestExecutorService extends ThreadPoolExecutor {
 
     @Override
     public boolean awaitTermination(long timeout, TimeUnit unit) {
-        throw new UnsupportedOperationException("Not implemented!");
+        return true;
     }
 }

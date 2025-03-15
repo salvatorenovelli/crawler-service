@@ -41,21 +41,21 @@ public class CrawlJobTest {
     @Test
     public void shouldFilterOutSeedsFromOutsideOrigin() {
         CrawlJob sut = initSut().withSeeds("http://domain1", "http://domain2").build();
-        sut.start();
+        sut.run();
         Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1")));
     }
 
     @Test
     public void shouldNotifySubscribers() {
         CrawlJob sut = initSut().build();
-        sut.start();
+        sut.run();
         Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1")));
     }
 
     @Test
     public void shouldOnlyVisitSeedsNotTheRoot() {
         CrawlJob sut = initSut().withSeeds("http://domain1/path1", "http://domain1/path2").build();
-        sut.start();
+        sut.run();
         Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path1")));
         Mockito.verify(dispatch).onPageCrawled(argThat(argument -> argument.getUri().equals("http://domain1/path2")));
         verify(dispatch, atMost(2)).onPageCrawled(any());
@@ -65,7 +65,7 @@ public class CrawlJobTest {
     @Test
     public void shouldNotVisitDuplicateSeeds() throws SnapshotException {
         CrawlJob sut = initSut().withSeeds("http://domain1", "http://domain1").build();
-        sut.start();
+        sut.run();
         verify(pageReader).snapshotPage(create("http://domain1"));
         verifyNoMoreInteractions(pageReader);
     }
@@ -74,7 +74,7 @@ public class CrawlJobTest {
     public void shouldNotifyForCrawlStarted() {
         String[] seeds = {"http://domain1/a", "http://domain1/b"};
         CrawlJob sut = initSut().withSeeds(seeds).build();
-        sut.start();
+        sut.run();
         verify(dispatch).onCrawlStarted();
     }
 

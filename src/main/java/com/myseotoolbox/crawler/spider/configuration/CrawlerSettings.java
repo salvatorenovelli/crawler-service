@@ -1,11 +1,13 @@
 package com.myseotoolbox.crawler.spider.configuration;
 
+import lombok.Builder;
 import lombok.Getter;
 
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.*;
 import static com.myseotoolbox.crawler.utils.EnsureRange.ensureRange;
 
 @Getter
+@Builder
 public class CrawlerSettings {
 
     private final int maxConcurrentConnections;

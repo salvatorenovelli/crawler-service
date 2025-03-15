@@ -2,6 +2,7 @@ package com.myseotoolbox.crawler.websitecrawl;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
+import lombok.Builder;
 import lombok.Data;
 import org.bson.types.ObjectId;
 
@@ -11,6 +12,7 @@ import java.util.Objects;
 
 
 @Data
+@Builder
 public class WebsiteCrawl {
     @JsonSerialize(using = ToStringSerializer.class)
     private final ObjectId id;

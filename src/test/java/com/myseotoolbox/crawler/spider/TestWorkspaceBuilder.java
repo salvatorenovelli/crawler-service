@@ -1,17 +1,19 @@
 package com.myseotoolbox.crawler.spider;
 
 import com.myseotoolbox.crawler.model.Workspace;
-import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
+import com.myseotoolbox.crawler.repository.WebsiteCrawlRepository;
 import com.myseotoolbox.crawler.spider.configuration.CrawlerSettings;
 import com.myseotoolbox.crawler.spider.configuration.FilterConfiguration;
-import com.myseotoolbox.crawler.spider.model.WebsiteCrawlLog;
+import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
+import com.myseotoolbox.crawler.websitecrawl.WebsiteCrawl;
 
-import javax.annotation.Nullable;
-import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.myseotoolbox.crawler.spider.CrawlerSettingsBuilder.*;
+import static com.myseotoolbox.crawler.spider.CrawlerSettingsBuilder.from;
 import static com.myseotoolbox.crawler.spider.configuration.DefaultCrawlerSettings.DEFAULT_MAX_URL_PER_CRAWL;
 import static org.mockito.Mockito.when;
 
@@ -20,14 +22,20 @@ public class TestWorkspaceBuilder {
     private final Workspace curWorkspace;
     private final FilterConfiguration filterConf = new FilterConfiguration(false);
     private final List<Workspace> allWorkspaces;
-    private final List<WebsiteCrawlLog> crawlLogs = new ArrayList<>();
-    private WebsiteCrawlLogRepository websiteCrawlLogRepository;
+    private final WebsiteCrawlRepository crawlRepository;
+    private static final AtomicInteger counter = new AtomicInteger(0);
+    private WebsiteCrawl lastWebsiteCrawl;
 
-    public TestWorkspaceBuilder(List<Workspace> workspacesOut, @Nullable WebsiteCrawlLogRepository websiteCrawlLogRepository) {
+    public TestWorkspaceBuilder(List<Workspace> workspacesOut) {
+        this(workspacesOut, null);
+    }
+
+    public TestWorkspaceBuilder(List<Workspace> workspacesOut, WebsiteCrawlRepository crawlRepository) {
         this.allWorkspaces = workspacesOut;
-        this.websiteCrawlLogRepository = websiteCrawlLogRepository;
         this.curWorkspace = new Workspace();
         this.curWorkspace.setCrawlerSettings(CrawlerSettingsBuilder.defaultSettings().build());
+        this.curWorkspace.setSeqNumber(counter.getAndIncrement());
+        this.crawlRepository = crawlRepository;
     }
 
     public TestWorkspaceBuilder withWebsiteUrl(String s) {
@@ -43,12 +51,8 @@ public class TestWorkspaceBuilder {
     public void build() {
         allWorkspaces.add(curWorkspace);
 
-        if (websiteCrawlLogRepository != null) {
-            when(websiteCrawlLogRepository
-                    .findTopByOriginOrderByDateDesc(curWorkspace.getWebsiteUrl()))
-                    .thenAnswer(invocation -> crawlLogs.stream()
-                            .filter(websiteCrawlLog -> websiteCrawlLog.getOrigin().equals(invocation.getArgument(0)))
-                            .findFirst());
+        if (crawlRepository != null) {
+            when(crawlRepository.findLatestByWorkspace(curWorkspace.getSeqNumber())).thenReturn(Optional.ofNullable(lastWebsiteCrawl));
         }
     }
 
@@ -69,7 +73,10 @@ public class TestWorkspaceBuilder {
     }
 
     public TestWorkspaceBuilder withLastCrawlHappened(int dayOffset) {
-        crawlLogs.add(new WebsiteCrawlLog(curWorkspace.getWebsiteUrl(), LocalDate.now().plusDays(dayOffset)));
+        lastWebsiteCrawl = WebsiteCrawl.builder()
+                .startedAt(Instant.now().plus(dayOffset, ChronoUnit.DAYS))
+                .trigger(CrawlTrigger.forUserInitiatedWorkspaceCrawl(curWorkspace.getSeqNumber()))
+                .build();
         return this;
     }
 

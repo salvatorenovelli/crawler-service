@@ -52,7 +52,7 @@ public class AdminWorkspaceCrawlStartController {
         CrawlJobConfiguration conf = getConfiguration(request.getCrawlOwner(), ws.getSeqNumber(), origin, Collections.singletonList(origin), request.getNumConnections(), shouldIgnoreRobotsTxt(ws), ws.getCrawlerSettings().getCrawlDelayMillis());
         CrawlJob job = factory.make(conf);
 
-        job.start();
+        job.run();
         return new CrawlWorkspaceResponse(conf.getWebsiteCrawl().getId());
     }
 

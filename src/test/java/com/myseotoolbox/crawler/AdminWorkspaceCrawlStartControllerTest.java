@@ -5,10 +5,10 @@ import com.myseotoolbox.crawler.httpclient.HTTPClient;
 import com.myseotoolbox.crawler.model.CrawlWorkspaceRequest;
 import com.myseotoolbox.crawler.model.Workspace;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
+import com.myseotoolbox.crawler.spider.BulkWorkspaceCrawlingService;
 import com.myseotoolbox.crawler.spider.CrawlJob;
 import com.myseotoolbox.crawler.spider.CrawlJobFactory;
 import com.myseotoolbox.crawler.spider.TestWorkspaceBuilder;
-import com.myseotoolbox.crawler.spider.BulkWorkspaceCrawlingService;
 import com.myseotoolbox.crawler.websitecrawl.CrawlTrigger;
 import org.bson.types.ObjectId;
 import org.hamcrest.Description;
@@ -29,10 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -86,7 +86,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
             return true;
         }));
 
-        verify(job).start();
+        verify(job).run();
     }
 
     @Test
@@ -152,7 +152,7 @@ public class AdminWorkspaceCrawlStartControllerTest {
     }
 
     private TestWorkspaceBuilder givenAWorkspace() {
-        return new TestWorkspaceBuilder(allWorkspaces, null);
+        return new TestWorkspaceBuilder(allWorkspaces);
     }
 
 }

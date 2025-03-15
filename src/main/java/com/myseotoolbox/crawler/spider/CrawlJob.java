@@ -34,13 +34,14 @@ public class CrawlJob {
         crawlerPoolStatusMonitor = new CrawlerPoolStatusMonitor(name, executor);
     }
 
-    public void start() {
+    public void run() {
         notifyCrawlStart();
         crawlerQueue.start();
         crawlerPoolStatusMonitor.start();
+        join();
     }
 
-    public void join() {
+    private void join() {
         try {
             if (!executor.awaitTermination(5, TimeUnit.HOURS)) {
                 log.warn("Crawl did not terminate in time, forcing shutdown. WebsiteCrawl: {} ", websiteCrawl);

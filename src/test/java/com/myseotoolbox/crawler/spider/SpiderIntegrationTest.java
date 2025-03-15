@@ -79,7 +79,7 @@ public class SpiderIntegrationTest {
     //    @Test
     public void exploratoryTest() {
         CrawlJob crawlJob = buildForSeeds(List.of(URI.create("https://www.example.com")));
-        crawlJob.start();
+        crawlJob.run();
     }
 
     @Test
@@ -90,7 +90,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/abc"));
@@ -107,7 +107,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy, times(3)).onCrawlStatusUpdate(anyInt(), anyInt());
     }
@@ -119,7 +119,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/another-page"));
@@ -133,7 +133,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/link1"));
@@ -146,7 +146,7 @@ public class SpiderIntegrationTest {
                 .withSitemapOn("/").havingUrls("/link1", "/link2.png").build()
                 .save();
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy, never()).onPageCrawled(uri("/link2.png"));
     }
@@ -162,7 +162,7 @@ public class SpiderIntegrationTest {
                 .build().getTestWebsite();
 
         CrawlJob job = buildForSeeds(testSeeds("/en/gb/"));
-        job.start();
+        job.run();
 
 
         verify(dispatchSpy, never()).onPageCrawled(uri("/en/gb/3"));
@@ -180,7 +180,7 @@ public class SpiderIntegrationTest {
                 .build().getTestWebsite();
 
         CrawlJob job = buildForSeeds(testSeeds("/en/gb/"));
-        job.start();
+        job.run();
 
         assertThat(testWebsite.getRequestsReceivedAsUrls(), not(hasItems("/it/it/sitemap.xml")));
     }
@@ -192,7 +192,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/another-page"));
@@ -207,7 +207,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/base/"));
-        job.start();
+        job.run();
 
 
         verify(dispatchSpy).onPageCrawled(uri("/base/"));
@@ -227,7 +227,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/base/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/base/"));
@@ -246,7 +246,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/base/", "/base2/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/base/"));
         verify(dispatchSpy).onPageCrawled(uri("/base2/"));
@@ -267,7 +267,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/base", "/base2"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/base"));
         verify(dispatchSpy).onPageCrawled(uri("/base2"));
@@ -283,7 +283,7 @@ public class SpiderIntegrationTest {
                 .havingRootPage().redirectingTo(301, "/blocked-by-robots").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         List<ReceivedRequest> receivedRequests = save.getRequestsReceived();
 
@@ -299,7 +299,7 @@ public class SpiderIntegrationTest {
                 .havingPage("/dst2").redirectingTo(301, "/blocked-by-robots").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/dst1"));
@@ -312,7 +312,7 @@ public class SpiderIntegrationTest {
         givenAWebsite().havingRootPage().withTitle("This <b>has</b> leading spaces    ").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(argThat(snapshot -> {
             assertThat(snapshot.getPageSnapshot().getTitle(), is("This has leading spaces"));
@@ -326,7 +326,7 @@ public class SpiderIntegrationTest {
                 .havingRootPage().withLinksTo("/dst1   ").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/dst1"));
@@ -340,7 +340,7 @@ public class SpiderIntegrationTest {
                 .havingRootPage().withLinksTo("/disallowed").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy, atMost(1)).onPageCrawled(any());
@@ -353,7 +353,7 @@ public class SpiderIntegrationTest {
                 .havingPage("/link withspaces/base").withLinksTo("relative").save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         verify(dispatchSpy).onPageCrawled(uri("/"));
         verify(dispatchSpy).onPageCrawled(uri("/link%20withspaces/relative"));
@@ -370,7 +370,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(1), snapshotsForUris("/path1", "/path1/1"));
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(3), snapshotsForUris("/", "/path1", "/path1/1", "/path3/3"));
@@ -388,7 +388,7 @@ public class SpiderIntegrationTest {
                 .save();
 
         CrawlJob job = buildForSeeds(testSeeds("/"));
-        job.start();
+        job.run();
 
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(1), snapshotsForUris("/path1", "/path1/1"));
         assertThat(monitoredUriRepository.findAllByWorkspaceNumber(2), hasSize(0));

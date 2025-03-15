@@ -5,7 +5,7 @@ import com.myseotoolbox.crawler.config.WebPageReaderFactory;
 import com.myseotoolbox.crawler.httpclient.*;
 import com.myseotoolbox.crawler.model.CrawlResult;
 import com.myseotoolbox.crawler.model.Workspace;
-import com.myseotoolbox.crawler.repository.WebsiteCrawlLogRepository;
+import com.myseotoolbox.crawler.repository.CrawlDelayExpired;
 import com.myseotoolbox.crawler.repository.WorkspaceRepository;
 import com.myseotoolbox.crawler.spider.configuration.ClockUtils;
 import com.myseotoolbox.crawler.spider.configuration.RobotsTxtAggregation;
@@ -42,9 +42,8 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
 
 
     @Mock private WorkspaceRepository workspaceRepository;
-    @Mock private WebsiteCrawlLogRepository websiteCrawlLogRepository;
+    @Mock private CrawlDelayExpired crawlDelayExpired;
     @Mock private CrawlEventDispatch dispatch;
-    @Mock private CrawlEventDispatchFactory listenerProvider;
 
     private List<Workspace> allWorkspaces = new ArrayList<>();
     private CrawlJobFactory crawlJobFactory;
@@ -54,12 +53,13 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
     @Before
     public void setUp() throws Exception {
         when(workspaceRepository.findAll()).thenReturn(allWorkspaces);
+        when(crawlDelayExpired.isCrawlDelayExpired(any())).thenReturn(true);
 
         crawlJobFactory = TestCrawlJobFactoryBuilder.builder()
                 .withCrawlEventDispatch(dispatch)
                 .withCLockUtils(testClockUtils)
                 .build();
-        sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, websiteCrawlLogRepository, listenerProvider, robotsAggregation, executor);
+        sut = new BulkWorkspaceCrawlingService(workspaceRepository, crawlJobFactory, crawlDelayExpired, robotsAggregation, executor);
         testWebsiteBuilder.run();
     }
 
@@ -203,7 +203,7 @@ public class BulkWorkspaceCrawlingServiceIntegrationExploratoryTest {
     }
 
     private TestWorkspaceBuilder givenAWorkspace() {
-        return new TestWorkspaceBuilder(allWorkspaces, websiteCrawlLogRepository);
+        return new TestWorkspaceBuilder(allWorkspaces);
     }
 
 }

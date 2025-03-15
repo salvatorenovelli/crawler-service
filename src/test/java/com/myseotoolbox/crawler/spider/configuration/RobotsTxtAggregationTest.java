@@ -103,7 +103,7 @@ public class RobotsTxtAggregationTest {
     }
 
     private TestWorkspaceBuilder givenAWorkspace() {
-        return new TestWorkspaceBuilder(allWorkspaces, null);
+        return new TestWorkspaceBuilder(allWorkspaces);
     }
 
     private URI uri(String s) {

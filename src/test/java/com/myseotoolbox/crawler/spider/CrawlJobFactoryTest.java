@@ -74,7 +74,7 @@ public class CrawlJobFactoryTest {
         CrawlJobConfiguration configuration = testConf.withSeeds(seeds("/path1", "/path2")).build();
 
         CrawlJob job = sut.make(configuration);
-        job.start();
+        job.run();
 
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path1"));
         verify(reader).snapshotPage(TEST_ORIGIN.resolve("/path2"));
@@ -89,7 +89,7 @@ public class CrawlJobFactoryTest {
                 .withSeeds(seeds("/path1", "/path2", "/path3", "/path4", "/path5", "/path6"))
                 .build();
         CrawlJob job = sut.make(configuration);
-        job.start();
+        job.run();
 
         verify(dispatch, times(3)).onPageCrawled(any());
     }
@@ -97,14 +97,14 @@ public class CrawlJobFactoryTest {
     @Test
     public void shouldNotifyMonitoredUriUpdater() {
         CrawlJob job = sut.make(testConf.build());
-        job.start();
+        job.run();
         verify(dispatch).onPageCrawled(argThat(snapshot -> snapshot.getUri().equals(TEST_ORIGIN.toString())));
     }
 
     @Test
     public void shouldFilterAsSpecified() throws SnapshotException {
         CrawlJob job = sut.make(testConf.build());
-        job.start();
+        job.run();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
         verifyNoMoreInteractions(reader);
@@ -119,7 +119,7 @@ public class CrawlJobFactoryTest {
         when(sitemapService.fetchSeedsFromSitemaps(any(), any())).thenReturn(result);
 
         CrawlJob job = sut.make(testConf.build());
-        job.start();
+        job.run();
 
         verify(reader).snapshotPage(TEST_ORIGIN);
         verify(reader).snapshotPage(linkFromSitemap);
@@ -141,7 +141,7 @@ public class CrawlJobFactoryTest {
 
 
         CrawlJob job = sut.make(conf);
-        job.start();
+        job.run();
 
         verify(filtersFactory).build(TEST_ORIGIN, Collections.singletonList("/"), mockRobotsTxt);
     }
